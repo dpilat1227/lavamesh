@@ -2,17 +2,21 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+const DEFAULT_TENANT = 'admin';
+
 export default function Dashboard() {
+    const [tenant, setTenant] = useState<string>(DEFAULT_TENANT);
+    const [tenantInput, setTenantInput] = useState<string>(DEFAULT_TENANT);
     const [nodes, setNodes] = useState<any[]>([]);
     const [authKey, setAuthKey] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [revokingIds, setRevokingIds] = useState<Set<string>>(new Set());
 
-    const fetchNodes = useCallback(async (showSpinner = false) => {
+    const fetchNodes = useCallback(async (forTenant: string, showSpinner = false) => {
         if (showSpinner) setRefreshing(true);
         try {
-            const res = await fetch('/api/nodes');
+            const res = await fetch(`/api/nodes?user=${encodeURIComponent(forTenant)}`);
             const data = await res.json();
             if (data.nodes) setNodes(data.nodes);
         } catch (err) {
@@ -22,10 +26,22 @@ export default function Dashboard() {
         }
     }, []);
 
+    const applyTenant = (name: string) => {
+        const trimmed = name.trim() || DEFAULT_TENANT;
+        setTenant(trimmed);
+        setTenantInput(trimmed);
+        setNodes([]);
+        setAuthKey('');
+        fetchNodes(trimmed);
+    };
+
     const generateKey = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/nodes', { method: 'POST' });
+            const res = await fetch('/api/nodes', {
+                method: 'POST',
+                headers: { 'x-lavamesh-user': tenant },
+            });
             const data = await res.json();
             if (data.preAuthKey?.key) {
                 setAuthKey(data.preAuthKey.key);
@@ -38,19 +54,16 @@ export default function Dashboard() {
     };
 
     const revokeNode = async (nodeId: string) => {
-        // Optimistically remove from UI
         setNodes((prev) => prev.filter((n) => String(n.id) !== String(nodeId)));
         setRevokingIds((prev) => new Set(prev).add(nodeId));
         try {
             const res = await fetch(`/api/nodes/${nodeId}`, { method: 'DELETE' });
             if (!res.ok) {
-                // Revert optimistic removal on failure
-                fetchNodes();
+                fetchNodes(tenant);
                 console.error('Failed to revoke node', nodeId);
             }
         } catch (err) {
-            // Revert optimistic removal on error
-            fetchNodes();
+            fetchNodes(tenant);
             console.error(err);
         } finally {
             setRevokingIds((prev) => {
@@ -62,14 +75,16 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        fetchNodes();
-        const interval = setInterval(() => fetchNodes(), 10000);
+        fetchNodes(tenant);
+        const interval = setInterval(() => fetchNodes(tenant), 10000);
         return () => clearInterval(interval);
-    }, [fetchNodes]);
+    }, [fetchNodes, tenant]);
 
     return (
         <div className="min-h-screen bg-[#07090e] text-slate-100 font-sans p-8">
             <div className="max-w-5xl mx-auto space-y-8">
+
+                {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-800 pb-5">
                     <h1 className="text-2xl font-bold tracking-tight text-white">LavaMesh Console</h1>
                     <button
@@ -81,22 +96,62 @@ export default function Dashboard() {
                     </button>
                 </div>
 
+                {/* Tenant selector */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4">
+                    <p className="text-xs uppercase font-mono tracking-wider text-slate-400 mb-3">
+                        Active Namespace
+                    </p>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 flex-1 bg-black/40 border border-slate-700 rounded-lg px-3 py-2">
+                            {/* namespace icon */}
+                            <svg className="w-3.5 h-3.5 text-orange-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                value={tenantInput}
+                                onChange={(e) => setTenantInput(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && applyTenant(tenantInput)}
+                                placeholder="Tenant name (e.g. admin, acme-corp)"
+                                className="flex-1 bg-transparent text-sm font-mono text-white placeholder-slate-600 outline-none"
+                            />
+                        </div>
+                        <button
+                            onClick={() => applyTenant(tenantInput)}
+                            disabled={tenantInput.trim() === tenant}
+                            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-medium rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            Switch
+                        </button>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-mono bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block"></span>
+                            {tenant}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Provision key */}
                 {authKey && (
                     <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 space-y-2">
-                        <p className="text-xs uppercase font-mono tracking-wider text-orange-400">Node Onboarding Command</p>
+                        <p className="text-xs uppercase font-mono tracking-wider text-orange-400">
+                            Node Onboarding Command — namespace: <span className="text-white">{tenant}</span>
+                        </p>
                         <pre className="bg-black/50 p-3 rounded-lg text-xs font-mono text-slate-200 overflow-x-auto">
                             curl -fsSL https://www.lavamesh.com/api/install.sh?token={authKey} | sudo sh
                         </pre>
                     </div>
                 )}
 
+                {/* Fleet table */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-white">
-                            Active Fleet Nodes ({nodes.length})
+                            Active Fleet Nodes
+                            <span className="ml-2 text-slate-400 text-base font-normal">({nodes.length})</span>
+                            <span className="ml-3 text-xs font-mono text-slate-500">/ {tenant}</span>
                         </h2>
                         <button
-                            onClick={() => fetchNodes(true)}
+                            onClick={() => fetchNodes(tenant, true)}
                             disabled={refreshing}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium rounded-lg text-xs transition disabled:opacity-50"
                         >
@@ -126,7 +181,9 @@ export default function Dashboard() {
                             <tbody className="divide-y divide-slate-800/50 font-mono text-xs">
                                 {nodes.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-6 text-center text-slate-500">No nodes connected yet.</td>
+                                        <td colSpan={5} className="py-6 text-center text-slate-500">
+                                            No nodes connected in namespace <span className="text-slate-400">{tenant}</span>.
+                                        </td>
                                     </tr>
                                 ) : (
                                     nodes.map((node) => {
