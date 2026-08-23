@@ -4,6 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 
 const DEFAULT_TENANT = 'admin';
 
+interface Route {
+    prefix: string;
+    advertised: boolean;
+    enabled: boolean;
+    isPrimary: boolean;
+}
+
+interface NodeRouteState {
+    routes: Route[];
+    loading: boolean;
+    approving: boolean;
+}
+
 export default function Dashboard() {
     const [tenant, setTenant] = useState<string>(DEFAULT_TENANT);
     const [tenantInput, setTenantInput] = useState<string>(DEFAULT_TENANT);
@@ -12,19 +25,73 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [revokingIds, setRevokingIds] = useState<Set<string>>(new Set());
+    // Per-node route state: { [nodeId]: NodeRouteState }
+    const [nodeRoutes, setNodeRoutes] = useState<Record<string, NodeRouteState>>({});
+
+    // ── Route helpers ──────────────────────────────────────────────────
+
+    const fetchRoutesForNode = useCallback(async (nodeId: string) => {
+        setNodeRoutes((prev) => ({
+            ...prev,
+            [nodeId]: { routes: prev[nodeId]?.routes ?? [], loading: true, approving: false },
+        }));
+        try {
+            const res = await fetch(`/api/nodes/${nodeId}/routes`);
+            if (!res.ok) throw new Error('Failed to fetch routes');
+            const data = await res.json();
+            // Headscale returns { routes: Route[] }
+            setNodeRoutes((prev) => ({
+                ...prev,
+                [nodeId]: { routes: data.routes ?? [], loading: false, approving: false },
+            }));
+        } catch {
+            setNodeRoutes((prev) => ({
+                ...prev,
+                [nodeId]: { routes: [], loading: false, approving: false },
+            }));
+        }
+    }, []);
+
+    const approveRoutes = useCallback(async (nodeId: string, routes: string[]) => {
+        setNodeRoutes((prev) => ({
+            ...prev,
+            [nodeId]: { ...prev[nodeId], approving: true },
+        }));
+        try {
+            await fetch(`/api/nodes/${nodeId}/routes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ routes }),
+            });
+            // Refresh routes after approval
+            await fetchRoutesForNode(nodeId);
+        } catch (err) {
+            console.error('Failed to approve routes', err);
+            setNodeRoutes((prev) => ({
+                ...prev,
+                [nodeId]: { ...prev[nodeId], approving: false },
+            }));
+        }
+    }, [fetchRoutesForNode]);
+
+    // ── Node helpers ───────────────────────────────────────────────────
 
     const fetchNodes = useCallback(async (forTenant: string, showSpinner = false) => {
         if (showSpinner) setRefreshing(true);
         try {
             const res = await fetch(`/api/nodes?user=${encodeURIComponent(forTenant)}`);
             const data = await res.json();
-            if (data.nodes) setNodes(data.nodes);
+            if (data.nodes) {
+                setNodes(data.nodes);
+                // Fetch routes for each node
+                data.nodes.forEach((n: any) => fetchRoutesForNode(String(n.id)));
+            }
         } catch (err) {
             console.error(err);
         } finally {
             if (showSpinner) setRefreshing(false);
         }
-    }, []);
+    }, [fetchRoutesForNode]);
 
     const applyTenant = (name: string) => {
         const trimmed = name.trim() || DEFAULT_TENANT;
@@ -32,6 +99,7 @@ export default function Dashboard() {
         setTenantInput(trimmed);
         setNodes([]);
         setAuthKey('');
+        setNodeRoutes({});
         fetchNodes(trimmed);
     };
 
@@ -80,9 +148,11 @@ export default function Dashboard() {
         return () => clearInterval(interval);
     }, [fetchNodes, tenant]);
 
+    // ── Render ─────────────────────────────────────────────────────────
+
     return (
         <div className="min-h-screen bg-[#07090e] text-slate-100 font-sans p-8">
-            <div className="max-w-5xl mx-auto space-y-8">
+            <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-800 pb-5">
@@ -103,7 +173,6 @@ export default function Dashboard() {
                     </p>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 flex-1 bg-black/40 border border-slate-700 rounded-lg px-3 py-2">
-                            {/* namespace icon */}
                             <svg className="w-3.5 h-3.5 text-orange-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -171,17 +240,18 @@ export default function Dashboard() {
                         <table className="w-full text-left text-sm">
                             <thead className="border-b border-slate-800 text-slate-400 font-mono text-xs">
                                 <tr>
-                                    <th className="pb-3">Hostname</th>
-                                    <th className="pb-3">Mesh IPv4</th>
-                                    <th className="pb-3">Last Seen</th>
-                                    <th className="pb-3">Status</th>
+                                    <th className="pb-3 pr-4">Hostname</th>
+                                    <th className="pb-3 pr-4">Mesh IPv4</th>
+                                    <th className="pb-3 pr-4">Subnet Routes</th>
+                                    <th className="pb-3 pr-4">Last Seen</th>
+                                    <th className="pb-3 pr-4">Status</th>
                                     <th className="pb-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50 font-mono text-xs">
                                 {nodes.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-6 text-center text-slate-500">
+                                        <td colSpan={6} className="py-6 text-center text-slate-500">
                                             No nodes connected in namespace <span className="text-slate-400">{tenant}</span>.
                                         </td>
                                     </tr>
@@ -189,12 +259,74 @@ export default function Dashboard() {
                                     nodes.map((node) => {
                                         const nodeId = String(node.id);
                                         const isRevoking = revokingIds.has(nodeId);
+                                        const routeState = nodeRoutes[nodeId];
+                                        const routes = routeState?.routes ?? [];
+
+                                        // Unapproved = advertised but not yet enabled
+                                        const unapprovedRoutes = routes.filter(
+                                            (r) => r.advertised && !r.enabled
+                                        );
+                                        const approvedRoutes = routes.filter(
+                                            (r) => r.advertised && r.enabled
+                                        );
+                                        const hasUnapproved = unapprovedRoutes.length > 0;
+
                                         return (
-                                            <tr key={node.id} className="opacity-100 transition-opacity">
-                                                <td className="py-3 text-white font-medium">{node.givenName || node.name}</td>
-                                                <td className="py-3 text-orange-400">{node.ipAddresses?.[0] || 'N/A'}</td>
-                                                <td className="py-3 text-slate-400">{new Date(node.lastSeen).toLocaleTimeString()}</td>
-                                                <td className="py-3">
+                                            <tr key={node.id} className="opacity-100 transition-opacity align-top">
+                                                <td className="py-3 pr-4 text-white font-medium">{node.givenName || node.name}</td>
+                                                <td className="py-3 pr-4 text-orange-400">{node.ipAddresses?.[0] || 'N/A'}</td>
+
+                                                {/* Subnet Routes column */}
+                                                <td className="py-3 pr-4">
+                                                    {routeState?.loading ? (
+                                                        <span className="text-slate-600">loading…</span>
+                                                    ) : routes.length === 0 ? (
+                                                        <span className="text-slate-700">—</span>
+                                                    ) : (
+                                                        <div className="space-y-1.5">
+                                                            {/* Approved routes */}
+                                                            {approvedRoutes.map((r) => (
+                                                                <span
+                                                                    key={r.prefix}
+                                                                    className="inline-flex items-center gap-1 mr-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                                                >
+                                                                    <span className="w-1 h-1 rounded-full bg-emerald-400 inline-block shrink-0"></span>
+                                                                    {r.prefix}
+                                                                </span>
+                                                            ))}
+                                                            {/* Unapproved routes */}
+                                                            {unapprovedRoutes.map((r) => (
+                                                                <span
+                                                                    key={r.prefix}
+                                                                    className="inline-flex items-center gap-1 mr-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                                                >
+                                                                    <span className="w-1 h-1 rounded-full bg-amber-400 inline-block shrink-0"></span>
+                                                                    {r.prefix}
+                                                                </span>
+                                                            ))}
+                                                            {/* Approve button if any unapproved */}
+                                                            {hasUnapproved && (
+                                                                <div className="mt-1">
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            approveRoutes(
+                                                                                nodeId,
+                                                                                unapprovedRoutes.map((r) => r.prefix)
+                                                                            )
+                                                                        }
+                                                                        disabled={routeState?.approving}
+                                                                        className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                    >
+                                                                        {routeState?.approving ? 'Approving…' : `Approve ${unapprovedRoutes.length} route${unapprovedRoutes.length > 1 ? 's' : ''}`}
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                <td className="py-3 pr-4 text-slate-400">{new Date(node.lastSeen).toLocaleTimeString()}</td>
+                                                <td className="py-3 pr-4">
                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                                         Active
                                                     </span>

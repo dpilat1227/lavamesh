@@ -68,3 +68,19 @@ export async function deleteNode(nodeId: string | number) {
         method: 'DELETE',
     });
 }
+
+/** Returns the routes advertised by a node (advertised + enabled status). */
+export async function getNodeRoutes(nodeId: string | number) {
+    return headscaleFetch(`/node/${nodeId}/routes`);
+}
+
+/**
+ * Enables/approves a list of subnet routes for a node.
+ * Headscale expects POST /node/:id/routes with body { routes: string[] }.
+ */
+export async function enableNodeRoutes(nodeId: string | number, routes: string[]) {
+    return headscaleFetch(`/node/${nodeId}/routes`, {
+        method: 'POST',
+        body: { routes },
+    });
+}
