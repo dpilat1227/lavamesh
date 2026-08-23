@@ -25,6 +25,25 @@ export async function headscaleFetch(path: string, options: HeadscaleFetchOption
     return res.json();
 }
 
+/**
+ * Ensures a Headscale user/namespace exists. Gracefully ignores 400/409 errors
+ * (user already exists) so this is safe to call idempotently before key creation.
+ */
+export async function createUser(name: string) {
+    try {
+        return await headscaleFetch('/user', {
+            method: 'POST',
+            body: { name },
+        });
+    } catch (err: any) {
+        // 400 / 409 both mean the user already exists — not an error for our purposes
+        if (/\b(400|409)\b/.test(err?.message ?? '')) {
+            return null;
+        }
+        throw err;
+    }
+}
+
 export async function createPreAuthKey(user: string = 'admin', reusable: boolean = true, ephemeral: boolean = false) {
     const expiration = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     return headscaleFetch('/preauthkey', {
@@ -38,8 +57,9 @@ export async function createPreAuthKey(user: string = 'admin', reusable: boolean
     });
 }
 
-export async function listNodes() {
-    const data = await headscaleFetch('/node');
+export async function listNodes(user?: string) {
+    const path = user ? `/node?user=${encodeURIComponent(user)}` : '/node';
+    const data = await headscaleFetch(path);
     return data.nodes || [];
 }
 
