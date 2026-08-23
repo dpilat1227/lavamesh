@@ -5,6 +5,7 @@ export async function GET(req: NextRequest) {
     const token = searchParams.get('token');
     const isEphemeral = searchParams.get('ephemeral') === 'true';
     const tag = searchParams.get('tag');
+    const routes = searchParams.get('routes'); // e.g. "192.168.1.0/24,10.0.0.0/16"
     const serverUrl = process.env.HEADSCALE_PUBLIC_URL || 'https://mesh.lavamesh.com';
 
     if (!token) {
@@ -16,6 +17,18 @@ export async function GET(req: NextRequest) {
 
     const tagFlag = tag ? `--advertise-tags="${tag}" \\` : '';
     const ephemeralFlag = isEphemeral ? '--ephemeral \\' : '';
+    const routesFlag = routes ? `--advertise-routes="${routes}" \\` : '';
+
+    // When advertising routes on Linux, persist IP forwarding so it survives reboots.
+    const linuxIpForwarding = routes
+        ? `
+  # Persist IP forwarding for subnet routing
+  echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf > /dev/null
+  echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf > /dev/null
+  sudo sysctl -p /etc/sysctl.d/99-tailscale.conf > /dev/null`
+        : `
+  sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
+  sudo sysctl -w net.ipv6.conf.all.forwarding=1 >/dev/null 2>&1 || true`;
 
     const script = `#!/bin/sh
 set -e
@@ -28,9 +41,7 @@ case "$OS" in
     if ! command -v tailscale >/dev/null 2>&1; then
       echo "==> Installing Tailscale on Linux..."
       curl -fsSL https://tailscale.com/install.sh | sh
-    fi
-    sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
-    sudo sysctl -w net.ipv6.conf.all.forwarding=1 >/dev/null 2>&1 || true
+    fi${linuxIpForwarding}
     ;;
   Darwin*)
     if ! command -v tailscale >/dev/null 2>&1; then
@@ -50,6 +61,7 @@ sudo tailscale up \\
   --login-server="${serverUrl}" \\
   --authkey="${token}" \\
   ${tagFlag}
+  ${routesFlag}
   ${ephemeralFlag}
   --accept-routes \\
   --accept-dns=true \\
@@ -57,6 +69,7 @@ sudo tailscale up \\
 
 echo "==> Node connected successfully! Assigned IP:"
 tailscale ip -4
+${routes ? `\necho "==> Advertising subnet routes: ${routes}"` : ''}
 `;
 
     return new NextResponse(script, {
