@@ -4,7 +4,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const token = searchParams.get('token');
     const isEphemeral = searchParams.get('ephemeral') === 'true';
-    const tag = searchParams.get('tag') || 'tag:server';
+    const tag = searchParams.get('tag');
     const serverUrl = process.env.HEADSCALE_PUBLIC_URL || 'https://mesh.lavamesh.com';
 
     if (!token) {
@@ -13,6 +13,9 @@ export async function GET(req: NextRequest) {
             headers: { 'Content-Type': 'text/plain' },
         });
     }
+
+    const tagFlag = tag ? `--advertise-tags="${tag}" \\` : '';
+    const ephemeralFlag = isEphemeral ? '--ephemeral \\' : '';
 
     const script = `#!/bin/sh
 set -e
@@ -31,8 +34,8 @@ echo "==> Connecting to LavaMesh control plane..."
 sudo tailscale up \\
   --login-server="${serverUrl}" \\
   --authkey="${token}" \\
-  --advertise-tags="${tag}" \\
-  ${isEphemeral ? '--ephemeral' : ''} \\
+  ${tagFlag}
+  ${ephemeralFlag}
   --accept-routes \\
   --accept-dns=true \\
   --reset
