@@ -22,13 +22,28 @@ set -e
 
 echo "==> [LavaMesh] Initializing node deployment..."
 
-if ! command -v tailscale >/dev/null 2>&1; then
-  echo "==> Installing official Tailscale client..."
-  curl -fsSL https://tailscale.com/install.sh | sh
-fi
-
-sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
-sudo sysctl -w net.ipv6.conf.all.forwarding=1 >/dev/null 2>&1 || true
+OS="$(uname -s)"
+case "$OS" in
+  Linux*)
+    if ! command -v tailscale >/dev/null 2>&1; then
+      echo "==> Installing Tailscale on Linux..."
+      curl -fsSL https://tailscale.com/install.sh | sh
+    fi
+    sudo sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true
+    sudo sysctl -w net.ipv6.conf.all.forwarding=1 >/dev/null 2>&1 || true
+    ;;
+  Darwin*)
+    if ! command -v tailscale >/dev/null 2>&1; then
+      echo "==> Installing Tailscale CLI via Homebrew..."
+      brew install tailscale
+      sudo brew services start tailscale
+    fi
+    ;;
+  *)
+    echo "Unsupported OS: $OS" >&2
+    exit 1
+    ;;
+esac
 
 echo "==> Connecting to LavaMesh control plane..."
 sudo tailscale up \\
