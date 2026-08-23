@@ -42,3 +42,9 @@ export async function listNodes() {
     const data = await headscaleFetch('/node');
     return data.nodes || [];
 }
+
+export async function deleteNode(nodeId: string | number) {
+    return headscaleFetch(`/node/${nodeId}`, {
+        method: 'DELETE',
+    });
+}
