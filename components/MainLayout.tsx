@@ -7,13 +7,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isLogin = pathname === '/login';
 
   if (isLogin) {
-    return <main className="min-h-screen bg-black w-full">{children}</main>;
+    return <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>{children}</main>;
   }
 
   return (
-    <div className="flex min-h-screen relative z-10 w-full">
+    <div style={{ display: 'flex', height: '100vh', width: '100%', overflow: 'hidden' }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-y-auto">
+      {/* Thin orange accent line at top */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent 0%, rgba(255,90,0,0.3) 50%, transparent 100%)', zIndex: 10, pointerEvents: 'none' }} />
         {children}
       </div>
     </div>

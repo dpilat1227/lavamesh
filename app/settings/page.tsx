@@ -1,173 +1,156 @@
-import { getRoutes, getDnsConfig, getNameservers } from "@/lib/headscale";
+import { getRoutes, getDnsConfig, getNameservers } from '@/lib/headscale';
 
 async function fetchSettingsData() {
-  const [routes, dns, ns] = await Promise.allSettled([
-    getRoutes(),
-    getDnsConfig(),
-    getNameservers(),
-  ]);
-
+  const [routes, dns, ns] = await Promise.allSettled([getRoutes(), getDnsConfig(), getNameservers()]);
   return {
-    routes: routes.status === "fulfilled" ? routes.value : [],
-    dns: dns.status === "fulfilled" ? dns.value : null,
-    ns: ns.status === "fulfilled" ? ns.value : null,
+    routes: routes.status === 'fulfilled' ? routes.value : [],
+    dns: dns.status === 'fulfilled' ? dns.value : null,
+    ns: ns.status === 'fulfilled' ? ns.value : null,
   };
+}
+
+function InfoRow({ label, value, mono = false, accent }: { label: string; value: string; mono?: boolean; accent?: string }) {
+  return (
+    <div className="flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+      <span className="text-[13px]" style={{ color: 'var(--text-3)' }}>{label}</span>
+      <span className="text-[13px] font-medium" style={{ color: accent || 'var(--text-2)', fontFamily: mono ? 'var(--font-mono)' : undefined }}>{value}</span>
+    </div>
+  );
+}
+
+function SectionHeader({ title, description }: { title: string; description?: string }) {
+  return (
+    <div className="mb-4">
+      <h2 className="text-[15px] font-semibold" style={{ color: 'var(--text-1)' }}>{title}</h2>
+      {description && <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>{description}</p>}
+    </div>
+  );
 }
 
 export default async function SettingsPage() {
   const { routes, dns, ns } = await fetchSettingsData();
 
-  // Exit nodes advertise 0.0.0.0/0 or ::/0
-  const exitNodeRoutes = routes.filter(
-    (r: any) => r.prefix === "0.0.0.0/0" || r.prefix === "::/0"
-  );
-
-  // MagicDNS info
-  const baseDomain: string = dns?.domains?.[0] || dns?.baseDomain || "";
+  const exitRoutes = routes.filter((r: any) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0');
+  const baseDomain: string = dns?.domains?.[0] || dns?.baseDomain || '';
   const nameservers: string[] = ns?.dnsConfig?.nameservers || ns?.nameservers || [];
-  const magicDnsEnabled = nameservers.length > 0 || !!baseDomain;
+  const magicDnsOn = nameservers.length > 0 || !!baseDomain;
 
   return (
-    <div className="relative h-full flex flex-col px-10">
-      <header className="h-20 flex shrink-0 items-center">
-        <h1 className="text-[22px] font-semibold tracking-tight text-white/90">Network Settings</h1>
+    <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
+      {/* Header */}
+      <header className="flex-shrink-0 flex items-center px-8 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
+        <div>
+          <h1 className="text-[18px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Settings</h1>
+          <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Network configuration and status</p>
+        </div>
       </header>
 
-      <div className="pb-10 flex-1 max-w-2xl space-y-6">
+      <div className="flex-1 overflow-y-auto px-8 py-6" style={{ minHeight: 0 }}>
+        <div className="max-w-[600px] space-y-6">
 
-        {/* ── Exit Node ───────────────────────────────────────────── */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl backdrop-blur-md p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-[16px] font-semibold text-white flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]"></span>
-                Exit Node
-              </h2>
-              <p className="text-[12px] text-neutral-500 mt-1">
-                Routes all client traffic through a designated mesh node.
-              </p>
-            </div>
-          </div>
+          {/* ── Exit Node ─────────────────────────────────────────── */}
+          <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--purple), transparent)' }} />
+            <SectionHeader title="Exit Node" description="Route all client traffic through a designated node" />
 
-          {exitNodeRoutes.length === 0 ? (
-            <div className="bg-black/30 rounded-xl border border-white/[0.06] p-5">
-              <p className="text-[13px] text-neutral-400 mb-3">No exit nodes advertised yet. On your DigitalOcean droplet, run:</p>
-              <pre className="font-mono text-[11px] text-neutral-300 bg-black/60 border border-white/10 rounded-lg p-3 overflow-x-auto leading-relaxed">
-{`sudo tailscale up \\
+            {exitRoutes.length === 0 ? (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="badge badge-ghost">Not configured</span>
+                </div>
+                <p className="text-[12px] mb-3" style={{ color: 'var(--text-3)' }}>Run this on your DigitalOcean droplet to advertise it as an exit node:</p>
+                <div className="px-4 py-3 rounded-[10px] overflow-x-auto" style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-2)' }}>
+                  <pre className="text-[11.5px] leading-relaxed" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{`sudo tailscale up \\
   --login-server=https://api.lavamesh.com \\
   --advertise-exit-node \\
-  --accept-routes`}
-              </pre>
-              <p className="text-[11px] text-neutral-500 mt-3">Then approve the route in the <strong className="text-neutral-400">Routes</strong> tab.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {exitNodeRoutes.map((r: any) => {
-                const name = r.machine?.givenName || r.node?.givenName || "Unknown";
-                const ip = r.machine?.ipAddresses?.[0] || r.node?.ipAddresses?.[0] || "";
-                return (
-                  <div key={r.id} className="flex items-center justify-between bg-black/30 rounded-xl border border-white/[0.06] px-4 py-3">
-                    <div>
-                      <p className="text-[13px] font-medium text-white">{name}</p>
-                      <p className="text-[11px] font-mono text-neutral-500">{ip} · {r.prefix}</p>
+  --accept-routes`}</pre>
+                </div>
+                <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>Then approve it in the <strong style={{ color: 'var(--text-3)' }}>Routes</strong> tab.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {exitRoutes.map((r: any) => {
+                  const name = r.machine?.givenName || r.node?.givenName || 'Unknown';
+                  const ip = r.machine?.ipAddresses?.[0] || r.node?.ipAddresses?.[0] || '';
+                  return (
+                    <div key={r.id} className="flex items-center justify-between px-4 py-3 rounded-[12px]"
+                      style={{ background: r.enabled ? 'rgba(52,211,153,0.04)' : 'var(--surface-3)', border: `1px solid ${r.enabled ? 'rgba(52,211,153,0.12)' : 'var(--border-2)'}` }}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: 'var(--purple-soft)', border: '1px solid rgba(167,139,250,0.2)' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--purple)' }}>
+                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{name}</p>
+                          <p className="text-[11px]" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{ip} · {r.prefix}</p>
+                        </div>
+                      </div>
+                      {r.enabled ? (
+                        <span className="badge badge-green"><span className="status-dot online" style={{ width: 5, height: 5 }}></span>Active</span>
+                      ) : (
+                        <span className="badge badge-amber">Pending</span>
+                      )}
                     </div>
-                    {r.enabled ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20 text-[11px] font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 ring-1 ring-inset ring-amber-500/20 text-[11px] font-medium">
-                        Pending Approval
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ── MagicDNS ─────────────────────────────────────────────── */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl backdrop-blur-md p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-[16px] font-semibold text-white flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${magicDnsEnabled ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-neutral-600"}`}></span>
-                MagicDNS
-              </h2>
-              <p className="text-[12px] text-neutral-500 mt-1">
-                Automatic hostname resolution across the mesh network.
-              </p>
-            </div>
-            <span className={`text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-              magicDnsEnabled
-                ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20"
-                : "bg-neutral-800 text-neutral-500 ring-1 ring-inset ring-white/5"
-            }`}>
-              {magicDnsEnabled ? "Enabled" : "Disabled"}
-            </span>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <div className="space-y-3">
-            <div>
-              <label className="block text-[11px] font-medium text-neutral-500 mb-1.5 uppercase tracking-wider">Base Domain</label>
-              <div className="font-mono text-[13px] text-neutral-300 bg-black/50 border border-white/10 rounded-lg px-4 py-2.5">
-                {baseDomain || <span className="text-neutral-600">Not configured</span>}
-              </div>
+          {/* ── MagicDNS ──────────────────────────────────────────── */}
+          <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '60ms' }}>
+            <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${magicDnsOn ? 'var(--green)' : 'var(--text-4)'}, transparent)` }} />
+            <div className="flex items-start justify-between mb-4">
+              <SectionHeader title="MagicDNS" description="Automatic hostname resolution across the mesh" />
+              <span className={`badge ${magicDnsOn ? 'badge-green' : 'badge-ghost'} mt-0.5`}>
+                {magicDnsOn ? <><span className="status-dot online" style={{ width: 5, height: 5 }}></span>Enabled</> : 'Disabled'}
+              </span>
             </div>
+
             <div>
-              <label className="block text-[11px] font-medium text-neutral-500 mb-1.5 uppercase tracking-wider">Nameservers</label>
-              <div className="bg-black/50 border border-white/10 rounded-lg px-4 py-2.5">
-                {nameservers.length > 0 ? (
-                  <ul className="space-y-1">
-                    {nameservers.map((ns: string) => (
-                      <li key={ns} className="font-mono text-[13px] text-neutral-300">{ns}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="font-mono text-[13px] text-neutral-600">No nameservers configured</span>
-                )}
+              <InfoRow label="Base Domain" value={baseDomain || 'Not configured'} mono={!!baseDomain} accent={baseDomain ? 'var(--text-2)' : 'var(--text-4)'} />
+              <div className="py-3">
+                <span className="text-[13px]" style={{ color: 'var(--text-3)' }}>Nameservers</span>
+                <div className="mt-2 space-y-1">
+                  {nameservers.length > 0 ? nameservers.map((ns: string) => (
+                    <div key={ns} className="px-3 py-1.5 rounded-[8px] text-[12px] font-mono" style={{ background: 'var(--surface-3)', color: 'var(--text-2)', border: '1px solid var(--border-1)', fontFamily: 'var(--font-mono)' }}>{ns}</div>
+                  )) : (
+                    <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>No nameservers configured</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ── API Config ───────────────────────────────────────────── */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl backdrop-blur-md p-6">
-          <h2 className="text-[16px] font-semibold text-white mb-4">API Configuration</h2>
-          <div className="space-y-4">
+          {/* ── API Config ────────────────────────────────────────── */}
+          <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '120ms' }}>
+            <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--orange), transparent)' }} />
+            <SectionHeader title="API Configuration" description="Headscale control plane connection" />
             <div>
-              <label className="block text-[11px] font-medium text-neutral-500 mb-1.5 uppercase tracking-wider">Control Server URL</label>
-              <div className="font-mono text-[13px] text-neutral-300 bg-black/50 border border-white/10 rounded-lg px-4 py-2.5">
-                {process.env.HEADSCALE_API_URL || "https://api.lavamesh.com"}
-              </div>
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-neutral-500 mb-1.5 uppercase tracking-wider">API Key</label>
-              <div className="font-mono text-[13px] text-neutral-600 bg-black/50 border border-white/10 rounded-lg px-4 py-2.5">
-                {"•".repeat(28)}
-              </div>
+              <InfoRow label="Control Server" value={process.env.HEADSCALE_API_URL || 'https://api.lavamesh.com'} mono accent="var(--text-2)" />
+              <InfoRow label="API Key" value={'•'.repeat(24)} />
+              <InfoRow label="Headscale Version" value="v0.22.3" />
             </div>
           </div>
-        </div>
 
-        {/* ── ACLs ─────────────────────────────────────────────────── */}
-        <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl backdrop-blur-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-[16px] font-semibold text-white">Access Control Lists</h2>
-              <p className="text-[12px] text-neutral-500 mt-1">Manage network traffic rules via HuJSON.</p>
+          {/* ── Access Control ────────────────────────────────────── */}
+          <div className="animate-fade-in-up card p-6" style={{ animationDelay: '180ms' }}>
+            <div className="flex items-start justify-between mb-4">
+              <SectionHeader title="Access Control Lists" description="Manage traffic rules via HuJSON policy" />
+              <button disabled className="btn btn-ghost text-[12px] opacity-40 cursor-not-allowed">Edit ACLs</button>
             </div>
-            <button disabled className="bg-white/5 text-neutral-500 text-[12px] font-medium px-4 py-2 rounded-lg border border-white/5 cursor-not-allowed">
-              Edit ACLs
-            </button>
+            <div className="px-4 py-3 rounded-[10px] overflow-x-auto" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-2)' }}>
+              <pre className="text-[11.5px] leading-relaxed" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>{`// Default Policy — Allow All
+{
+  "acls": [
+    { "action": "accept", "src": ["*"], "dst": ["*:*"] }
+  ]
+}`}</pre>
+            </div>
           </div>
-          <div className="bg-black/50 rounded-lg border border-white/10 p-4 font-mono text-[11px] text-neutral-400 overflow-x-auto leading-relaxed">
-            {`// Default Policy (Allow All)\n{\n  "acls": [\n    { "action": "accept", "src": ["*"], "dst": ["*:*"] }\n  ]\n}`}
-          </div>
-        </div>
 
+        </div>
       </div>
     </div>
   );
