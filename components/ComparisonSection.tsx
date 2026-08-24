@@ -109,7 +109,7 @@ export default function ComparisonSection() {
         {/* Bottom callout */}
         <div className="text-center mt-8">
           <p className="text-[14px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            50 devices on Tailscale Business = <span style={{ color: '#f87171', textDecoration: 'line-through' }}>$450/month</span>
+            50 devices on Tailscale Business = <span style={{ color: '#f87171', fontWeight: 700 }}>$450/month</span>
             {' '}→ LavaMesh Pro = <span style={{ color: '#34d399', fontWeight: 600 }}>$19/month flat</span>
           </p>
         </div>
