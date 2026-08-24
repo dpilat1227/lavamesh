@@ -16,8 +16,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           background: 'var(--bg)',
           color: 'var(--text-1)',
           fontFamily: 'var(--font-sans)',
-          height: '100vh',
-          overflow: 'hidden',
         }}
       >
         {/* Ambient background orb */}
@@ -32,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             zIndex: 0,
           }}
         />
-        <div style={{ position: 'relative', zIndex: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <MainLayout>{children}</MainLayout>
         </div>
       </body>
