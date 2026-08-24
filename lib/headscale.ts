@@ -3,22 +3,35 @@ const API_KEY = process.env.HEADSCALE_API_KEY || "";
 
 export async function fetchHeadscale(endpoint: string, options: RequestInit = {}) {
   const url = `${BASE_URL}/api/v1/${endpoint}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Headscale API error (${res.status}): ${errorText}`);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Headscale API error (${res.status}): ${errorText}`);
+    }
+
+    return res.json();
+  } catch (e: any) {
+    if (e?.name === 'AbortError') {
+      throw new Error(`Headscale API timeout — could not reach ${BASE_URL} within 5s`);
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return res.json();
 }
 
 // ── Machines ──────────────────────────────────────────────────────────────────
