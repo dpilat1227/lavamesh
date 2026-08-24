@@ -36,7 +36,7 @@ const sections = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -70,7 +70,7 @@ export default function Sidebar() {
               {section.items.map((item) => {
                 const isActive = pathname === item.path;
                 return (
-                  <Link key={item.path} href={item.path} className={`nav-item ${isActive ? 'active' : ''}`}>
+                  <Link key={item.path} href={item.path} onClick={onClose} className={`nav-item ${isActive ? 'active' : ''}`}>
                     <span style={{ color: isActive ? '#FF5A00' : 'var(--text-4)' }}>{item.icon}</span>
                     <span>{item.name}</span>
                     {isActive && <span className="ml-auto w-1 h-1 rounded-full" style={{ background: '#FF5A00', boxShadow: '0 0 6px #FF5A00' }}></span>}
