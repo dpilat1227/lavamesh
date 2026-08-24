@@ -73,7 +73,7 @@ export default function WaitlistForm() {
               </div>
             ) : (
               <form onSubmit={submit} className="flex flex-col gap-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="email"
                     value={email}
@@ -93,11 +93,11 @@ export default function WaitlistForm() {
                   <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className="btn btn-primary font-semibold whitespace-nowrap"
+                    className="btn btn-primary font-semibold whitespace-nowrap w-full sm:w-auto"
                     style={{ padding: '12px 20px', borderRadius: '10px', fontSize: 14, opacity: status === 'loading' ? 0.7 : 1 }}
                   >
                     {status === 'loading' ? (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center gap-2">
                         <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
                         Joining...
                       </span>
