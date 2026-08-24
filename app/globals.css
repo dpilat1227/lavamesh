@@ -440,3 +440,13 @@ body {
     padding: 20px 16px 16px !important;
   }
 }
+
+/* ── Desktop: sidebar always visible ──────────────────────────────────────── */
+@media (min-width: 769px) {
+  .sidebar-mobile {
+    position: relative !important;
+    transform: none !important;
+    height: 100vh;
+    z-index: auto;
+  }
+}
