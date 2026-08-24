@@ -48,39 +48,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // Also send a confirmation to the subscriber
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Drew at LavaMesh <drew@lavamesh.com>',
-        to: [email],
-        subject: "You're on the LavaMesh Cloud waitlist 🔥",
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;padding:32px;">
-            <h2 style="color:#FF5A00;margin:0 0 8px;">You're on the list.</h2>
-            <p style="color:#444;line-height:1.6;margin:0 0 16px;">
-              Thanks for joining the <strong>LavaMesh Cloud</strong> waitlist. 
-              We're building a fully managed option — you bring your devices, 
-              we handle the Headscale server, backups, and uptime.
-            </p>
-            <p style="color:#444;line-height:1.6;margin:0 0 24px;">
-              We'll reach out personally when Cloud is ready for early access. 
-              You'll be first in line.
-            </p>
-            <a href="https://lavamesh.com" style="display:inline-block;background:#FF5A00;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
-              View LavaMesh →
-            </a>
-            <p style="color:#999;font-size:12px;margin-top:32px;">
-              LavaMesh · Self-hosted mesh networking
-            </p>
-          </div>
-        `,
-      }),
-    });
+    // Also send a confirmation to the subscriber (best-effort — don't fail the request if this errors)
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Drew at LavaMesh <drew@lavamesh.com>',
+          to: [email],
+          subject: "You're on the LavaMesh Cloud waitlist 🔥",
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;padding:32px;">
+              <h2 style="color:#FF5A00;margin:0 0 8px;">You're on the list.</h2>
+              <p style="color:#444;line-height:1.6;margin:0 0 16px;">
+                Thanks for joining the <strong>LavaMesh Cloud</strong> waitlist. 
+                We're building a fully managed option — you bring your devices, 
+                we handle the Headscale server, backups, and uptime.
+              </p>
+              <p style="color:#444;line-height:1.6;margin:0 0 24px;">
+                We'll reach out personally when Cloud is ready for early access. 
+                You'll be first in line.
+              </p>
+              <a href="https://lavamesh.com" style="display:inline-block;background:#FF5A00;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
+                View LavaMesh →
+              </a>
+              <p style="color:#999;font-size:12px;margin-top:32px;">
+                LavaMesh · Self-hosted mesh networking
+              </p>
+            </div>
+          `,
+        }),
+      });
+    } catch (confirmErr) {
+      console.warn('[waitlist] Confirmation email failed (domain may not be verified yet):', confirmErr);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
