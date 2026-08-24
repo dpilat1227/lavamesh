@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isLogin = pathname === '/login';
+  const isLogin = pathname === '/login' || pathname === '/';
 
   if (isLogin) {
     return <main style={{ minHeight: '100vh', background: 'var(--bg)' }}>{children}</main>;
