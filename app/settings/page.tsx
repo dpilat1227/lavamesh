@@ -29,7 +29,21 @@ export default async function SettingsPage() {
   const baseDomain: string = dns?.domains?.[0] || dns?.baseDomain || '';
   const nameservers: string[] = ns?.dnsConfig?.nameservers || ns?.nameservers || [];
   const magicDnsOn = nameservers.length > 0 || !!baseDomain;
-  const policyText: string = policy?.policy || policy?.acl || JSON.stringify(policy, null, 2) || `// Default Policy — Allow All\n{\n  "acls": [\n    { "action": "accept", "src": ["*"], "dst": ["*:*"] }\n  ]\n}`;
+  const policyText: string =
+    policy?.policy ||
+    policy?.acl ||
+    (policy != null ? JSON.stringify(policy, null, 2) : '') ||
+    `{
+  // Default policy — allow all traffic between all nodes
+  // Edit and save to restrict access.
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": ["*:*"]
+    }
+  ]
+}`;
 
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
