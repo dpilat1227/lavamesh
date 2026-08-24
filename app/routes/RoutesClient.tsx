@@ -1,6 +1,6 @@
 'use client';
-import { useTransition, useOptimistic } from "react";
-import { enableRoute, disableRoute } from "@/app/actions";
+import { useTransition, useOptimistic, useState } from 'react';
+import { enableRoute, disableRoute } from '@/app/actions';
 
 interface Route {
   id: string;
@@ -12,129 +12,165 @@ interface Route {
   node?: { id: string; givenName: string; ipAddresses: string[] };
 }
 
-function RouteRow({ route }: { route: Route }) {
+const isExitNode = (r: Route) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0';
+
+function RouteRow({ route, index }: { route: Route; index: number }) {
   const [isPending, startTransition] = useTransition();
   const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(route.enabled);
 
-  const machineName =
-    route.machine?.givenName || route.node?.givenName || `ID: ${route.machine?.id || route.node?.id || "Unknown"}`;
-
-  const isExitNode = route.prefix === "0.0.0.0/0" || route.prefix === "::/0";
+  const machine = route.machine || route.node;
+  const name = machine?.givenName || `Node ${machine?.id || '?'}`;
+  const ip = machine?.ipAddresses?.[0] || '';
+  const exit = isExitNode(route);
 
   const toggle = () => {
     startTransition(async () => {
       setOptimisticEnabled(!optimisticEnabled);
-      if (optimisticEnabled) {
-        await disableRoute(route.id);
-      } else {
-        await enableRoute(route.id);
-      }
+      if (optimisticEnabled) await disableRoute(route.id);
+      else await enableRoute(route.id);
     });
   };
 
   return (
-    <tr className="hover:bg-white/[0.03] transition-colors duration-200 group">
-      <td className="py-4 px-6">
-        <div className="flex items-center gap-2.5">
-          <code className="font-mono text-[13px] text-white bg-white/[0.03] px-2 py-1 rounded-md border border-white/[0.05]">
-            {route.prefix}
-          </code>
-          {isExitNode && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 ring-1 ring-inset ring-purple-500/20 text-[10px] font-semibold tracking-wide uppercase">
-              Exit Node
-            </span>
+    <div
+      className="animate-fade-in grid items-center px-5 py-3.5 table-row-hover"
+      style={{
+        gridTemplateColumns: '1fr 160px 110px 100px',
+        borderBottom: '1px solid var(--border-1)',
+        animationDelay: `${index * 40}ms`,
+      }}
+    >
+      {/* Prefix */}
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
+          style={{ background: exit ? 'var(--purple-soft)' : 'var(--surface-3)', border: `1px solid ${exit ? 'rgba(167,139,250,0.2)' : 'var(--border-2)'}` }}>
+          {exit ? (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--purple)' }}>
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+          ) : (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
+              <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+            </svg>
           )}
         </div>
-      </td>
-      <td className="py-4 px-6 text-neutral-300 text-[13px]">{machineName}</td>
-      <td className="py-4 px-6">
+        <div>
+          <code className="text-[13px]" style={{ color: 'var(--text-1)', fontFamily: 'var(--font-mono)' }}>{route.prefix}</code>
+          {exit && <span className="ml-2 badge badge-purple text-[10px]">Exit Node</span>}
+        </div>
+      </div>
+
+      {/* Advertised by */}
+      <div className="min-w-0">
+        <p className="text-[13px] truncate" style={{ color: 'var(--text-2)' }}>{name}</p>
+        {ip && <p className="text-[11px] font-mono truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{ip}</p>}
+      </div>
+
+      {/* Status */}
+      <div>
         {optimisticEnabled ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 ring-1 ring-inset ring-emerald-500/20 text-[11px] font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Approved
-          </span>
+          <span className="badge badge-green"><span className="status-dot online" style={{ width: 5, height: 5 }}></span>Approved</span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 ring-1 ring-inset ring-amber-500/20 text-[11px] font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            Pending Review
-          </span>
+          <span className="badge badge-amber">Pending</span>
         )}
-      </td>
-      <td className="py-4 px-6 text-right">
+      </div>
+
+      {/* Action */}
+      <div className="flex justify-end">
         <button
           onClick={toggle}
           disabled={isPending}
-          className={`text-[12px] font-medium px-3.5 py-1.5 rounded-full border transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${
-            optimisticEnabled
-              ? "text-rose-400 border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20"
-              : "text-emerald-400 border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20"
-          }`}
+          className="btn text-[12px] px-3 py-1.5"
+          style={{
+            background: optimisticEnabled ? 'var(--red-soft)' : 'var(--green-soft)',
+            color: optimisticEnabled ? 'var(--red)' : 'var(--green)',
+            border: `1px solid ${optimisticEnabled ? 'rgba(248,113,113,0.2)' : 'rgba(52,211,153,0.2)'}`,
+            opacity: isPending ? 0.6 : 1,
+            borderRadius: '8px',
+          }}
         >
-          {isPending ? "…" : optimisticEnabled ? "Disable" : "Approve"}
+          {isPending ? '…' : optimisticEnabled ? 'Disable' : 'Approve'}
         </button>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
 export default function RoutesClient({ routes }: { routes: Route[] }) {
-  const exitNodes = routes.filter(r => r.prefix === "0.0.0.0/0" || r.prefix === "::/0");
-  const subnetRoutes = routes.filter(r => r.prefix !== "0.0.0.0/0" && r.prefix !== "::/0");
-  const pendingCount = routes.filter(r => !r.enabled && r.advertised).length;
+  const exits = routes.filter(isExitNode);
+  const subnets = routes.filter(r => !isExitNode(r));
+  const pending = routes.filter(r => r.advertised && !r.enabled).length;
+  const approved = routes.filter(r => r.enabled).length;
 
   return (
-    <div className="relative h-full flex flex-col px-10">
-      <header className="h-20 flex shrink-0 items-center justify-between">
+    <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
+      {/* Header */}
+      <header className="flex-shrink-0 flex items-center justify-between px-8 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight text-white/90">Subnet Routing</h1>
-          {pendingCount > 0 && (
-            <p className="text-[12px] text-amber-400 mt-0.5">
-              {pendingCount} route{pendingCount > 1 ? "s" : ""} awaiting approval
-            </p>
-          )}
+          <h1 className="text-[18px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Subnet Routing</h1>
+          <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>
+            {approved} approved · {pending > 0 ? <span style={{ color: 'var(--amber)' }}>{pending} pending</span> : '0 pending'}
+          </p>
         </div>
-        <div className="flex items-center gap-3 text-[12px] text-neutral-500">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
-            Exit Nodes: {exitNodes.filter(r => r.enabled).length}/{exitNodes.length}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            Subnet Routes: {subnetRoutes.filter(r => r.enabled).length}/{subnetRoutes.length}
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="badge badge-ghost">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--purple)' }}></span>
+            {exits.filter(r => r.enabled).length}/{exits.length} Exit Nodes
+          </div>
+          <div className="badge badge-ghost">
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--green)' }}></span>
+            {subnets.filter(r => r.enabled).length}/{subnets.length} Subnets
+          </div>
         </div>
       </header>
 
-      <div className="pb-10 flex-1">
-        <div className="bg-[#0A0A0A]/80 backdrop-blur-2xl ring-1 ring-white/[0.06] rounded-2xl overflow-hidden shadow-2xl">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-white/[0.02] border-b border-white/[0.06]">
-              <tr>
-                <th className="py-4 px-6 font-medium text-neutral-400 text-[13px]">Route Prefix</th>
-                <th className="py-4 px-6 font-medium text-neutral-400 text-[13px]">Advertised By</th>
-                <th className="py-4 px-6 font-medium text-neutral-400 text-[13px]">Status</th>
-                <th className="py-4 px-6 font-medium text-neutral-400 text-[13px] text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04]">
-              {routes.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-neutral-500">
-                    <div className="flex flex-col items-center gap-2">
-                      <svg className="w-8 h-8 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                      </svg>
-                      <span>No routes advertised on the network.</span>
-                      <span className="text-[12px] text-neutral-600">Connect a node with <code className="font-mono">--advertise-routes</code> or <code className="font-mono">--advertise-exit-node</code></span>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                routes.map((route) => <RouteRow key={route.id} route={route} />)
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-5" style={{ minHeight: 0 }}>
+        {routes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[60%] gap-4" style={{ color: 'var(--text-4)' }}>
+            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+              </svg>
+            </div>
+            <div className="text-center">
+              <p className="text-[14px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>No routes advertised</p>
+              <p className="text-[12px]">Connect a node with <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--orange)' }}>--advertise-routes</code> or <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--purple)' }}>--advertise-exit-node</code></p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Exit nodes section */}
+            {exits.length > 0 && (
+              <section>
+                <p className="text-[10px] font-semibold uppercase tracking-wider px-1 mb-2" style={{ color: 'var(--text-4)' }}>Exit Nodes</p>
+                <div className="card overflow-hidden">
+                  <div className="grid px-5 py-2.5" style={{ gridTemplateColumns: '1fr 160px 110px 100px', borderBottom: '1px solid var(--border-1)' }}>
+                    {['Prefix', 'Advertised By', 'Status', ''].map(h => (
+                      <span key={h} className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>{h}</span>
+                    ))}
+                  </div>
+                  {exits.map((r, i) => <RouteRow key={r.id} route={r} index={i} />)}
+                </div>
+              </section>
+            )}
+
+            {/* Subnet routes section */}
+            {subnets.length > 0 && (
+              <section>
+                <p className="text-[10px] font-semibold uppercase tracking-wider px-1 mb-2" style={{ color: 'var(--text-4)' }}>Subnet Routes</p>
+                <div className="card overflow-hidden">
+                  <div className="grid px-5 py-2.5" style={{ gridTemplateColumns: '1fr 160px 110px 100px', borderBottom: '1px solid var(--border-1)' }}>
+                    {['Prefix', 'Advertised By', 'Status', ''].map(h => (
+                      <span key={h} className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>{h}</span>
+                    ))}
+                  </div>
+                  {subnets.map((r, i) => <RouteRow key={r.id} route={r} index={i} />)}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
