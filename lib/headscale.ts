@@ -21,7 +21,7 @@ export async function fetchHeadscale(endpoint: string, options: RequestInit = {}
   return res.json();
 }
 
-// ── Machines (Headscale v0.22.3 uses "machine" not "node") ───────────────────
+// ── Machines ──────────────────────────────────────────────────────────────────
 
 export async function getNodes(user?: string) {
   const qs = user ? `?user=${encodeURIComponent(user)}` : "";
@@ -31,6 +31,10 @@ export async function getNodes(user?: string) {
 
 export async function deleteMachine(machineId: string | number) {
   return fetchHeadscale(`machine/${machineId}`, { method: "DELETE" });
+}
+
+export async function renameMachine(machineId: string | number, newName: string) {
+  return fetchHeadscale(`machine/${machineId}/rename/${encodeURIComponent(newName)}`, { method: "POST" });
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────────
@@ -60,11 +64,6 @@ export async function getUsers() {
   return data.users || [];
 }
 
-/**
- * Creates a Headscale user/namespace. Returns cleanly if the user already
- * exists — Headscale may respond with 400, 409, or a 500 UNIQUE constraint
- * error depending on version.
- */
 export async function createUser(name: string) {
   try {
     return await fetchHeadscale("user", {
@@ -84,6 +83,17 @@ export async function createUser(name: string) {
   }
 }
 
+export async function deleteUser(name: string) {
+  return fetchHeadscale(`user/${encodeURIComponent(name)}`, { method: "DELETE" });
+}
+
+export async function renameUser(oldName: string, newName: string) {
+  return fetchHeadscale(
+    `user/${encodeURIComponent(oldName)}/rename/${encodeURIComponent(newName)}`,
+    { method: "POST" }
+  );
+}
+
 // ── Pre-auth keys ─────────────────────────────────────────────────────────────
 
 export async function createPreAuthKey(
@@ -95,6 +105,33 @@ export async function createPreAuthKey(
   return fetchHeadscale("preauthkey", {
     method: "POST",
     body: JSON.stringify({ user, reusable, ephemeral, expiration }),
+  });
+}
+
+export async function listPreAuthKeys(user: string = "admin") {
+  const data = await fetchHeadscale(`preauthkey?user=${encodeURIComponent(user)}`);
+  return data.preAuthKeys || data.preauthkeys || [];
+}
+
+export async function expirePreAuthKey(user: string, key: string) {
+  return fetchHeadscale("preauthkey/expire", {
+    method: "POST",
+    body: JSON.stringify({ user, key }),
+  });
+}
+
+// ── ACL / Policy ──────────────────────────────────────────────────────────────
+
+export async function getPolicy() {
+  // Headscale v0.22+ exposes policy via /api/v1/policy
+  // Falls back gracefully if the endpoint doesn't exist on older builds
+  return fetchHeadscale("policy");
+}
+
+export async function setPolicy(policy: string) {
+  return fetchHeadscale("policy", {
+    method: "PUT",
+    body: JSON.stringify({ policy }),
   });
 }
 

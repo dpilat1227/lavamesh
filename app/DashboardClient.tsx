@@ -1,7 +1,8 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useTransition } from 'react';
 import { createPortal } from 'react-dom';
-import { generatePreAuthKey, revokeNode } from '@/app/actions';
+import { useRouter } from 'next/navigation';
+import { generatePreAuthKey, revokeNode, renameMachineAction } from '@/app/actions';
 
 // ── OS detection ──────────────────────────────────────────────────────────────
 function OsIcon({ name }: { name: string }) {
@@ -99,13 +100,43 @@ function TokenModal({ token, onClose }: { token: string; onClose: () => void }) 
 }
 
 // ── Node detail panel ─────────────────────────────────────────────────────────
-function NodePanel({ node, onClose, onRevoke }: { node: any; onClose: () => void; onRevoke: () => void }) {
+function NodePanel({ node, onClose, onRevoke, onRename }: { node: any; onClose: () => void; onRevoke: () => void; onRename: (name: string) => void }) {
   const [confirming, setConfirming] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [newName, setNewName] = useState(node.givenName);
+  const [renamePending, startRenameTransition] = useTransition();
+
+  const doRename = () => {
+    if (!newName.trim() || newName === node.givenName) return setRenaming(false);
+    startRenameTransition(async () => {
+      await renameMachineAction(node.id, newName.trim());
+      onRename(newName.trim());
+      setRenaming(false);
+    });
+  };
 
   return (
     <div className="animate-slide-in-right w-[320px] flex-shrink-0 flex flex-col" style={{ borderLeft: '1px solid var(--border-1)', background: 'var(--surface-1)' }}>
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
-        <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>{node.givenName}</h3>
+        {renaming ? (
+          <div className="flex items-center gap-2 flex-1 mr-2">
+            <input
+              className="input text-[13px] py-1"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') doRename(); if (e.key === 'Escape') setRenaming(false); }}
+              autoFocus
+            />
+            <button onClick={doRename} disabled={renamePending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--green)', fontSize: 11 }}>{renamePending ? '…' : 'Save'}</button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13px] font-semibold" style={{ color: 'var(--text-1)' }}>{node.givenName}</h3>
+            <button onClick={() => setRenaming(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 2 }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+        )}
         <button onClick={onClose} style={{ color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -181,7 +212,23 @@ export default function DashboardClient({ nodes }: { nodes: any[] }) {
   const [generating, setGenerating] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
-  const [lastRefresh] = useState(new Date());
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [renamedNodes, setRenamedNodes] = useState<Record<string, string>>({});
+  const router = useRouter();
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      router.refresh();
+      setLastRefresh(new Date());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [router]);
+
+  const manualRefresh = useCallback(() => {
+    router.refresh();
+    setLastRefresh(new Date());
+  }, [router]);
 
   const visibleNodes = nodes.filter(n => !removedIds.has(n.id));
   const online = visibleNodes.filter(n => n.online).length;
@@ -222,20 +269,25 @@ export default function DashboardClient({ nodes }: { nodes: any[] }) {
         <div>
           <h1 className="text-[18px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Node Fleet</h1>
           <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>
-            Updated {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            Updated {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 30s
           </p>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={generating}
-          className="btn btn-primary"
-        >
-          {generating ? (
-            <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</>
-          ) : (
-            <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Provision Token</>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={manualRefresh} className="btn btn-ghost" title="Refresh now">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+            </svg>
+            Refresh
+          </button>
+          <button onClick={handleGenerate} disabled={generating} className="btn btn-primary">
+            {generating ? (
+              <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</>
+            ) : (
+              <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Provision Token</>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Stats row */}
@@ -319,9 +371,10 @@ export default function DashboardClient({ nodes }: { nodes: any[] }) {
         {/* Node detail panel */}
         {selectedNode && (
           <NodePanel
-            node={selectedNode}
+            node={{ ...selectedNode, givenName: renamedNodes[selectedNode.id] || selectedNode.givenName }}
             onClose={() => setSelectedNode(null)}
             onRevoke={() => handleRevoke(selectedNode.id)}
+            onRename={name => setRenamedNodes(prev => ({ ...prev, [selectedNode.id]: name }))}
           />
         )}
       </div>
