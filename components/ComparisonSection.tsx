@@ -33,12 +33,14 @@ export default function ComparisonSection() {
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>
-            Why LavaMesh
-          </p>
-          <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(32px, 5vw, 52px)', letterSpacing: '-0.03em', color: 'white' }}>
+          <h2 className="font-bold tracking-tight mb-5" style={{ fontSize: 'clamp(32px, 5vw, 52px)', letterSpacing: '-0.03em', color: 'white' }}>
             The math is obvious.
           </h2>
+          {/* Price callout — lead with the punchline */}
+          <p className="mb-5" style={{ fontSize: 'clamp(16px, 2.5vw, 20px)', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+            50 devices on Tailscale Business = <span style={{ color: '#f87171', fontWeight: 700 }}>$450/month</span>
+            {' '}→ LavaMesh Pro = <span style={{ color: '#34d399', fontWeight: 700 }}>$19/month flat</span>
+          </p>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
             Tailscale charges per seat. A 50-device homelab costs $300–900/month. Raw Headscale is free — but you're the IT department.
           </p>
@@ -106,13 +108,6 @@ export default function ComparisonSection() {
           ))}
         </div>
 
-        {/* Bottom callout */}
-        <div className="text-center mt-8">
-          <p className="text-[14px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            50 devices on Tailscale Business = <span style={{ color: '#f87171', fontWeight: 700 }}>$450/month</span>
-            {' '}→ LavaMesh Pro = <span style={{ color: '#34d399', fontWeight: 600 }}>$19/month flat</span>
-          </p>
-        </div>
       </div>
     </section>
   );
