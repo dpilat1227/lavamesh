@@ -224,6 +224,9 @@ export default function LandingPage() {
         </div>
       </div>
 
+      {/* ── COMPARISON ────────────────────────────────────────────────────────── */}
+      <ComparisonSection />
+
       {/* ── FEATURES ──────────────────────────────────────────────────────────── */}
       <section style={{ padding: '120px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -294,36 +297,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── CTA ───────────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '0 24px 140px' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ background: 'rgba(255,90,0,0.04)', border: '1px solid rgba(255,90,0,0.15)', borderRadius: 24, padding: '64px 48px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: '-40%', left: '50%', transform: 'translateX(-50%)', width: 400, height: 300, background: 'radial-gradient(circle, rgba(255,90,0,0.12) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none' }} />
-            <div style={{ position: 'relative' }}>
-              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center mx-auto mb-6"
-                style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.4)', boxShadow: '0 0 30px rgba(255,90,0,0.25)' }}>
-                <svg className="w-6 h-6" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                  <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-                </svg>
-              </div>
-              <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 36, letterSpacing: '-0.03em', color: 'white' }}>
-                Your network.<br />Fully yours.
-              </h2>
-              <p className="mb-8 text-[16px]" style={{ color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>
-                Open the dashboard and take control of your private mesh network in minutes.
-              </p>
-              <Link href="/dashboard" className="btn btn-primary inline-flex"
-                style={{ padding: '14px 32px', borderRadius: '12px', fontSize: 15, boxShadow: '0 0 40px rgba(255,90,0,0.3)' }}>
-                Open Dashboard →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── COMPARISON ────────────────────────────────────────────────────────── */}
-      <ComparisonSection />
 
       {/* ── SOCIAL PROOF ──────────────────────────────────────────────────────── */}
       <SocialProof />
