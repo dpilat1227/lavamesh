@@ -1,43 +1,71 @@
+'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import HeroAnimation from '@/components/HeroAnimation';
 import TerminalBlock from '@/components/TerminalBlock';
 import FeatureGrid from '@/components/FeatureGrid';
 import PricingSection from '@/components/PricingSection';
 import WaitlistForm from '@/components/WaitlistForm';
+import ComparisonSection from '@/components/ComparisonSection';
+import SocialProof from '@/components/SocialProof';
 
 // ── Nav ────────────────────────────────────────────────────────────────────────
 function Nav() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-8 h-14"
-      style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(20px)' }}>
-      <style>{`.nav-gh-link:hover { color: rgba(255,255,255,0.85) !important; }`}</style>
-      <div className="flex items-center gap-2.5">
-        <div className="w-6 h-6 rounded-[7px] flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.35)', boxShadow: '0 0 12px rgba(255,90,0,0.2)' }}>
-          <svg className="w-3 h-3" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-          </svg>
+    <>
+      <style>{`
+        .nav-gh-link:hover { color: rgba(255,255,255,0.85) !important; }
+        .nav-desktop-links { display: flex; }
+        .nav-mobile-btn { display: none; }
+        @media (max-width: 640px) {
+          .nav-desktop-links { display: none; }
+          .nav-mobile-btn { display: flex; }
+        }
+      `}</style>
+      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-5 h-14"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)' }}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-[7px] flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.35)', boxShadow: '0 0 12px rgba(255,90,0,0.2)' }}>
+            <svg className="w-3 h-3" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+            </svg>
+          </div>
+          <span className="font-semibold text-[14px]" style={{ color: 'white' }}>LavaMesh</span>
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
+            style={{ color: 'var(--orange)', borderColor: 'rgba(255,90,0,0.3)', background: 'rgba(255,90,0,0.08)', letterSpacing: '0.05em' }}>BETA</span>
         </div>
-        <span className="font-semibold text-[14px]" style={{ color: 'white' }}>LavaMesh</span>
-        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
-          style={{ color: 'var(--orange)', borderColor: 'rgba(255,90,0,0.3)', background: 'rgba(255,90,0,0.08)', letterSpacing: '0.05em' }}>BETA</span>
-      </div>
-      <div className="flex items-center gap-3">
-        <a href="#pricing"
-          className="text-[13px] font-medium nav-gh-link transition-colors"
-          style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Pricing
-        </a>
-        <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
-          className="text-[13px] font-medium nav-gh-link transition-colors"
-          style={{ color: 'rgba(255,255,255,0.4)' }}>
-          GitHub
-        </a>
-        <Link href="/dashboard" className="btn btn-primary" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: 13 }}>
-          Dashboard →
-        </Link>
-      </div>
-    </nav>
+        {/* Desktop links */}
+        <div className="nav-desktop-links items-center gap-3">
+          <a href="#pricing" className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>Pricing</a>
+          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
+            className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>GitHub</a>
+          <Link href="/dashboard" className="btn btn-primary" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: 13 }}>Dashboard →</Link>
+        </div>
+        {/* Mobile hamburger */}
+        <button className="nav-mobile-btn items-center justify-center w-9 h-9 rounded-[8px]"
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
+          onClick={() => setMobileMenuOpen(o => !o)}>
+          {mobileMenuOpen
+            ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          }
+        </button>
+      </nav>
+      {/* Mobile dropdown menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-x-0 z-40 flex flex-col gap-1 p-4"
+          style={{ top: 56, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <a href="#pricing" onClick={() => setMobileMenuOpen(false)}
+            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Pricing</a>
+          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
+            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>GitHub ↗</a>
+          <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}
+            className="px-4 py-3 rounded-[10px] text-[14px] font-bold text-center" style={{ background: '#FF5A00', color: 'white' }}>Open Dashboard →</Link>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -155,7 +183,7 @@ export default function LandingPage() {
           </p>
 
           {/* CTAs */}
-          <div className="animate-fade-in-up flex items-center justify-center gap-3 mb-20" style={{ animationDelay: '240ms' }}>
+          <div className="animate-fade-in-up flex flex-wrap items-center justify-center gap-3 mb-16 px-4" style={{ animationDelay: '240ms' }}>
             <a href="#pricing" className="btn btn-primary"
               style={{ padding: '13px 28px', borderRadius: '12px', fontSize: 15, boxShadow: '0 0 30px rgba(255,90,0,0.3)' }}>
               Get Started →
@@ -216,11 +244,11 @@ export default function LandingPage() {
               Online in three steps.
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
             {steps.map((step, i) => (
               <div key={step.n} style={{ background: '#000', padding: '40px 36px', position: 'relative' }}>
                 {i < steps.length - 1 && (
-                  <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 1, height: '40%', background: 'rgba(255,255,255,0.05)' }} />
+                  <div className="step-divider" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 1, height: '40%', background: 'rgba(255,255,255,0.05)' }} />
                 )}
                 <div className="text-[11px] font-semibold mb-4" style={{ color: 'rgba(255,90,0,0.5)', letterSpacing: '0.08em' }}>{step.n}</div>
                 <h3 className="text-[20px] font-semibold mb-3" style={{ color: 'white', letterSpacing: '-0.02em' }}>{step.title}</h3>
@@ -290,6 +318,12 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── COMPARISON ────────────────────────────────────────────────────────── */}
+      <ComparisonSection />
+
+      {/* ── SOCIAL PROOF ──────────────────────────────────────────────────────── */}
+      <SocialProof />
 
       {/* ── PRICING ───────────────────────────────────────────────────────────── */}
       <PricingSection />

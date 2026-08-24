@@ -334,3 +334,109 @@ body {
   pointer-events: none;
   border-radius: inherit;
 }
+
+/* ── Mobile hamburger / sidebar overlay ────────────────────────────────────── */
+.mobile-top-bar {
+  display: none;
+  height: 52px;
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-1);
+  background: rgba(4,4,4,0.97);
+  backdrop-filter: blur(20px);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 39;
+  backdrop-filter: blur(2px);
+}
+
+.sidebar-mobile {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 40;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-mobile.open {
+  transform: translateX(0);
+}
+
+/* ── Mobile landing page ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Steps: 3-col → 1-col */
+  .steps-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .step-divider {
+    display: none;
+  }
+
+  /* Comparison table: hide on very small, show scrollable */
+  .comparison-grid {
+    grid-template-columns: 1.2fr 1fr 0.9fr 0.9fr !important;
+    font-size: 12px;
+  }
+
+  /* Dashboard mockup stats: 4-col → 2-col */
+  .grid.grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Hero animation: reduce height on mobile */
+  .hero-animation-wrap {
+    height: 260px !important;
+  }
+
+  /* Pricing cards already use auto-fit so they stack naturally */
+}
+
+@media (max-width: 540px) {
+  /* Comparison: hide Headscale column */
+  .comparison-grid > *:last-child {
+    display: none;
+  }
+  .comparison-grid {
+    grid-template-columns: 1.4fr 1.2fr 1fr !important;
+  }
+}
+
+/* ── Mobile dashboard ──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-top-bar {
+    display: flex;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  /* Dashboard content: no left margin, full width */
+  .dashboard-content {
+    overflow-y: auto;
+    padding: 16px !important;
+  }
+
+  /* Tables: make horizontally scrollable */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Page headers: smaller on mobile */
+  .page-header {
+    padding: 20px 16px 16px !important;
+  }
+}
