@@ -206,23 +206,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── BUILT ON BAR ──────────────────────────────────────────────────────── */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="flex items-center justify-center gap-10 py-5 px-6 flex-wrap">
-          {[
-            { label: 'Headscale', desc: 'Control Plane' },
-            { label: 'WireGuard', desc: 'Encryption' },
-            { label: 'Next.js 16', desc: 'Dashboard' },
-            { label: 'Vercel', desc: 'Hosting' },
-            { label: 'DigitalOcean', desc: 'Infrastructure' },
-          ].map(({ label, desc }) => (
-            <div key={label} className="flex items-center gap-2">
-              <span className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>{label}</span>
-              <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.2)' }}>{desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* ── COMPARISON ────────────────────────────────────────────────────────── */}
       <ComparisonSection />
