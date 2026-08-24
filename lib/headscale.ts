@@ -49,6 +49,10 @@ export async function enableRoute(routeId: string | number) {
   return fetchHeadscale(`routes/${routeId}/enable`, { method: "POST" });
 }
 
+export async function disableRoute(routeId: string | number) {
+  return fetchHeadscale(`routes/${routeId}/enable`, { method: "DELETE" });
+}
+
 // ── Users ─────────────────────────────────────────────────────────────────────
 
 export async function getUsers() {
@@ -92,4 +96,14 @@ export async function createPreAuthKey(
     method: "POST",
     body: JSON.stringify({ user, reusable, ephemeral, expiration }),
   });
+}
+
+// ── DNS ───────────────────────────────────────────────────────────────────────
+
+export async function getDnsConfig() {
+  return fetchHeadscale("dns/routes");
+}
+
+export async function getNameservers() {
+  return fetchHeadscale("dns/nameservers");
 }
