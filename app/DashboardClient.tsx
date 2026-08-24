@@ -207,7 +207,7 @@ function StatCard({ label, value, sub, accent, delay = 0 }: {
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
-export default function DashboardClient({ nodes }: { nodes: any[] }) {
+export default function DashboardClient({ nodes, apiError }: { nodes: any[]; apiError?: string | null }) {
   const [token, setToken] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
@@ -263,6 +263,13 @@ export default function DashboardClient({ nodes }: { nodes: any[] }) {
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
       {token && <TokenModal token={token} onClose={() => setToken(null)} />}
+
+      {apiError && (
+        <div className="flex-shrink-0 flex items-center gap-2.5 px-8 py-3" style={{ background: 'rgba(248,113,113,0.06)', borderBottom: '1px solid rgba(248,113,113,0.15)' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--red)', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p className="text-[12px]" style={{ color: 'var(--red)' }}>Headscale API error: {apiError}</p>
+        </div>
+      )}
 
       {/* Top bar */}
       <header className="flex-shrink-0 flex items-center justify-between px-8 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>

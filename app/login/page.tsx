@@ -11,7 +11,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(false);
-    const res = await signIn('credentials', { password, redirect: true, callbackUrl: '/' });
+    const res = await signIn('credentials', { password, redirect: true, callbackUrl: '/dashboard' });
     if (res?.error) { setError(true); setLoading(false); }
   };
 
