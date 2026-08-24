@@ -41,8 +41,8 @@ export default function ComparisonSection() {
             50 devices on Tailscale Business = <span style={{ color: '#f87171', fontWeight: 700 }}>$450/month</span>
             {' '}→ LavaMesh Pro = <span style={{ color: '#34d399', fontWeight: 700 }}>$19/month flat</span>
           </p>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
-            Tailscale charges per seat. A 50-device homelab costs $300–900/month. Raw Headscale is free — but you're the IT department.
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
+            Tailscale's per-seat model scales against you. Raw Headscale is free — but you become the IT department. LavaMesh is the third option.
           </p>
         </div>
 
