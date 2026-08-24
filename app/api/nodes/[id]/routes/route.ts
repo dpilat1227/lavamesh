@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getNodeRoutes, enableNodeRoutes } from '@/lib/headscale';
+import { NextRequest, NextResponse } from "next/server";
+import { getMachineRoutes, enableRoute } from "@/lib/headscale";
 
 /**
  * GET /api/nodes/[id]/routes
- * Returns the advertised and enabled routes for a node.
+ * Returns advertised routes for a machine.
  */
 export async function GET(
     _req: NextRequest,
@@ -12,14 +12,13 @@ export async function GET(
     try {
         const { id } = await context.params;
         if (!id) {
-            return NextResponse.json({ error: 'Missing node ID' }, { status: 400 });
+            return NextResponse.json({ error: "Missing machine ID" }, { status: 400 });
         }
-
-        const data = await getNodeRoutes(id);
-        return NextResponse.json(data);
+        const routes = await getMachineRoutes(id);
+        return NextResponse.json({ routes });
     } catch (error: any) {
         return NextResponse.json(
-            { error: error?.message || 'Failed to fetch routes' },
+            { error: error?.message || "Failed to fetch routes" },
             { status: 500 }
         );
     }
@@ -27,8 +26,11 @@ export async function GET(
 
 /**
  * POST /api/nodes/[id]/routes
- * Body: { routes: string[] }
- * Approves/enables the specified advertised routes for a node.
+ * Body: { routeIds: string[] }
+ * Enables the specified route IDs for a machine.
+ *
+ * Note: Headscale v0.22.3 enables routes individually by route ID
+ * via POST /api/v1/routes/:routeId/enable, not by CIDR prefix.
  */
 export async function POST(
     req: NextRequest,
@@ -37,24 +39,24 @@ export async function POST(
     try {
         const { id } = await context.params;
         if (!id) {
-            return NextResponse.json({ error: 'Missing node ID' }, { status: 400 });
+            return NextResponse.json({ error: "Missing machine ID" }, { status: 400 });
         }
 
         const body = await req.json();
-        const routes: string[] = body?.routes;
+        const routeIds: string[] = body?.routeIds ?? body?.routes ?? [];
 
-        if (!Array.isArray(routes) || routes.length === 0) {
+        if (!Array.isArray(routeIds) || routeIds.length === 0) {
             return NextResponse.json(
-                { error: 'Body must include a non-empty routes array' },
+                { error: "Body must include a non-empty routeIds array" },
                 { status: 400 }
             );
         }
 
-        const data = await enableNodeRoutes(id, routes);
-        return NextResponse.json({ success: true, ...data });
+        await Promise.all(routeIds.map((rid) => enableRoute(rid)));
+        return NextResponse.json({ success: true, enabled: routeIds });
     } catch (error: any) {
         return NextResponse.json(
-            { error: error?.message || 'Failed to enable routes' },
+            { error: error?.message || "Failed to enable routes" },
             { status: 500 }
         );
     }
