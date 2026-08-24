@@ -1,5 +1,6 @@
 'use client';
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { expireKeyAction, generateKeyForUser } from '@/app/actions';
 
 interface PreAuthKey {
@@ -17,6 +18,7 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
   const [isPending, startTransition] = useTransition();
   const [confirmed, setConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
 
   const expired = k.expiration ? new Date(k.expiration) < new Date() : false;
   const isValid = !expired && !k.used;
@@ -32,6 +34,7 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
     startTransition(async () => {
       await expireKeyAction(userName, k.key);
       onExpire();
+      router.refresh();
     });
   };
 
@@ -243,7 +246,20 @@ export default function KeysClient({ keys, users }: { keys: PreAuthKey[]; users:
               </div>
             ) : (
               localKeys.map((k, i) => (
-                <KeyRow key={k.key} k={k} onExpire={() => setLocalKeys(prev => prev.filter(x => x.key !== k.key))} />
+                <KeyRow
+                  key={k.key}
+                  k={k}
+                  onExpire={() =>
+                    // Mark as expired locally — row stays visible with "Expired" badge
+                    setLocalKeys(prev =>
+                      prev.map(x =>
+                        x.key === k.key
+                          ? { ...x, expiration: new Date(Date.now() - 1000).toISOString() }
+                          : x
+                      )
+                    )
+                  }
+                />
               ))
             )}
           </div>
