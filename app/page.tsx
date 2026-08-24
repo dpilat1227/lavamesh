@@ -146,7 +146,7 @@ export default function LandingPage() {
       <Nav />
 
       {/* ── HERO ──────────────────────────────────────────────────────────────── */}
-      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 80, position: 'relative', overflow: 'hidden' }}>
+      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 128, position: 'relative', overflow: 'hidden' }}>
         {/* Grid + glow background */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
           <svg className="w-full h-full" style={{ position: 'absolute', opacity: 0.025 }} xmlns="http://www.w3.org/2000/svg">
