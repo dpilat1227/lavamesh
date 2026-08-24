@@ -26,8 +26,9 @@ export async function headscaleFetch(path: string, options: HeadscaleFetchOption
 }
 
 /**
- * Ensures a Headscale user/namespace exists. Gracefully ignores 400/409 errors
- * (user already exists) so this is safe to call idempotently before key creation.
+ * Ensures a Headscale user/namespace exists. Returns cleanly if the user
+ * already exists — Headscale may respond with 400, 409, or a 500 containing
+ * "UNIQUE constraint failed" / "already exists" depending on version.
  */
 export async function createUser(name: string) {
     try {
@@ -36,9 +37,13 @@ export async function createUser(name: string) {
             body: { name },
         });
     } catch (err: any) {
-        // 400 / 409 both mean the user already exists — not an error for our purposes
-        if (/\b(400|409)\b/.test(err?.message ?? '')) {
-            return null;
+        const msg: string = err?.message ?? '';
+        if (
+            /\b(400|409)\b/.test(msg) ||
+            msg.includes('UNIQUE constraint failed') ||
+            msg.includes('already exists')
+        ) {
+            return { name };
         }
         throw err;
     }
