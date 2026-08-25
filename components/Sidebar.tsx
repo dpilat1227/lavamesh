@@ -1,47 +1,14 @@
 'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { navSections } from './navConfig';
 
-const sections = [
-  {
-    label: 'Fleet',
-    items: [
-      {
-        name: 'Nodes', path: '/dashboard',
-        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
-      },
-      {
-        name: 'Routes', path: '/routes',
-        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3h6l6 18h6"/><path d="M14.25 12.75H21"/></svg>,
-      },
-    ],
-  },
-  {
-    label: 'Admin',
-    items: [
-      {
-        name: 'Keys', path: '/keys',
-        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>,
-      },
-      {
-        name: 'Users', path: '/users',
-        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>,
-      },
-      {
-        name: 'Audit Log', path: '/audit',
-        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
-      },
-      {
-        name: 'Settings', path: '/settings',
-        icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
-      },
-    ],
-  },
-];
-
-export default function Sidebar({ onClose }: { onClose?: () => void }) {
+export default function Sidebar({ onClose, onOpenPalette }: { onClose?: () => void; onOpenPalette?: () => void }) {
   const pathname = usePathname();
+  const [isMac, setIsMac] = useState(false);
+  useEffect(() => { setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform)); }, []);
 
   return (
     <aside className="w-[220px] flex flex-col min-h-screen" style={{ background: 'rgba(0,0,0,0.3)', borderRight: '1px solid var(--border-1)', flexShrink: 0 }}>
@@ -60,9 +27,28 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         <span className="status-dot online" title="Network Healthy" />
       </Link>
 
+      {/* Quick jump / command palette trigger */}
+      <div className="px-3 pt-3 flex-shrink-0">
+        <button
+          onClick={onOpenPalette}
+          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-left transition-all"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-1)', color: 'var(--text-4)', cursor: 'pointer' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'var(--border-2)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'var(--border-1)'; }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span className="text-[12px] flex-1">Jump to…</span>
+          <kbd className="text-[10px] font-medium px-1.5 py-0.5 rounded-[4px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-2)', color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>
+            {isMac ? '⌘K' : 'Ctrl K'}
+          </kbd>
+        </button>
+      </div>
+
       {/* Nav sections */}
-      <nav className="flex-1 px-3 space-y-4 overflow-y-auto pb-4">
-        {sections.map((section) => (
+      <nav className="flex-1 px-3 pt-4 space-y-4 overflow-y-auto pb-4">
+        {navSections.map((section) => (
           <div key={section.label}>
             <p className="text-[10px] font-semibold uppercase tracking-widest px-2 mb-1.5" style={{ color: 'var(--text-4)' }}>{section.label}</p>
             <div className="space-y-0.5">
@@ -70,7 +56,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                 const isActive = pathname === item.path;
                 return (
                   <Link key={item.path} href={item.path} onClick={onClose} className={`nav-item ${isActive ? 'active' : ''}`}>
-                    <span style={{ color: isActive ? 'var(--text-1)' : 'var(--text-4)' }}>{item.icon}</span>
+                    <span style={{ color: isActive ? 'var(--orange)' : 'var(--text-4)' }}>{item.icon}</span>
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -98,6 +84,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-4)'; e.currentTarget.style.background = 'transparent'; }}
             title="Sign out"
+            aria-label="Sign out"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>

@@ -2,6 +2,7 @@
 import { useState, useTransition } from 'react';
 import { generateApiKeyAction, revokeApiKeyAction } from '@/app/actions';
 import type { ApiKeyRecord } from '@/lib/apikeys';
+import { Badge, Button, Card } from '@/components/ui';
 
 export default function ApiKeyCard({
   apiKey,
@@ -46,9 +47,8 @@ export default function ApiKeyCard({
     : null;
 
   return (
-    <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '60ms' }}>
-      <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #60a5fa, transparent)' }} />
-
+    <Card accent="#60a5fa" padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
+      <div className="p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Developer API Key</h2>
@@ -56,7 +56,7 @@ export default function ApiKeyCard({
             Use with <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>Authorization: Bearer lm_…</code> to access <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>/api/v1/*</code>
           </p>
         </div>
-        <span className="px-2 py-0.5 rounded-[6px] text-[10px] font-semibold uppercase tracking-wider" style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)', color: '#60a5fa' }}>Pro</span>
+        <Badge variant="blue" className="text-[10px] uppercase tracking-wider">Pro</Badge>
       </div>
 
       {!kvReady && (
@@ -70,12 +70,12 @@ export default function ApiKeyCard({
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <code className="flex-1 text-[12px] truncate" style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)' }}>{maskedToken}</code>
-            <button onClick={() => setRevealed(r => !r)} className="btn btn-ghost text-[11px] px-2 py-1 rounded-[7px]" style={{ flexShrink: 0 }}>
+            <Button variant="ghost" onClick={() => setRevealed(r => !r)} className="text-[11px] px-2 py-1 rounded-[7px]" style={{ flexShrink: 0 }}>
               {revealed ? 'Hide' : 'Reveal'}
-            </button>
-            <button onClick={copy} className="btn btn-ghost text-[11px] px-2 py-1 rounded-[7px]" style={{ flexShrink: 0 }}>
+            </Button>
+            <Button variant="ghost" onClick={copy} className="text-[11px] px-2 py-1 rounded-[7px]" style={{ flexShrink: 0 }}>
               {copied ? '✓ Copied' : 'Copy'}
-            </button>
+            </Button>
           </div>
           {currentKey.lastUsed && (
             <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>
@@ -83,22 +83,22 @@ export default function ApiKeyCard({
             </p>
           )}
           <div className="flex gap-2 mt-3">
-            <button onClick={generate} disabled={generating || !kvReady} className="btn btn-ghost text-[12px]">
+            <Button variant="ghost" onClick={generate} disabled={generating || !kvReady} className="text-[12px]">
               {generating ? 'Regenerating…' : 'Regenerate'}
-            </button>
-            <button onClick={revoke} disabled={revoking || !kvReady} className="btn btn-danger text-[12px]">
+            </Button>
+            <Button variant="danger" onClick={revoke} disabled={revoking || !kvReady} className="text-[12px]">
               {revoking ? 'Revoking…' : 'Revoke'}
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
           <p className="text-[13px]" style={{ color: 'var(--text-4)' }}>No API key generated yet.</p>
-          <button onClick={generate} disabled={generating || !kvReady} className="btn btn-primary text-[13px]">
+          <Button variant="primary" onClick={generate} disabled={generating || !kvReady} className="text-[13px]">
             {generating ? (
               <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</>
             ) : 'Generate API Key'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -110,6 +110,7 @@ export default function ApiKeyCard({
   -H "Authorization: Bearer ${currentKey?.token ?? 'lm_…'}"`}
         </pre>
       </div>
-    </div>
+      </div>
+    </Card>
   );
 }

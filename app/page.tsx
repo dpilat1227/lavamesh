@@ -33,7 +33,7 @@ function Nav() {
               <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
             </svg>
           </div>
-          <span className="font-semibold text-[17px] tracking-tight" style={{ color: 'white', letterSpacing: '-0.02em' }}>LavaMesh</span>
+          <span className="font-semibold text-[17px] tracking-tight" style={{ color: 'white', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>LavaMesh</span>
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
             style={{ color: 'var(--orange)', borderColor: 'rgba(255,90,0,0.3)', background: 'rgba(255,90,0,0.08)', letterSpacing: '0.05em' }}>BETA</span>
         </Link>
@@ -47,7 +47,9 @@ function Nav() {
         {/* Mobile hamburger */}
         <button className="nav-mobile-btn items-center justify-center w-9 h-9 rounded-[8px]"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
-          onClick={() => setMobileMenuOpen(o => !o)}>
+          onClick={() => setMobileMenuOpen(o => !o)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}>
           {mobileMenuOpen
             ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -145,7 +147,7 @@ const steps = [
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
-    <div style={{ background: '#000', minHeight: '100vh', color: 'white', fontFamily: 'var(--font-sans)', position: 'relative' }}>
+    <div className="landing-page" style={{ background: '#000', minHeight: '100vh', color: 'white', fontFamily: 'var(--font-sans)', position: 'relative' }}>
       {/* Subtle star field */}
       <div style={{
         position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
@@ -178,8 +180,15 @@ export default function LandingPage() {
       }} />
       <Nav />
 
-      {/* ── HERO ──────────────────────────────────────────────────────────────── */}
-      <section style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 128, position: 'relative', overflow: 'hidden' }}>
+      {/* ── HERO — split layout: pitch and proof side by side ────────────────── */}
+      <style>{`
+        .hero-split { display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; }
+        @media (max-width: 940px) {
+          .hero-split { grid-template-columns: 1fr; }
+          .hero-visual { min-height: 320px; padding-top: 0 !important; }
+        }
+      `}</style>
+      <section className="hero-split" style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
         {/* Grid + glow background */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
           <svg className="w-full h-full" style={{ position: 'absolute', opacity: 0.025 }} xmlns="http://www.w3.org/2000/svg">
@@ -190,34 +199,35 @@ export default function LandingPage() {
             </defs>
             <rect width="100%" height="100%" fill="url(#hero-grid)" />
           </svg>
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 50%, transparent 0%, #000 100%)' }} />
-          <div style={{ position: 'absolute', top: '5%', left: '50%', transform: 'translateX(-50%)', width: 700, height: 500, background: 'radial-gradient(circle, rgba(255,90,0,0.09) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(50px)' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 90% 70% at 30% 50%, transparent 0%, #000 100%)' }} />
+          <div style={{ position: 'absolute', top: '0%', right: '-8%', width: 750, height: 650, background: 'radial-gradient(circle, rgba(255,90,0,0.10) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)' }} />
         </div>
 
-        <div className="relative z-10 text-center px-6" style={{ maxWidth: 900 }}>
+        {/* Left — pitch */}
+        <div className="relative z-10 flex flex-col justify-center px-6 md:pl-16 lg:pl-20 md:pr-10" style={{ paddingTop: 96, paddingBottom: 64 }}>
           {/* Eyebrow pill */}
-          <div className="animate-fade-in inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8"
+          <div className="animate-fade-in inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8 self-start"
             style={{ background: 'rgba(255,90,0,0.08)', border: '1px solid rgba(255,90,0,0.2)' }}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse-orange" style={{ background: '#FF5A00' }}></span>
             <span className="text-[12px] font-medium" style={{ color: '#FF5A00' }}>Now in beta — self-hosted mesh for everyone</span>
           </div>
 
           {/* Headline */}
-          <h1 className="animate-fade-in-up font-bold tracking-tight leading-none mb-6"
-            style={{ fontSize: 'clamp(52px, 8vw, 88px)', letterSpacing: '-0.04em', animationDelay: '80ms' }}>
+          <h1 className="animate-fade-in-up font-bold mb-6"
+            style={{ fontSize: 'clamp(42px, 4.8vw, 74px)', letterSpacing: '-0.035em', lineHeight: 1.03, animationDelay: '80ms' }}>
             <span style={{ color: 'white' }}>Private networking.</span><br />
             <span style={{ background: 'linear-gradient(135deg, #FF5A00 0%, #FF8A00 60%, rgba(255,180,50,0.9) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No compromise.</span>
           </h1>
 
           {/* Sub */}
-          <p className="animate-fade-in-up text-[18px] leading-relaxed mb-10 mx-auto"
-            style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 560, letterSpacing: '-0.01em', animationDelay: '160ms' }}>
+          <p className="animate-fade-in-up text-[17px] leading-relaxed mb-10"
+            style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 460, letterSpacing: '-0.01em', animationDelay: '160ms' }}>
             A self-hosted mesh network with a beautiful dashboard. Powered by Headscale and WireGuard. Zero subscriptions. Total control.
           </p>
 
           {/* CTAs */}
-          <div className="animate-fade-in-up flex flex-col items-center gap-4 mb-16 px-4" style={{ animationDelay: '240ms' }}>
-            <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="animate-fade-in-up flex flex-col gap-4" style={{ animationDelay: '240ms' }}>
+            <div className="flex flex-wrap items-center gap-3">
               <a href="#pricing" className="btn btn-primary"
                 style={{ padding: '13px 28px', borderRadius: '12px', fontSize: 15, boxShadow: '0 0 30px rgba(255,90,0,0.3)' }}>
                 Deploy Free →
@@ -230,9 +240,11 @@ export default function LandingPage() {
             </div>
             <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Free to self-host · Pro license from $19/mo</p>
           </div>
+        </div>
 
-          {/* Network animation */}
-          <div className="animate-fade-in w-full mx-auto" style={{ maxWidth: 780, height: 440, animationDelay: '400ms', position: 'relative' }}>
+        {/* Right — proof: the live mesh, right next to the claim */}
+        <div className="hero-visual relative z-10 flex items-center justify-center px-6 md:pr-16 lg:pr-20" style={{ paddingTop: 96, paddingBottom: 64 }}>
+          <div className="animate-fade-in w-full" style={{ maxWidth: 560, height: 480, animationDelay: '400ms', position: 'relative' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 55%, #000 100%)', zIndex: 2, pointerEvents: 'none' }} />
             <HeroAnimation />
           </div>
