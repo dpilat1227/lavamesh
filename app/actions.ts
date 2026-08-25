@@ -15,6 +15,7 @@ import { logEvent } from '@/lib/audit';
 import { setNodeTags, getNodeTags, getTagsForNodes } from '@/lib/tags';
 import { generateApiKey, getCurrentApiKey, revokeApiKey } from '@/lib/apikeys';
 import { getPlanStatus } from '@/lib/billing';
+import { saveNotificationConfig, type NotificationConfig } from '@/lib/notifications';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -172,5 +173,21 @@ export async function getCurrentApiKeyAction() {
 export async function revokeApiKeyAction() {
   await revokeApiKey();
   await logEvent('apikey.revoke', {});
+}
+
+// ── Notifications ────────────────────────────────────────────────────────────
+
+export async function saveNotificationConfigAction(patch: Partial<NotificationConfig>) {
+  // Webhook alerts are a Pro/Cloud perk; email stays free for everyone.
+  if (patch.webhookEnabled) {
+    await requirePro();
+  }
+  const next = await saveNotificationConfig(patch);
+  await logEvent('notifications.update', {
+    emailEnabled: String(next.emailEnabled),
+    webhookEnabled: String(next.webhookEnabled),
+  });
+  revalidatePath('/settings');
+  return next;
 }
 

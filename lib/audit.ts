@@ -17,6 +17,7 @@ export type AuditAction =
   | 'tag.set'
   | 'apikey.generate'
   | 'apikey.revoke'
+  | 'notifications.update'
   | 'auth.login';
 
 export interface AuditEvent {

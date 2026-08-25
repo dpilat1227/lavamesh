@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/uptime",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/check-nodes",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/key-expiry",
+      "schedule": "0 */6 * * *"
     }
   ]
 }
