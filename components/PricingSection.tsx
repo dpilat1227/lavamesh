@@ -43,7 +43,7 @@ const plans = [
       'Everything in Community',
       'Unlimited team members',
       'Advanced audit log & event history',
-      'Node tagging & label management',
+      'Visual tag-based ACL builder',
       'Webhook alerts (Slack, Discord)',
       'Subnet route failover alerts',
       'Automated config backups',
