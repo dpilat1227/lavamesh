@@ -7,6 +7,8 @@ import {
   renameUser as _renameUser,
   renameMachine as _renameMachine,
   setPolicy as _setPolicy,
+  getUsers,
+  getNodes,
 } from '@/lib/headscale';
 import { revalidatePath } from 'next/cache';
 
@@ -89,4 +91,29 @@ export async function renameUserAction(oldName: string, newName: string) {
 export async function updatePolicyAction(policy: string) {
   await _setPolicy(policy);
   revalidatePath('/settings');
+}
+
+// ── Users (read) ──────────────────────────────────────────────────────────────
+
+export async function getUsersAction() {
+  return await getUsers();
+}
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
+
+export async function exportNodesCsvAction(): Promise<string> {
+  const nodes = await getNodes();
+  const rows = [
+    ['Node Name', 'Hostname', 'User', 'Mesh IPv4', 'Mesh IPv6', 'Status', 'Last Seen', 'Created At', 'Expiry'],
+    ...nodes.map((n: any) => {
+      const ipv4 = n.ipAddresses?.find((ip: string) => !ip.includes(':')) ?? '';
+      const ipv6 = n.ipAddresses?.find((ip: string) => ip.includes(':')) ?? '';
+      const online = n.online ? 'Online' : 'Offline';
+      const lastSeen = n.lastSeen && !n.lastSeen.startsWith('0001') ? new Date(n.lastSeen).toISOString() : 'Never';
+      const created = n.createdAt ? new Date(n.createdAt).toISOString() : '';
+      const expiry = n.expiry && !n.expiry.startsWith('0001') ? new Date(n.expiry).toISOString() : 'Never';
+      return [n.givenName ?? n.name, n.name, n.user?.name ?? '', ipv4, ipv6, online, lastSeen, created, expiry];
+    }),
+  ];
+  return rows.map(r => r.map((cell: unknown) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
 }
