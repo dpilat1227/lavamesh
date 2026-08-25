@@ -8,6 +8,7 @@ import {
   renameMachineAction,
   getUsersAction,
   exportNodesCsvAction,
+  setNodeTagsAction,
 } from '@/app/actions';
 
 function OsIcon({ name }: { name: string }) {
@@ -134,11 +135,14 @@ function InviteModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-function NodePanel({ node, onClose, onRevoke, onRename }: { node: any; onClose: () => void; onRevoke: () => void; onRename: (name: string) => void }) {
+function NodePanel({ node, tags = [], onClose, onRevoke, onRename, onTagsChange }: { node: any; tags?: string[]; onClose: () => void; onRevoke: () => void; onRename: (name: string) => void; onTagsChange: (tags: string[]) => void }) {
   const [confirming, setConfirming] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(node.givenName);
   const [renamePending, startRenameTransition] = useTransition();
+  const [addingTag, setAddingTag] = useState(false);
+  const [newTag, setNewTag] = useState('');
+  const [tagPending, startTagTransition] = useTransition();
 
   const doRename = () => {
     if (!newName.trim() || newName === node.givenName) return setRenaming(false);
@@ -171,6 +175,48 @@ function NodePanel({ node, onClose, onRevoke, onRename }: { node: any; onClose: 
           <span className={`status-dot ${node.online ? 'online' : 'offline'}`} />
           <span className="text-[13px] font-medium" style={{ color: node.online ? 'var(--green)' : 'var(--text-3)' }}>{node.online ? 'Online' : 'Offline'}</span>
         </div>
+
+        {/* Tags */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>Tags</p>
+            {!addingTag && (
+              <button onClick={() => setAddingTag(true)} className="btn btn-ghost text-[10px] px-2 py-0.5 rounded-[6px]" style={{ color: 'var(--orange)' }}>
+                + Add
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map(t => (
+              <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-[6px] text-[11px] font-medium" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text-2)' }}>
+                {t}
+                <button onClick={() => {
+                  const next = tags.filter(x => x !== t);
+                  onTagsChange(next);
+                  startTagTransition(async () => { await setNodeTagsAction(node.id, next); });
+                }} className="hover:text-red-400 transition-colors ml-0.5" style={{ color: 'var(--text-4)' }}>×</button>
+              </span>
+            ))}
+            {tags.length === 0 && !addingTag && <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>No tags</span>}
+          </div>
+          {addingTag && (
+            <div className="flex items-center gap-1.5 mt-2">
+              <input className="input text-[11px] py-1 px-2 h-7 flex-1" placeholder="tag-name" value={newTag} onChange={e => setNewTag(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                onKeyDown={e => {
+                  if (e.key === 'Escape') { setAddingTag(false); setNewTag(''); }
+                  if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
+                    const next = [...tags, newTag.trim()];
+                    onTagsChange(next);
+                    startTagTransition(async () => { await setNodeTagsAction(node.id, next); });
+                    setAddingTag(false);
+                    setNewTag('');
+                  }
+                }} autoFocus />
+              <button onClick={() => { setAddingTag(false); setNewTag(''); }} className="btn btn-ghost text-[10px] px-2 py-1 h-7">Cancel</button>
+            </div>
+          )}
+        </div>
+
         {[
           { label: 'Node ID', value: node.id },
           { label: 'Hostname', value: node.name || node.givenName },
@@ -220,12 +266,13 @@ function StatCard({ label, value, sub, accent, delay = 0 }: { label: string; val
   );
 }
 
-export default function DashboardClient({ nodes, apiError }: { nodes: any[]; apiError?: string | null }) {
+export default function DashboardClient({ nodes, apiError, initialTags }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]> }) {
   const [showInvite, setShowInvite] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [renamedNodes, setRenamedNodes] = useState<Record<string, string>>({});
+  const [nodeTags, setNodeTags] = useState<Record<string, string[]>>(initialTags || {});
   const [exporting, setExporting] = useState(false);
   const router = useRouter();
 
@@ -330,7 +377,16 @@ export default function DashboardClient({ nodes, apiError }: { nodes: any[]; api
                     </div>
                     <div className="min-w-0">
                       <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{renamedNodes[node.id] || node.givenName}</p>
-                      <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
+                        {nodeTags[node.id]?.length > 0 && (
+                          <div className="flex gap-1 overflow-hidden max-w-[120px]">
+                            {nodeTags[node.id].map((t: string) => (
+                              <span key={t} className="inline-block px-1.5 py-0.5 rounded-[4px] text-[9px] font-medium truncate flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text-3)' }}>{t}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>{node.ipAddresses?.[1] || node.ipAddresses?.[0] || '—'}</span>
@@ -349,9 +405,11 @@ export default function DashboardClient({ nodes, apiError }: { nodes: any[]; api
         {selectedNode && (
           <NodePanel
             node={{ ...selectedNode, givenName: renamedNodes[selectedNode.id] || selectedNode.givenName }}
+            tags={nodeTags[selectedNode.id] || []}
             onClose={() => setSelectedNode(null)}
             onRevoke={() => handleRevoke(selectedNode.id)}
             onRename={name => setRenamedNodes(prev => ({ ...prev, [selectedNode.id]: name }))}
+            onTagsChange={tags => setNodeTags(prev => ({ ...prev, [selectedNode.id]: tags }))}
           />
         )}
       </div>

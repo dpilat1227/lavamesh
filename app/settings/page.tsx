@@ -1,15 +1,19 @@
 import { getRoutes, getDnsConfig, getNameservers, getPolicy } from '@/lib/headscale';
+import { getCurrentApiKey } from '@/lib/apikeys';
+import { kvConfigured } from '@/lib/kv';
 import AclEditor from './AclEditor';
+import ApiKeyCard from './ApiKeyCard';
 
 async function fetchSettingsData() {
-  const [routes, dns, ns, policy] = await Promise.allSettled([
-    getRoutes(), getDnsConfig(), getNameservers(), getPolicy()
+  const [routes, dns, ns, policy, apiKey] = await Promise.allSettled([
+    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey()
   ]);
   return {
     routes: routes.status === 'fulfilled' ? routes.value : [],
     dns: dns.status === 'fulfilled' ? dns.value : null,
     ns: ns.status === 'fulfilled' ? ns.value : null,
     policy: policy.status === 'fulfilled' ? policy.value : null,
+    apiKey: apiKey.status === 'fulfilled' ? apiKey.value : null,
   };
 }
 
@@ -23,7 +27,7 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
 }
 
 export default async function SettingsPage() {
-  const { routes, dns, ns, policy } = await fetchSettingsData();
+  const { routes, dns, ns, policy, apiKey } = await fetchSettingsData();
 
   const exitRoutes = routes.filter((r: any) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0');
   const baseDomain: string = dns?.domains?.[0] || dns?.baseDomain || '';
@@ -112,6 +116,9 @@ export default async function SettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Developer API Key */}
+          <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} />
 
           {/* ACL Editor */}
           <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '120ms' }}>
