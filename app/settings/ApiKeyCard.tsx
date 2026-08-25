@@ -7,9 +7,11 @@ import { Badge, Button, Card } from '@/components/ui';
 export default function ApiKeyCard({
   apiKey,
   kvReady,
+  isPro,
 }: {
   apiKey: ApiKeyRecord | null;
   kvReady: boolean;
+  isPro: boolean;
 }) {
   const [currentKey, setCurrentKey] = useState<ApiKeyRecord | null>(apiKey);
   const [revealed, setRevealed] = useState(false);
@@ -59,14 +61,21 @@ export default function ApiKeyCard({
         <Badge variant="blue" className="text-[10px] uppercase tracking-wider">Pro</Badge>
       </div>
 
-      {!kvReady && (
+      {!kvReady && isPro && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] mb-4" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#fbbf24', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <p className="text-[11px]" style={{ color: '#fbbf24' }}>Requires Vercel KV — create one in Vercel → Storage</p>
         </div>
       )}
 
-      {currentKey ? (
+      {!isPro ? (
+        <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
+          <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
+            Generate API keys for programmatic access to <code style={{ fontFamily: 'var(--font-mono)' }}>/api/v1/*</code> on the Pro or Cloud plan.
+          </p>
+          <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+        </div>
+      ) : currentKey ? (
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <code className="flex-1 text-[12px] truncate" style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)' }}>{maskedToken}</code>
@@ -103,13 +112,15 @@ export default function ApiKeyCard({
       )}
 
       {/* Usage example */}
-      <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-1)' }}>
-        <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>Example</p>
-        <pre className="text-[11px] px-3 py-2.5 rounded-[8px] overflow-x-auto" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-2)', color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
+      {isPro && (
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-1)' }}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>Example</p>
+          <pre className="text-[11px] px-3 py-2.5 rounded-[8px] overflow-x-auto" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-2)', color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
 {`curl https://www.lavamesh.com/api/v1/machine \\
   -H "Authorization: Bearer ${currentKey?.token ?? 'lm_…'}"`}
-        </pre>
-      </div>
+          </pre>
+        </div>
+      )}
       </div>
     </Card>
   );

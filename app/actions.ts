@@ -14,6 +14,17 @@ import { revalidatePath } from 'next/cache';
 import { logEvent } from '@/lib/audit';
 import { setNodeTags, getNodeTags, getTagsForNodes } from '@/lib/tags';
 import { generateApiKey, getCurrentApiKey, revokeApiKey } from '@/lib/apikeys';
+import { getPlanStatus } from '@/lib/billing';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+
+async function requirePro() {
+  const session = await getServerSession(authOptions);
+  const plan = await getPlanStatus((session?.user as any)?.id);
+  if (!plan.isPro) {
+    throw new Error('This feature requires a Pro or Cloud plan. Upgrade at /#pricing.');
+  }
+}
 
 // ── Node ──────────────────────────────────────────────────────────────────────
 
@@ -148,6 +159,7 @@ export async function getTagsForNodesAction(nodeIds: string[]) {
 // ── API Keys ───────────────────────────────────────────────────────────────
 
 export async function generateApiKeyAction() {
+  await requirePro();
   const record = await generateApiKey();
   await logEvent('apikey.generate', {});
   return record;
