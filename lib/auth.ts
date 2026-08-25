@@ -1,23 +1,34 @@
 import { AuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import EmailProvider from "next-auth/providers/email";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { prisma } from "./prisma";
 
 export const authOptions: AuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
-    CredentialsProvider({
-      name: "LavaMesh Admin",
-      credentials: {
-        password: { label: "Dashboard Password", type: "password" }
+    EmailProvider({
+      server: {
+        host: "smtp.resend.com",
+        port: 465,
+        auth: {
+          user: "resend",
+          pass: process.env.RESEND_API_KEY,
+        },
       },
-      async authorize(credentials) {
-        if (credentials?.password === (process.env.ADMIN_PASSWORD || "lavamesh2026")) {
-          return { id: "1", name: "Admin" };
-        }
-        return null;
-      }
-    })
+      from: "LavaMesh <onboarding@resend.dev>",
+    }),
   ],
   session: {
     strategy: "jwt",
+  },
+  callbacks: {
+    async session({ session, token }) {
+      if (session?.user) {
+        // @ts-ignore
+        session.user.id = token.sub;
+      }
+      return session;
+    },
   },
   pages: {
     signIn: '/login',

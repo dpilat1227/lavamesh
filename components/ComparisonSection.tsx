@@ -1,5 +1,6 @@
 const rows = [
-  { feature: 'Pricing',        lava: '$19 flat / $149 lifetime', tail: '$6–18 per user/mo',  head: 'Free (DIY)' },
+  { feature: 'Pricing',        lava: '$19/mo flat / $149 lifetime', tail: '$6–18 per user/mo',  head: 'Free (DIY)' },
+  { feature: '50-device fleet',lava: '$19/mo',                   tail: '$300–900/mo',         head: 'CLI grind', tailBad: true, headBad: true },
   { feature: 'Per-seat fees',  lava: 'Never',                    tail: 'Always',              head: 'Never',    tailBad: true },
   { feature: 'Web UI',         lava: 'Beautiful dashboard',      tail: 'Basic',               head: 'None',     headBad: true },
   { feature: 'Self-hosted',    lava: 'Full control',             tail: 'Cloud only',          head: 'Full control', tailBad: true },
@@ -8,7 +9,6 @@ const rows = [
   { feature: 'Audit log',      lava: 'Pro tier',                 tail: 'Teams+ only',         head: 'None',     headBad: true },
   { feature: 'Open protocol',  lava: 'WireGuard',                tail: 'Proprietary DERP',    head: 'WireGuard', tailBad: true },
   { feature: 'Open source',    lava: 'Yes',                      tail: 'No',                  head: 'Yes',      tailBad: true },
-  { feature: '50-device fleet',lava: '$19/mo',                   tail: '$300–900/mo',         head: 'CLI grind', tailBad: true, headBad: true },
 ];
 
 function Check() {
@@ -48,10 +48,12 @@ export default function ComparisonSection() {
 
         {/* Table */}
         <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#080808' }}>
-          {/* Column headers */}
-          <div className="comparison-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1.4fr 1.2fr 1.2fr', padding: '0 0 0 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <div style={{ padding: '20px 24px' }} />
-            {/* LavaMesh header — highlighted */}
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: 700 }}>
+              {/* Column headers */}
+              <div className="comparison-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1.4fr 1.2fr 1.2fr', padding: '0 0 0 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <div style={{ padding: '20px 24px', position: 'sticky', left: 0, background: '#080808', zIndex: 10, borderRight: '1px solid rgba(255,255,255,0.04)' }} />
+                {/* LavaMesh header — highlighted */}
             <div style={{ padding: '20px 20px', background: 'rgba(255,90,0,0.04)', borderLeft: '1px solid rgba(255,90,0,0.15)', borderRight: '1px solid rgba(255,90,0,0.15)' }}>
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-5 h-5 rounded-[5px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.3)' }}>
@@ -83,14 +85,14 @@ export default function ComparisonSection() {
               }}
             >
               {/* Feature label */}
-              <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center' }}>
+              <div style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', position: 'sticky', left: 0, background: '#080808', zIndex: 10, borderRight: '1px solid rgba(255,255,255,0.04)' }}>
                 <span className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.55)' }}>{row.feature}</span>
               </div>
 
               {/* LavaMesh value */}
               <div style={{ padding: '16px 20px', background: 'rgba(255,90,0,0.02)', borderLeft: '1px solid rgba(255,90,0,0.12)', borderRight: '1px solid rgba(255,90,0,0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Check />
-                <span className="text-[13px] font-medium" style={{ color: '#FF5A00' }}>{row.lava}</span>
+                <span className="text-[13px] font-medium" style={{ color: 'white' }}>{row.lava}</span>
               </div>
 
               {/* Tailscale value */}
@@ -106,6 +108,8 @@ export default function ComparisonSection() {
               </div>
             </div>
           ))}
+            </div>
+          </div>
         </div>
 
       </div>

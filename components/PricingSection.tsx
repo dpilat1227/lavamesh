@@ -58,7 +58,7 @@ const plans = [
   {
     id: 'cloud',
     name: 'Cloud',
-    badge: 'Coming Soon',
+    badge: null,
     desc: 'Zero infrastructure. We host Headscale and LavaMesh together for you.',
     price: { monthly: '$39', lifetime: null },
     sub: { monthly: '/month', lifetime: null },
@@ -73,8 +73,8 @@ const plans = [
     ],
     notIncluded: [],
     cta: (billing: Billing) => ({
-      label: 'Join Waitlist →',
-      href: '#waitlist',
+      label: 'Deploy Cloud Instance →',
+      href: '/api/checkout?plan=cloud',
       external: false,
     }),
     highlight: false,
@@ -104,10 +104,10 @@ export default function PricingSection() {
           <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>Pricing</p>
           <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
             Simple, flat-rate pricing.<br />
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>No per-seat surprises.</span>
+            <span style={{ color: 'rgba(255,255,255,0.7)' }}>Zero per-user fees.</span>
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, maxWidth: 480, margin: '0 auto' }}>
-            One price for your whole fleet — whether you have 3 devices or 300.
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 16, maxWidth: 480, margin: '0 auto' }}>
+            Scale your mesh network without scaling your bill.
           </p>
         </div>
 
@@ -255,7 +255,7 @@ export default function PricingSection() {
         {/* Enterprise callout */}
         <div className="mt-8 flex items-center justify-center gap-3 text-center flex-wrap">
           <span className="text-[14px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Need multi-instance management or a custom contract?</span>
-          <a href="mailto:drew@lavamesh.com" className="text-[14px] font-medium" style={{ color: '#FF5A00', textDecoration: 'none' }}>Talk to us →</a>
+          <a href="#waitlist" className="text-[14px] font-medium" style={{ color: '#FF5A00', textDecoration: 'none' }}>Talk to us →</a>
         </div>
       </div>
     </section>

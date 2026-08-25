@@ -8,6 +8,7 @@ import PricingSection from '@/components/PricingSection';
 import WaitlistForm from '@/components/WaitlistForm';
 import ComparisonSection from '@/components/ComparisonSection';
 import SocialProof from '@/components/SocialProof';
+import FounderSection from '@/components/FounderSection';
 
 // ── Nav ────────────────────────────────────────────────────────────────────────
 function Nav() {
@@ -25,7 +26,7 @@ function Nav() {
       `}</style>
       <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 h-16"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)' }}>
-        <div className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
           <div className="w-8 h-8 rounded-[9px] flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.35)', boxShadow: '0 0 16px rgba(255,90,0,0.25)' }}>
             <svg className="w-4 h-4" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -35,7 +36,7 @@ function Nav() {
           <span className="font-semibold text-[17px] tracking-tight" style={{ color: 'white', letterSpacing: '-0.02em' }}>LavaMesh</span>
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
             style={{ color: 'var(--orange)', borderColor: 'rgba(255,90,0,0.3)', background: 'rgba(255,90,0,0.08)', letterSpacing: '0.05em' }}>BETA</span>
-        </div>
+        </Link>
         {/* Desktop links */}
         <div className="nav-desktop-links items-center gap-3">
           <a href="#pricing" className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>Pricing</a>
@@ -87,7 +88,7 @@ function DashboardMockup() {
         </div>
         <div className="px-3 py-1.5 rounded-[8px] text-[11px] font-medium" style={{ background: '#FF5A00', color: 'white' }}>+ New Provision Token</div>
       </div>
-      <div className="grid grid-cols-4 gap-3 px-6 py-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-4">
         {[
           { label: 'TOTAL NODES', val: '4', color: 'white' },
           { label: 'ONLINE', val: '3', color: '#34d399' },
@@ -101,8 +102,9 @@ function DashboardMockup() {
         ))}
       </div>
       <div className="px-6 pb-5">
-        <div className="rounded-[12px] overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div className="grid px-4 py-2.5" style={{ gridTemplateColumns: '1fr 110px 90px 80px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
+        <div className="rounded-[12px] overflow-hidden overflow-x-auto" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ minWidth: 500 }}>
+            <div className="grid px-4 py-2.5" style={{ gridTemplateColumns: '1fr 110px 90px 80px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
             {['NODE', 'MESH IP', 'LAST SEEN', 'STATUS'].map(h => (
               <span key={h} className="text-[9px] font-semibold" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>{h}</span>
             ))}
@@ -126,6 +128,7 @@ function DashboardMockup() {
               </span>
             </div>
           ))}
+          </div>
         </div>
       </div>
     </div>
@@ -142,7 +145,37 @@ const steps = [
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
-    <div style={{ background: '#000', minHeight: '100vh', color: 'white', fontFamily: 'var(--font-sans)' }}>
+    <div style={{ background: '#000', minHeight: '100vh', color: 'white', fontFamily: 'var(--font-sans)', position: 'relative' }}>
+      {/* Subtle star field */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
+        backgroundImage: `
+          radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.12) 0%, transparent 100%),
+          radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.08) 0%, transparent 100%),
+          radial-gradient(1px 1px at 40% 8%, rgba(255,255,255,0.10) 0%, transparent 100%),
+          radial-gradient(1px 1px at 55% 42%, rgba(255,255,255,0.06) 0%, transparent 100%),
+          radial-gradient(1px 1px at 70% 18%, rgba(255,255,255,0.09) 0%, transparent 100%),
+          radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.07) 0%, transparent 100%),
+          radial-gradient(1px 1px at 15% 65%, rgba(255,255,255,0.05) 0%, transparent 100%),
+          radial-gradient(1px 1px at 35% 78%, rgba(255,255,255,0.08) 0%, transparent 100%),
+          radial-gradient(1px 1px at 60% 72%, rgba(255,255,255,0.06) 0%, transparent 100%),
+          radial-gradient(1px 1px at 80% 38%, rgba(255,255,255,0.10) 0%, transparent 100%),
+          radial-gradient(1px 1px at 5% 88%, rgba(255,255,255,0.07) 0%, transparent 100%),
+          radial-gradient(1px 1px at 48% 92%, rgba(255,255,255,0.05) 0%, transparent 100%),
+          radial-gradient(1px 1px at 92% 75%, rgba(255,255,255,0.08) 0%, transparent 100%),
+          radial-gradient(1px 1px at 18% 48%, rgba(255,255,255,0.06) 0%, transparent 100%),
+          radial-gradient(1px 1px at 73% 58%, rgba(255,255,255,0.09) 0%, transparent 100%),
+          radial-gradient(1px 1px at 33% 22%, rgba(255,255,255,0.07) 0%, transparent 100%),
+          radial-gradient(1px 1px at 88% 12%, rgba(255,255,255,0.05) 0%, transparent 100%),
+          radial-gradient(1px 1px at 45% 55%, rgba(255,255,255,0.08) 0%, transparent 100%),
+          radial-gradient(1px 1px at 63% 30%, rgba(255,255,255,0.06) 0%, transparent 100%),
+          radial-gradient(1px 1px at 8% 40%, rgba(255,255,255,0.10) 0%, transparent 100%),
+          radial-gradient(1px 1px at 95% 48%, rgba(255,255,255,0.07) 0%, transparent 100%),
+          radial-gradient(1px 1px at 28% 85%, rgba(255,255,255,0.05) 0%, transparent 100%),
+          radial-gradient(1px 1px at 52% 15%, rgba(255,255,255,0.09) 0%, transparent 100%),
+          radial-gradient(1px 1px at 78% 82%, rgba(255,255,255,0.06) 0%, transparent 100%)
+        `,
+      }} />
       <Nav />
 
       {/* ── HERO ──────────────────────────────────────────────────────────────── */}
@@ -258,7 +291,10 @@ export default function LandingPage() {
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Generate a token from the dashboard. Paste one line. Done.</p>
           </div>
-          <TerminalBlock />
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: '-40px', background: 'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(52,211,153,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+            <TerminalBlock />
+          </div>
         </div>
       </section>
 
@@ -275,7 +311,8 @@ export default function LandingPage() {
             </p>
           </div>
           <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: '-30px', background: 'radial-gradient(ellipse at 50% 50%, rgba(255,90,0,0.07) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+            {/* Ambient glow behind mockup */}
+            <div style={{ position: 'absolute', inset: '-60px', background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,90,0,0.12) 0%, rgba(255,90,0,0.04) 40%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
             <DashboardMockup />
           </div>
         </div>
@@ -283,6 +320,9 @@ export default function LandingPage() {
 
       {/* ── SOCIAL PROOF ──────────────────────────────────────────────────────── */}
       <SocialProof />
+
+      {/* ── FOUNDER BIO ───────────────────────────────────────────────────────── */}
+      <FounderSection />
 
       {/* ── PRICING ───────────────────────────────────────────────────────────── */}
       <PricingSection />

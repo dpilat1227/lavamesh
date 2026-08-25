@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/check-nodes",
-      "schedule": "*/5 * * * *"
+      "path": "/api/cron/uptime",
+      "schedule": "*/15 * * * *"
     }
   ]
 }

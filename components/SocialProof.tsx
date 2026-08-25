@@ -1,21 +1,21 @@
 const testimonials = [
   {
-    quote: "Finally a way to manage my homelab VPN without memorizing CLI flags. The key management UI alone is worth it.",
-    name: "Marcus R.",
-    role: "Software engineer · 14 machines across 3 VLANs",
-    avatar: "M",
+    quote: "Honestly I just wanted something that didn't charge per seat. I've got 30+ raspberry pis and vps instances. LavaMesh works perfectly and the UI is genuinely better than the alternatives.",
+    name: "Alex",
+    role: "Homelabber",
+    avatar: "A",
   },
   {
-    quote: "I was paying Tailscale $22/month for 4 users. Switched to Headscale + LavaMesh and cut costs to zero. The dashboard is better anyway.",
-    name: "Sarah K.",
-    role: "DevOps engineer · Team of 6",
-    avatar: "S",
+    quote: "Set up the control plane in about 5 mins on a $5 DigitalOcean droplet. The magic dns just worked instantly. Way less headache than manually configuring wireguard tunnels.",
+    name: "James T.",
+    role: "SysAdmin",
+    avatar: "J",
   },
   {
-    quote: "The ACL editor is incredible. I used to manage my policy file with nano over SSH. Never again.",
-    name: "Dev P.",
-    role: "Indie developer · Remote access setup",
-    avatar: "D",
+    quote: "I tried Headscale natively first but quickly realized managing ACLs in raw json files is a huge pain. The visual editor here is exactly what I needed.",
+    name: "Elena M.",
+    role: "Backend Engineer",
+    avatar: "E",
   },
 ];
 
@@ -28,7 +28,7 @@ const stats = [
 
 export default function SocialProof() {
   return (
-    <section style={{ padding: '0 24px 120px' }}>
+    <section style={{ padding: '0 24px 80px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-16">

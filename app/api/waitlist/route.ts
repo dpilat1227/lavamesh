@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
@@ -6,6 +7,18 @@ export async function POST(req: NextRequest) {
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       return NextResponse.json({ error: 'Invalid email address.' }, { status: 400 });
+    }
+
+    // Save to database
+    try {
+      await prisma.waitlist.upsert({
+        where: { email },
+        update: {},
+        create: { email },
+      });
+    } catch (dbErr) {
+      console.error('[waitlist] Database error:', dbErr);
+      // We continue even if DB fails, to attempt the email notification
     }
 
     const resendKey = process.env.RESEND_API_KEY;
@@ -25,7 +38,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'LavaMesh Waitlist <waitlist@lavamesh.com>',
+        from: 'LavaMesh Waitlist <onboarding@resend.dev>',
         to: [adminEmail],
         subject: `🔥 New Cloud waitlist signup: ${email}`,
         html: `
@@ -57,7 +70,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Drew at LavaMesh <drew@lavamesh.com>',
+          from: 'Drew at LavaMesh <onboarding@resend.dev>',
           to: [email],
           subject: "You're on the LavaMesh Cloud waitlist 🔥",
           html: `
