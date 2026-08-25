@@ -18,6 +18,7 @@ const ACTION_LABELS: Record<string, string> = {
   'tag.set':          'Tags Updated',
   'apikey.generate':  'API Key Generated',
   'apikey.revoke':    'API Key Revoked',
+  'notifications.update': 'Notification Settings Updated',
   'auth.login':       'Login',
 };
 
@@ -33,6 +34,7 @@ const ACTION_COLORS: Record<string, string> = {
   'apikey.generate':  '#60a5fa',
   'key.generate':     'var(--green)',
   'user.create':      'var(--green)',
+  'notifications.update': '#60a5fa',
   'auth.login':       'var(--text-3)',
 };
 

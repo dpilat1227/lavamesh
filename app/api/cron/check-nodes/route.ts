@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getNodes } from '@/lib/headscale';
 import { kvGet, kvSet } from '@/lib/kv';
+import { sendOfflineAlert } from '@/lib/notifications';
 
 interface NodeSnapshot {
   id: string;
@@ -17,41 +18,6 @@ interface NodeSnapshot {
 
 const SNAPSHOT_KEY = 'cron:node-snapshot';
 const ALERTED_KEY = 'cron:alerted-offline'; // Set of node IDs already alerted
-
-async function sendOfflineAlert(nodes: NodeSnapshot[]) {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!adminEmail || !resendKey || nodes.length === 0) return;
-
-  const nodeList = nodes
-    .map(n => `• <strong>${n.name}</strong> (${n.ip}) went offline`)
-    .join('<br/>');
-
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'LavaMesh Alerts <alerts@lavamesh.com>',
-      to: [adminEmail],
-      subject: `⚠️ ${nodes.length} node${nodes.length > 1 ? 's' : ''} went offline — LavaMesh`,
-      html: `
-        <div style="font-family: system-ui, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #0a0a0a; color: #e5e5e5; border-radius: 16px;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px;">
-            <span style="font-size: 24px;">🔥</span>
-            <span style="font-size: 18px; font-weight: 700; color: #fff;">LavaMesh</span>
-          </div>
-          <h2 style="color: #f87171; font-size: 20px; margin: 0 0 12px;">Node Offline Alert</h2>
-          <p style="color: #a3a3a3; margin: 0 0 20px;">${nodeList}</p>
-          <p style="color: #737373; font-size: 13px;">Check your dashboard for more details.</p>
-          <a href="https://www.lavamesh.com/dashboard" style="display: inline-block; margin-top: 16px; padding: 10px 20px; background: #FF5A00; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Open Dashboard →</a>
-        </div>
-      `,
-    }),
-  });
-}
 
 export async function GET(req: NextRequest) {
   // Validate cron secret to prevent unauthorized calls

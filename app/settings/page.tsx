@@ -1,8 +1,10 @@
 import { getRoutes, getDnsConfig, getNameservers, getPolicy } from '@/lib/headscale';
 import { getCurrentApiKey } from '@/lib/apikeys';
 import { kvConfigured } from '@/lib/kv';
+import { getNotificationConfig } from '@/lib/notifications';
 import AclEditor from './AclEditor';
 import ApiKeyCard from './ApiKeyCard';
+import NotificationSettings from './NotificationSettings';
 import TeamSettings from '@/components/TeamSettings';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -13,8 +15,8 @@ import { Badge, Card, PageHeader, StatCard } from '@/components/ui';
 const TIER_LABEL: Record<PlanTier, string> = { community: 'Community', pro: 'Pro', cloud: 'Cloud' };
 
 async function fetchSettingsData() {
-  const [routes, dns, ns, policy, apiKey] = await Promise.allSettled([
-    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey()
+  const [routes, dns, ns, policy, apiKey, notifications] = await Promise.allSettled([
+    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey(), getNotificationConfig()
   ]);
   return {
     routes: routes.status === 'fulfilled' ? routes.value : [],
@@ -22,6 +24,7 @@ async function fetchSettingsData() {
     ns: ns.status === 'fulfilled' ? ns.value : null,
     policy: policy.status === 'fulfilled' ? policy.value : null,
     apiKey: apiKey.status === 'fulfilled' ? apiKey.value : null,
+    notifications: notifications.status === 'fulfilled' ? notifications.value : { emailEnabled: true, email: '', webhookEnabled: false, webhookUrl: '' },
   };
 }
 
@@ -35,7 +38,7 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
 }
 
 export default async function SettingsPage() {
-  const { routes, dns, ns, policy, apiKey } = await fetchSettingsData();
+  const { routes, dns, ns, policy, apiKey, notifications } = await fetchSettingsData();
 
   let members: any[] = [];
   const session = await getServerSession(authOptions);
@@ -182,6 +185,9 @@ export default async function SettingsPage() {
               <InfoRow label="Headscale Compatibility" value="v0.22.3" />
             </div>
           </Card>
+
+          {/* Alerts & Notifications */}
+          <NotificationSettings config={notifications} isPro={plan.isPro} hasResend={!!process.env.RESEND_API_KEY} />
 
           {/* Team Settings */}
           {members.length > 0 && <TeamSettings members={members} />}
