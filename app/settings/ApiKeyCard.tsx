@@ -51,7 +51,7 @@ export default function ApiKeyCard({
 
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h2 className="text-[14px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Developer API Key</h2>
+          <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Developer API Key</h2>
           <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>
             Use with <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>Authorization: Bearer lm_…</code> to access <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>/api/v1/*</code>
           </p>
@@ -68,7 +68,7 @@ export default function ApiKeyCard({
 
       {currentKey ? (
         <div className="space-y-3">
-          <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
+          <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <code className="flex-1 text-[12px] truncate" style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)' }}>{maskedToken}</code>
             <button onClick={() => setRevealed(r => !r)} className="btn btn-ghost text-[11px] px-2 py-1 rounded-[7px]" style={{ flexShrink: 0 }}>
               {revealed ? 'Hide' : 'Reveal'}
@@ -82,11 +82,11 @@ export default function ApiKeyCard({
               Last used: {new Date(currentKey.lastUsed).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </p>
           )}
-          <div className="flex gap-2">
-            <button onClick={generate} disabled={generating || !kvReady} className="btn btn-ghost text-[12px] flex-1 justify-center">
+          <div className="flex gap-2 mt-3">
+            <button onClick={generate} disabled={generating || !kvReady} className="btn btn-ghost text-[12px]">
               {generating ? 'Regenerating…' : 'Regenerate'}
             </button>
-            <button onClick={revoke} disabled={revoking || !kvReady} className="btn btn-danger text-[12px] flex-1 justify-center">
+            <button onClick={revoke} disabled={revoking || !kvReady} className="btn btn-danger text-[12px]">
               {revoking ? 'Revoking…' : 'Revoke'}
             </button>
           </div>

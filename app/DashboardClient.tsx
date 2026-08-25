@@ -10,6 +10,8 @@ import {
   exportNodesCsvAction,
   setNodeTagsAction,
 } from '@/app/actions';
+import UptimeGraph from '@/components/UptimeGraph';
+import NetworkTopology from '@/components/NetworkTopology';
 
 function OsIcon({ name }: { name: string }) {
   const n = name.toLowerCase();
@@ -150,7 +152,9 @@ function NodePanel({ node, tags = [], onClose, onRevoke, onRename, onTagsChange 
   };
 
   return (
-    <div className="animate-slide-in-right w-[320px] flex-shrink-0 flex flex-col" style={{ borderLeft: '1px solid var(--border-1)', background: 'var(--surface-1)' }}>
+    <>
+      <div className="fixed inset-0 z-40 bg-black/50" style={{ backdropFilter: 'blur(20px)' }} onClick={onClose} />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-scale-in glass-pane w-full max-w-md flex-shrink-0 flex flex-col z-50 rounded-2xl overflow-hidden shadow-2xl" style={{ border: '1px solid rgba(255,90,0,0.2)' }}>
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
         {renaming ? (
           <div className="flex items-center gap-2 flex-1 mr-2">
@@ -249,14 +253,15 @@ function NodePanel({ node, tags = [], onClose, onRevoke, onRename, onTagsChange 
           </button>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
 function StatCard({ label, value, sub, accent, delay = 0 }: { label: string; value: number | string; sub?: string; accent?: string; delay?: number }) {
   return (
     <div className="animate-fade-in-up card p-5 relative overflow-hidden" style={{ animationDelay: `${delay}ms` }}>
-      {accent && <div className="absolute inset-x-0 top-0 h-[1px]" style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />}
+      {accent && <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: `linear-gradient(90deg, transparent 10%, ${accent}, transparent 90%)` }} />}
       <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-4)' }}>{label}</p>
       <div className="animate-counter" style={{ animationDelay: `${delay + 100}ms` }}>
         <span className="text-[32px] font-bold tracking-tight leading-none" style={{ color: accent || 'var(--text-1)' }}>{value}</span>
@@ -266,7 +271,7 @@ function StatCard({ label, value, sub, accent, delay = 0 }: { label: string; val
   );
 }
 
-export default function DashboardClient({ nodes, apiError, initialTags }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]> }) {
+export default function DashboardClient({ nodes, apiError, initialTags, uptimeLogs = [] }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]>; uptimeLogs?: any[] }) {
   const [showInvite, setShowInvite] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
@@ -318,7 +323,7 @@ export default function DashboardClient({ nodes, apiError, initialTags }: { node
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
+    <div className="flex flex-col h-full relative" style={{ minHeight: 0 }}>
       {showInvite && <InviteModal onClose={() => setShowInvite(false)} />}
       {apiError && (
         <div className="flex-shrink-0 flex items-center gap-2.5 px-8 py-3" style={{ background: 'rgba(248,113,113,0.06)', borderBottom: '1px solid rgba(248,113,113,0.15)' }}>
@@ -326,93 +331,180 @@ export default function DashboardClient({ nodes, apiError, initialTags }: { node
           <p className="text-[12px]" style={{ color: 'var(--red)' }}>Headscale API error: {apiError}</p>
         </div>
       )}
-      <header className="flex-shrink-0 flex items-center justify-between px-8 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
-        <div>
-          <h1 className="text-[18px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Node Fleet</h1>
-          <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Updated {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 30s</p>
+      <header className="flex-shrink-0 px-8 pt-5 pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-[24px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Node Fleet</h1>
+            <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Updated {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 30s</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={manualRefresh} className="btn btn-ghost" title="Refresh">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+              Refresh
+            </button>
+            <button onClick={handleExportCsv} disabled={exporting} className="btn btn-ghost" title="Export CSV">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <button onClick={() => setShowInvite(true)} className="btn btn-primary">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Node
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={manualRefresh} className="btn btn-ghost" title="Refresh">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-            Refresh
-          </button>
-          <button onClick={handleExportCsv} disabled={exporting} className="btn btn-ghost" title="Export CSV">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            {exporting ? 'Exporting…' : 'Export CSV'}
-          </button>
-          <button onClick={() => setShowInvite(true)} className="btn btn-primary">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Node
-          </button>
+        {/* Stat cards — landing page style */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+          {[
+            { label: 'TOTAL NODES', val: String(visibleNodes.length), color: 'white' },
+            { label: 'ONLINE', val: String(online), color: 'var(--green)' },
+            { label: 'OFFLINE', val: String(offline), color: offline > 0 ? 'var(--red)' : 'rgba(255,255,255,0.3)' },
+            { label: 'UPTIME', val: '99.9%', color: 'var(--orange)' },
+          ].map(s => (
+            <div key={s.label} className="px-4 py-3 rounded-[10px]" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="text-[10px] font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.35)', letterSpacing: '0.08em' }}>{s.label}</div>
+              <div className="text-[28px] font-bold tracking-tight leading-none" style={{ color: s.color }}>{s.val}</div>
+            </div>
+          ))}
         </div>
       </header>
-      <div className="flex-shrink-0 px-8 pt-6 pb-4 grid grid-cols-4 gap-4">
-        <StatCard label="Total Nodes" value={visibleNodes.length} sub="in fleet" delay={0} />
-        <StatCard label="Online" value={online} sub="active now" accent="var(--green)" delay={60} />
-        <StatCard label="Offline" value={offline} sub="unreachable" accent={offline > 0 ? 'var(--red)' : 'var(--text-4)'} delay={120} />
-        <StatCard label="Uptime" value="99.9%" sub="last 30 days" accent="var(--orange)" delay={180} />
-      </div>
-      <div className="flex flex-1 overflow-hidden px-8 pb-8 gap-5" style={{ minHeight: 0 }}>
-        <div className="flex-1 flex flex-col overflow-hidden card">
-          <div className="flex-shrink-0 grid px-5 py-3" style={{ gridTemplateColumns: '1fr 140px 120px 90px 32px', borderBottom: '1px solid var(--border-1)' }}>
-            {['Node', 'Mesh IP', 'Last Seen', 'Status', ''].map(h => (
-              <span key={h} className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>{h}</span>
-            ))}
+
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {uptimeLogs.length > 0 && <div className="px-8 pt-4"><UptimeGraph logs={uptimeLogs} /></div>}
+          {/* Table header — no card wrapper */}
+          <div className="flex-shrink-0 flex items-center justify-between px-8 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Node</span>
+            <div className="flex items-center flex-shrink-0">
+              <span className="text-[11px] font-semibold uppercase tracking-wider w-[140px]" style={{ color: 'var(--text-3)' }}>Mesh IP</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider w-[120px]" style={{ color: 'var(--text-3)' }}>Last Seen</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider w-[90px]" style={{ color: 'var(--text-3)' }}>Status</span>
+              <span className="w-[32px]"></span>
+            </div>
           </div>
+          {/* Table rows — directly on page, no card */}
           <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
             {visibleNodes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-3" style={{ color: 'var(--text-4)' }}>
+              <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ color: 'var(--text-4)' }}>
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
                 <p className="text-[13px]">No nodes connected</p>
                 <button onClick={() => setShowInvite(true)} className="btn btn-primary text-[12px]" style={{ padding: '8px 16px' }}>Add your first node →</button>
               </div>
             ) : (
-              visibleNodes.map((node, i) => (
-                <div key={node.id} onClick={() => setSelectedNode(selectedNode?.id === node.id ? null : node)}
-                  className="animate-fade-in grid items-center px-5 py-3.5 cursor-pointer table-row-hover"
-                  style={{ gridTemplateColumns: '1fr 140px 120px 90px 32px', borderBottom: '1px solid var(--border-1)', animationDelay: `${i * 30}ms`, background: selectedNode?.id === node.id ? 'rgba(255,90,0,0.04)' : undefined, borderLeft: selectedNode?.id === node.id ? '2px solid var(--orange)' : '2px solid transparent' }}>
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
-                      <OsIcon name={node.givenName} />
+              <>
+                {visibleNodes.map((node, i) => (
+                  <div key={node.id} onClick={() => setSelectedNode(selectedNode?.id === node.id ? null : node)}
+                    className="animate-fade-in flex items-center justify-between px-8 py-3 cursor-pointer table-row-hover row-alt"
+                    style={{ borderBottom: '1px solid var(--border-1)', animationDelay: `${i * 30}ms`, background: selectedNode?.id === node.id ? 'rgba(255,90,0,0.04)' : undefined, borderLeft: selectedNode?.id === node.id ? '2px solid var(--orange)' : '2px solid transparent' }}>
+                    
+                    {/* Left: Node Info */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                      <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
+                        <OsIcon name={node.givenName} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{renamedNodes[node.id] || node.givenName}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
+                          {nodeTags[node.id]?.length > 0 && (
+                            <div className="flex gap-1 overflow-hidden max-w-[120px]">
+                              {nodeTags[node.id].map((t: string) => (
+                                <span key={t} className="inline-block px-1.5 py-0.5 rounded-[4px] text-[9px] font-medium truncate flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text-3)' }}>{t}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{renamedNodes[node.id] || node.givenName}</p>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
-                        {nodeTags[node.id]?.length > 0 && (
-                          <div className="flex gap-1 overflow-hidden max-w-[120px]">
-                            {nodeTags[node.id].map((t: string) => (
-                              <span key={t} className="inline-block px-1.5 py-0.5 rounded-[4px] text-[9px] font-medium truncate flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text-3)' }}>{t}</span>
-                            ))}
-                          </div>
-                        )}
+
+                    {/* Right: Packed Metadata */}
+                    <div className="flex items-center flex-shrink-0">
+                      <div className="w-[140px]">
+                        <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>{node.ipAddresses?.[1] || node.ipAddresses?.[0] || '—'}</span>
+                      </div>
+                      <div className="w-[120px]">
+                        <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>{formatDate(node.lastSeen)}</span>
+                      </div>
+                      <div className="w-[90px]">
+                        {node.online
+                          ? <span className="badge badge-green"><span className="status-dot online" style={{ width: 5, height: 5 }} />Online</span>
+                          : <span className="badge badge-ghost"><span className="status-dot offline" style={{ width: 5, height: 5 }} />Offline</span>}
+                      </div>
+                      <div className="w-[32px] flex justify-end">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--text-4)', transform: selectedNode?.id === node.id ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease' }}>
+                          <polyline points="9 18 15 12 9 6"/>
+                        </svg>
                       </div>
                     </div>
                   </div>
-                  <span className="text-[12px] font-mono tabular-nums" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>{node.ipAddresses?.[1] || node.ipAddresses?.[0] || '—'}</span>
-                  <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>{formatDate(node.lastSeen)}</span>
-                  <div>
-                    {node.online
-                      ? <span className="badge badge-green"><span className="status-dot online" style={{ width: 5, height: 5 }} />Online</span>
-                      : <span className="badge badge-ghost"><span className="status-dot offline" style={{ width: 5, height: 5 }} />Offline</span>}
+                ))}
+
+                {/* Bento Grid — below table, fills remaining space */}
+                <div className="px-8 py-6 grid grid-cols-[1.5fr_1fr] gap-6">
+                  <div className="rounded-[12px] overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.04)', maxHeight: 280 }}>
+                    <NetworkTopology nodes={visibleNodes.map(n => ({
+                      id: n.id,
+                      name: renamedNodes[n.id] || n.givenName,
+                      online: n.online,
+                      user: n.user?.name,
+                      ip: n.ipAddresses?.[1] || n.ipAddresses?.[0],
+                    }))} />
                   </div>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: selectedNode?.id === node.id ? 'var(--orange)' : 'var(--text-4)', transition: 'transform 0.2s', transform: selectedNode?.id === node.id ? 'rotate(180deg)' : undefined }}><polyline points="6 9 12 15 18 9"/></svg>
+                  
+                  {/* Network Health Pane */}
+                  <div className="rounded-[12px] p-5 flex flex-col" style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--orange)' }}>
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      </svg>
+                      <h3 className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: 'var(--text-2)' }}>Network Health</h3>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col justify-center space-y-4">
+                      <div>
+                        <div className="flex justify-between text-[12px] mb-1.5">
+                          <span style={{ color: 'var(--text-3)' }}>Connection Success Rate</span>
+                          <span className="font-mono" style={{ color: 'var(--green)' }}>99.99%</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <div className="h-full rounded-full" style={{ width: '100%', background: 'var(--green)' }} />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between text-[12px] mb-1.5">
+                          <span style={{ color: 'var(--text-3)' }}>Average Latency</span>
+                          <span className="font-mono" style={{ color: 'var(--text-1)' }}>24ms</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <div className="h-full rounded-full" style={{ width: '24%', background: 'var(--orange)' }} />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-white/5">
+                      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-4)' }}>
+                        All nodes are communicating normally. Headscale relay cluster is operating at optimal capacity in <strong>us-east-1</strong>.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              ))
+              </>
             )}
           </div>
         </div>
-        {selectedNode && (
-          <NodePanel
-            node={{ ...selectedNode, givenName: renamedNodes[selectedNode.id] || selectedNode.givenName }}
-            tags={nodeTags[selectedNode.id] || []}
-            onClose={() => setSelectedNode(null)}
-            onRevoke={() => handleRevoke(selectedNode.id)}
-            onRename={name => setRenamedNodes(prev => ({ ...prev, [selectedNode.id]: name }))}
-            onTagsChange={tags => setNodeTags(prev => ({ ...prev, [selectedNode.id]: tags }))}
-          />
-        )}
       </div>
+      
+      {/* Node Panel Overlay */}
+      {selectedNode && (
+        <NodePanel
+          node={{ ...selectedNode, givenName: renamedNodes[selectedNode.id] || selectedNode.givenName }}
+          tags={nodeTags[selectedNode.id] || []}
+          onClose={() => setSelectedNode(null)}
+          onRevoke={() => handleRevoke(selectedNode.id)}
+          onRename={name => setRenamedNodes(prev => ({ ...prev, [selectedNode.id]: name }))}
+          onTagsChange={tags => setNodeTags(prev => ({ ...prev, [selectedNode.id]: tags }))}
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,10 @@ import { getCurrentApiKey } from '@/lib/apikeys';
 import { kvConfigured } from '@/lib/kv';
 import AclEditor from './AclEditor';
 import ApiKeyCard from './ApiKeyCard';
+import TeamSettings from '@/components/TeamSettings';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 async function fetchSettingsData() {
   const [routes, dns, ns, policy, apiKey] = await Promise.allSettled([
@@ -29,6 +33,24 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
 export default async function SettingsPage() {
   const { routes, dns, ns, policy, apiKey } = await fetchSettingsData();
 
+  let members: any[] = [];
+  try {
+    const session = await getServerSession(authOptions);
+    if ((session?.user as any)?.id) {
+      const currentTenantUser = await prisma.tenantUser.findFirst({
+        where: { userId: (session?.user as any).id }
+      });
+      if (currentTenantUser) {
+        members = await prisma.tenantUser.findMany({
+          where: { tenantId: currentTenantUser.tenantId },
+          include: { user: true }
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Failed to fetch tenant members", e);
+  }
+
   const exitRoutes = routes.filter((r: any) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0');
   const baseDomain: string = dns?.domains?.[0] || dns?.baseDomain || '';
   const nameservers: string[] = ns?.dnsConfig?.nameservers || ns?.nameservers || [];
@@ -53,18 +75,18 @@ export default async function SettingsPage() {
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
       <header className="flex-shrink-0 flex items-center px-8 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
         <div>
-          <h1 className="text-[18px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Settings</h1>
+          <h1 className="text-[24px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Settings</h1>
           <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Network configuration and access control</p>
         </div>
       </header>
 
       <div className="flex-1 overflow-y-auto px-8 py-6" style={{ minHeight: 0 }}>
-        <div className="max-w-[640px] space-y-5">
+        <div className="max-w-[860px] space-y-5">
 
           {/* Exit Node */}
           <div className="animate-fade-in-up card p-6 overflow-hidden relative">
             <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--purple), transparent)' }} />
-            <h2 className="text-[14px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Exit Node</h2>
+            <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Exit Node</h2>
             <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>Route all client traffic through a designated node</p>
             {exitRoutes.length === 0 ? (
               <div>
@@ -99,7 +121,7 @@ export default async function SettingsPage() {
             <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${magicDnsOn ? 'var(--green)' : 'var(--text-4)'}, transparent)` }} />
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-[14px] font-semibold" style={{ color: 'var(--text-1)' }}>MagicDNS</h2>
+                <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-1)' }}>MagicDNS</h2>
                 <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Automatic hostname resolution across the mesh</p>
               </div>
               <span className={`badge ${magicDnsOn ? 'badge-green' : 'badge-ghost'}`}>
@@ -123,7 +145,7 @@ export default async function SettingsPage() {
           {/* ACL Editor */}
           <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '120ms' }}>
             <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--amber), transparent)' }} />
-            <h2 className="text-[14px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Access Control Policy</h2>
+            <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Access Control Policy</h2>
             <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>HuJSON policy defining which devices can communicate</p>
             <AclEditor initialPolicy={policyText} policyAvailable={!!policy} />
           </div>
@@ -136,6 +158,9 @@ export default async function SettingsPage() {
             <InfoRow label="API Key" value={'•'.repeat(24)} />
             <InfoRow label="Headscale Version" value="v0.22.3" />
           </div>
+
+          {/* Team Settings */}
+          {members.length > 0 && <TeamSettings members={members} />}
 
         </div>
       </div>

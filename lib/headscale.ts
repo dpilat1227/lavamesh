@@ -1,8 +1,32 @@
-const BASE_URL = process.env.HEADSCALE_API_URL || "https://api.lavamesh.com";
-const API_KEY = process.env.HEADSCALE_API_KEY || "";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function fetchHeadscale(endpoint: string, options: RequestInit = {}) {
-  const url = `${BASE_URL}/api/v1/${endpoint}`;
+  let baseUrl = process.env.HEADSCALE_API_URL || "https://api.lavamesh.com";
+  let apiKey = process.env.HEADSCALE_API_KEY || "";
+
+  // 1. Dynamic Routing for Cloud Tenants
+  try {
+    const session = await getServerSession(authOptions);
+    if ((session?.user as any)?.id) {
+      // Find the user's tenant and their Headscale instance
+      const tenantUser = await prisma.tenantUser.findFirst({
+        where: { userId: (session?.user as any).id },
+        include: { tenant: { include: { headscaleInstance: true } } }
+      });
+      
+      const instance = tenantUser?.tenant?.headscaleInstance;
+      if (instance) {
+        baseUrl = instance.url;
+        apiKey = instance.apiKey;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not fetch dynamic Headscale config, falling back to ENV", e);
+  }
+
+  const url = `${baseUrl}/api/v1/${endpoint}`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -11,7 +35,7 @@ export async function fetchHeadscale(endpoint: string, options: RequestInit = {}
       ...options,
       signal: controller.signal,
       headers: {
-        Authorization: `Bearer ${API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         ...options.headers,
       },
@@ -26,7 +50,7 @@ export async function fetchHeadscale(endpoint: string, options: RequestInit = {}
     return res.json();
   } catch (e: any) {
     if (e?.name === 'AbortError') {
-      throw new Error(`Headscale API timeout — could not reach ${BASE_URL} within 5s`);
+      throw new Error(`Headscale API timeout — could not reach ${baseUrl} within 5s`);
     }
     throw e;
   } finally {

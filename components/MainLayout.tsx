@@ -5,7 +5,7 @@ import Sidebar from '@/components/Sidebar';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isPublic = pathname === '/login' || pathname === '/';
+  const isPublic = pathname === '/login' || pathname === '/' || pathname.startsWith('/draft');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (isPublic) {
@@ -28,10 +28,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         />
       )}
 
-      {/* Main content area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', minWidth: 0 }}>
-        {/* Orange accent line at top */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent 0%, rgba(255,90,0,0.3) 50%, transparent 100%)', zIndex: 10, pointerEvents: 'none' }} />
+      {/* Main content area — Layer 1 surface lift */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', minWidth: 0, background: 'rgba(255,255,255,0.035)' }}>
 
         {/* Mobile top bar with hamburger */}
         <div className="mobile-top-bar">
@@ -55,7 +53,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           </div>
           <div style={{ width: 36 }} /> {/* spacer */}
         </div>
-
         {children}
       </div>
     </div>

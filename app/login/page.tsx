@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -11,8 +12,13 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(false);
-    const res = await signIn('credentials', { password, redirect: true, callbackUrl: '/dashboard' });
-    if (res?.error) { setError(true); setLoading(false); }
+    const res = await signIn('email', { email, redirect: false, callbackUrl: '/dashboard' });
+    setLoading(false);
+    if (res?.error) { 
+      setError(true); 
+    } else {
+      setSuccess(true);
+    }
   };
 
   return (
@@ -54,50 +60,64 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="relative">
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-4)' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-                </svg>
-              </div>
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input"
-                style={{ paddingLeft: '38px' }}
-                autoFocus
-              />
-            </div>
-
-            {error && (
-              <div className="animate-fade-in flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'var(--red-soft)', border: '1px solid rgba(248,113,113,0.2)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--red)', flexShrink: 0 }}>
-                  <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
-                <p className="text-[12px]" style={{ color: 'var(--red)' }}>Incorrect password. Please try again.</p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || !password}
-              className="btn btn-primary w-full justify-center"
-              style={{ padding: '11px 16px', fontSize: '14px', borderRadius: '12px', opacity: (!password || loading) ? 0.6 : 1 }}
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          {!success ? (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="relative">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-4)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>
                   </svg>
-                  Authenticating…
-                </>
-              ) : 'Sign In'}
-            </button>
-          </form>
+                </div>
+                <input
+                  type="email"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input"
+                  style={{ paddingLeft: '38px' }}
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <div className="animate-fade-in flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'var(--red-soft)', border: '1px solid rgba(248,113,113,0.2)' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--red)', flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                  <p className="text-[12px]" style={{ color: 'var(--red)' }}>Failed to send magic link. Please try again.</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !email}
+                className="btn btn-primary w-full justify-center"
+                style={{ padding: '11px 16px', fontSize: '14px', borderRadius: '12px', opacity: (!email || loading) ? 0.6 : 1 }}
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    Sending link…
+                  </>
+                ) : 'Continue with Email'}
+              </button>
+            </form>
+          ) : (
+            <div className="text-center animate-fade-in">
+              <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <h3 className="text-[16px] font-semibold text-white mb-2">Check your email</h3>
+              <p className="text-[13px]" style={{ color: 'var(--text-4)' }}>
+                We sent a magic link to <strong className="text-white font-medium">{email}</strong>. Click it to sign in.
+              </p>
+            </div>
+          )}
 
           <p className="text-center text-[11px] mt-5" style={{ color: 'var(--text-4)' }}>
             LavaMesh Control Plane · Headscale v0.22.3
