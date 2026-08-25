@@ -19,6 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
   'apikey.generate':  'API Key Generated',
   'apikey.revoke':    'API Key Revoked',
   'notifications.update': 'Notification Settings Updated',
+  'route.failover':   'Subnet Route Failover',
   'auth.login':       'Login',
 };
 
@@ -35,6 +36,7 @@ const ACTION_COLORS: Record<string, string> = {
   'key.generate':     'var(--green)',
   'user.create':      'var(--green)',
   'notifications.update': '#60a5fa',
+  'route.failover':   'var(--amber)',
   'auth.login':       'var(--text-3)',
 };
 

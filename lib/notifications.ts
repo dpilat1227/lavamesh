@@ -9,6 +9,11 @@
  * doesn't re-check plan status — it just fires whatever URL is stored, on the
  * assumption gating happened at write-time.
  *
+ * Route-failover alerts are a separate Pro/Cloud perk (both channels, not just
+ * webhook) — Headscale already fails over subnet routes for free on every
+ * plan, but knowing *when* it happened without watching the dashboard is the
+ * paid convenience, gated via `failoverAlertsEnabled`.
+ *
  * Config is stored in KV (same pattern as lib/apikeys.ts / lib/audit.ts) since
  * this app otherwise has no per-admin settings table.
  */
@@ -20,6 +25,7 @@ export interface NotificationConfig {
   email: string;        // overrides ADMIN_EMAIL when set
   webhookEnabled: boolean;
   webhookUrl: string;   // Slack or Discord incoming-webhook URL
+  failoverAlertsEnabled: boolean; // Pro/Cloud — alert when a subnet route's primary node changes
 }
 
 const CONFIG_KEY = 'notifications:config';
@@ -29,6 +35,7 @@ const DEFAULTS: NotificationConfig = {
   email: '',
   webhookEnabled: false,
   webhookUrl: '',
+  failoverAlertsEnabled: false,
 };
 
 export async function getNotificationConfig(): Promise<NotificationConfig> {
@@ -121,5 +128,26 @@ export async function sendKeyExpiringAlert(keys: { user: string; keyPrefix: stri
       config
     ),
     deliverWebhook(`⏰ **Key(s) expiring soon** — ${list.join(' · ')}`, config),
+  ]);
+}
+
+/** Send an alert when a subnet route's primary (active) node changes — a real Headscale failover. */
+export async function sendFailoverAlert(events: { prefix: string; from: string; to: string }[]): Promise<void> {
+  if (events.length === 0) return;
+  const config = await getNotificationConfig();
+  if (!config.failoverAlertsEnabled) return;
+  const list = events.map(e => `• ${e.prefix} failed over: ${e.from} → ${e.to}`);
+
+  await Promise.all([
+    deliverEmail(
+      `🔁 ${events.length} subnet route${events.length > 1 ? 's' : ''} failed over — LavaMesh`,
+      emailShell(
+        'Subnet Route Failover',
+        '#fbbf24',
+        `<p style="color: #a3a3a3; margin: 0 0 20px;">${list.map(l => `${l}<br/>`).join('')}</p><p style="color: #737373; font-size: 13px;">Headscale automatically switched to the backup node. Check the original node if this is unexpected.</p>`
+      ),
+      config
+    ),
+    deliverWebhook(`🔁 **Route failover** — ${list.join(' · ')}`, config),
   ]);
 }

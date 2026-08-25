@@ -45,6 +45,7 @@ const plans = [
       'Advanced audit log & event history',
       'Node tagging & label management',
       'Webhook alerts (Slack, Discord)',
+      'Subnet route failover alerts',
       'Automated config backups',
       'Priority email support',
       'License key for your instance',

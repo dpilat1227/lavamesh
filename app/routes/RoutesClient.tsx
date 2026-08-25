@@ -15,7 +15,7 @@ interface Route {
 
 const isExitNode = (r: Route) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0';
 
-function RouteRow({ route, index }: { route: Route; index: number }) {
+function RouteRow({ route, index, haRole }: { route: Route; index: number; haRole?: 'primary' | 'backup' }) {
   const [isPending, startTransition] = useTransition();
   const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(route.enabled);
 
@@ -63,7 +63,14 @@ function RouteRow({ route, index }: { route: Route; index: number }) {
       {/* Right: Packed Metadata */}
       <div className="flex items-center flex-shrink-0">
         <div className="w-[180px] min-w-0 pr-2">
-          <p className="text-[13px] truncate" style={{ color: 'var(--text-2)' }}>{name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] truncate" style={{ color: 'var(--text-2)' }}>{name}</p>
+            {haRole && (
+              <Badge variant={haRole === 'primary' ? 'green' : 'ghost'} className="text-[9px] flex-shrink-0">
+                {haRole === 'primary' ? 'Primary' : 'Backup'}
+              </Badge>
+            )}
+          </div>
           {ip && <p className="text-[11px] font-mono truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{ip}</p>}
         </div>
 
@@ -96,12 +103,26 @@ function RouteRow({ route, index }: { route: Route; index: number }) {
   );
 }
 
+interface SubnetGroup {
+  prefix: string;
+  routes: Route[];
+  isHA: boolean;
+}
+
 export default function RoutesClient({ routes }: { routes: Route[] }) {
   const exits = routes.filter(isExitNode);
   const subnets = routes.filter(r => !isExitNode(r));
   const pendingRoutes = routes.filter(r => r.advertised && !r.enabled);
   const pending = pendingRoutes.length;
   const approved = routes.filter(r => r.enabled).length;
+
+  const byPrefix = new Map<string, Route[]>();
+  for (const r of subnets) {
+    if (!byPrefix.has(r.prefix)) byPrefix.set(r.prefix, []);
+    byPrefix.get(r.prefix)!.push(r);
+  }
+  const subnetGroups: SubnetGroup[] = [...byPrefix.entries()].map(([prefix, group]) => ({ prefix, routes: group, isHA: group.length > 1 }));
+  const haGroupCount = subnetGroups.filter(g => g.isHA).length;
 
   const table = (
     <div className="flex flex-col min-h-0 relative space-y-5 overflow-y-auto pr-4 custom-scrollbar pb-8">
@@ -136,7 +157,12 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
 
           {subnets.length > 0 && (
             <section className="mt-6">
-              <p className="text-[10px] font-semibold uppercase tracking-wider px-1 mb-2" style={{ color: 'var(--text-4)' }}>Subnet Routes</p>
+              <div className="flex items-center gap-2 px-1 mb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>Subnet Routes</p>
+                {haGroupCount > 0 && (
+                  <Badge variant="green" className="text-[9px]">{haGroupCount} HA group{haGroupCount > 1 ? 's' : ''}</Badge>
+                )}
+              </div>
               <div className="flex-shrink-0 flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
                 <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Prefix</span>
                 <div className="flex items-center flex-shrink-0">
@@ -145,7 +171,19 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
                   <span className="text-[11px] font-semibold uppercase tracking-wider w-[110px] text-right" style={{ color: 'var(--text-3)' }}>Action</span>
                 </div>
               </div>
-              {subnets.map((r, i) => <RouteRow key={r.id} route={r} index={i} />)}
+              {subnetGroups.map(group =>
+                group.isHA ? (
+                  <div key={group.prefix} className="mt-2 rounded-[10px] px-1 py-1" style={{ background: 'rgba(52,211,153,0.03)', border: '1px solid rgba(52,211,153,0.14)' }}>
+                    <div className="flex items-center gap-2 px-2 pt-1.5 pb-0.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                      <span className="text-[11px] font-medium" style={{ color: 'var(--green)' }}>Automatic failover — {group.routes.length} nodes advertising this subnet</span>
+                    </div>
+                    {group.routes.map((r, i) => <RouteRow key={r.id} route={r} index={i} haRole={r.isPrimary ? 'primary' : 'backup'} />)}
+                  </div>
+                ) : (
+                  group.routes.map((r, i) => <RouteRow key={r.id} route={r} index={i} />)
+                )
+              )}
             </section>
           )}
         </>
@@ -173,13 +211,16 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
           { title: 'Exit Nodes', desc: 'Route all traffic through a node to use its IP address and location. Useful for accessing geo-restricted services.', icon: '🌐', color: '#FF5A00' },
           { title: 'Subnet Routes', desc: 'Expose an entire subnet (like 192.168.1.0/24) to your mesh. Other nodes can access devices on that LAN.', icon: '🔗', color: '#8B5CF6' },
           { title: 'Advertising a Route', desc: 'Run tailscale up --advertise-routes=192.168.1.0/24 on any node, then approve it here.', icon: '📡', color: '#34D399' },
+          { title: 'High Availability, free', desc: 'Advertise the same subnet from a second node and approve both — Headscale automatically marks one Primary and fails over to the other if it drops. No extra config, any plan.', icon: '🔁', color: '#34D399' },
         ]}
       />
       <UpsellCard
-        eyebrow="Cloud Feature"
-        eyebrowColor="var(--green)"
-        title="High Availability"
-        description="LavaMesh Cloud automatically provisions redundant Headscale relays to ensure subnet routes never drop."
+        eyebrow="Pro Feature"
+        eyebrowColor="var(--orange)"
+        title="Failover Alerts"
+        description="Get an email or webhook the moment a subnet route fails over to its backup node — configure it in Settings on Pro or Cloud."
+        href="/settings"
+        ctaLabel="Open notification settings"
         icon={
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
             <circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" />

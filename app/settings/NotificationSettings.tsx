@@ -38,7 +38,7 @@ export default function NotificationSettings({
         <div className="flex items-start justify-between mb-4">
           <div>
             <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Alerts &amp; Notifications</h2>
-            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>Get notified when a node goes offline or a pre-auth key is about to expire</p>
+            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>Get notified when a node goes offline, a pre-auth key is about to expire, or a subnet route fails over</p>
           </div>
         </div>
 
@@ -108,6 +108,36 @@ export default function NotificationSettings({
               <div>
                 <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Webhook alerts <Badge variant="blue" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
                 <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Send node/key alerts to Slack or Discord on the Pro or Cloud plan.</p>
+              </div>
+              <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+            </div>
+          )}
+        </div>
+
+        {/* Route failover */}
+        <div className="py-3" style={{ borderTop: '1px solid var(--border-1)' }}>
+          {isPro ? (
+            <div className="flex items-start justify-between">
+              <div className="flex-1 pr-4">
+                <p className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-2)' }}>Route failover alerts</p>
+                <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Notify when a subnet route&apos;s primary node switches to a backup (via your email/webhook channels above)</p>
+              </div>
+              <button
+                role="switch"
+                aria-checked={form.failoverAlertsEnabled}
+                aria-label="Toggle route failover alerts"
+                onClick={() => setForm(f => ({ ...f, failoverAlertsEnabled: !f.failoverAlertsEnabled }))}
+                className="relative flex-shrink-0 mt-0.5"
+                style={{ width: 36, height: 20, borderRadius: 10, background: form.failoverAlertsEnabled ? 'var(--green)' : 'var(--surface-3)', border: '1px solid var(--border-2)', cursor: 'pointer', transition: 'background 0.15s' }}
+              >
+                <span style={{ position: 'absolute', top: 1, left: form.failoverAlertsEnabled ? 17 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
+              <div>
+                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Route failover alerts <Badge variant="blue" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
+                <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Get notified the moment a subnet route fails over to its backup node.</p>
               </div>
               <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
             </div>
