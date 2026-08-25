@@ -3,6 +3,7 @@ import { kvConfigured } from '@/lib/kv';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { getPlanStatus } from '@/lib/billing';
 import { Badge, Card, PageHeader } from '@/components/ui';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -55,16 +56,17 @@ export default async function AuditPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect('/login');
 
+  const plan = await getPlanStatus((session?.user as any)?.id);
   const configured = kvConfigured();
-  const events = configured ? await getAuditLog(200) : [];
+  const events = plan.isPro && configured ? await getAuditLog(200) : [];
 
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
       <PageHeader
         title="Audit Log"
-        subtitle={configured ? 'Last 200 events · newest first' : undefined}
+        subtitle={plan.isPro && configured ? 'Last 200 events · newest first' : undefined}
         actions={
-          !configured && (
+          plan.isPro && !configured && (
             <Badge variant="amber">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               Vercel KV not configured — events won&apos;t be stored
@@ -74,7 +76,7 @@ export default async function AuditPage() {
       />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6" style={{ minHeight: 0 }}>
-        {events.length === 0 ? (
+        {!plan.isPro ? (
           <div className="max-w-[860px] space-y-5">
             {/* Pro CTA banner */}
             <Card accent="var(--orange)" padded={false} className="animate-fade-in-up">
@@ -147,6 +149,16 @@ export default async function AuditPage() {
               </div>
             </Card>
           </div>
+        ) : !configured ? (
+          <Card>
+            <p className="text-[13px]" style={{ color: 'var(--text-3)' }}>Vercel KV isn&apos;t configured, so events aren&apos;t being recorded yet.</p>
+            <p className="text-[12px] mt-1" style={{ color: 'var(--text-4)' }}>Create a KV store in Vercel → Storage and redeploy to start logging.</p>
+          </Card>
+        ) : events.length === 0 ? (
+          <Card>
+            <p className="text-[13px]" style={{ color: 'var(--text-3)' }}>No events yet.</p>
+            <p className="text-[12px] mt-1" style={{ color: 'var(--text-4)' }}>Actions like key generation, node changes, and ACL updates will show up here.</p>
+          </Card>
         ) : (
           <Card padded={false}>
             {/* Header row */}

@@ -7,7 +7,10 @@ import TeamSettings from '@/components/TeamSettings';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getPlanStatus, type PlanTier } from '@/lib/billing';
 import { Badge, Card, PageHeader, StatCard } from '@/components/ui';
+
+const TIER_LABEL: Record<PlanTier, string> = { community: 'Community', pro: 'Pro', cloud: 'Cloud' };
 
 async function fetchSettingsData() {
   const [routes, dns, ns, policy, apiKey] = await Promise.allSettled([
@@ -35,11 +38,12 @@ export default async function SettingsPage() {
   const { routes, dns, ns, policy, apiKey } = await fetchSettingsData();
 
   let members: any[] = [];
+  const session = await getServerSession(authOptions);
+  const userId = (session?.user as any)?.id;
   try {
-    const session = await getServerSession(authOptions);
-    if ((session?.user as any)?.id) {
+    if (userId) {
       const currentTenantUser = await prisma.tenantUser.findFirst({
-        where: { userId: (session?.user as any).id }
+        where: { userId }
       });
       if (currentTenantUser) {
         members = await prisma.tenantUser.findMany({
@@ -51,6 +55,8 @@ export default async function SettingsPage() {
   } catch (e) {
     console.error("Failed to fetch tenant members", e);
   }
+
+  const plan = await getPlanStatus(userId).catch(() => ({ tier: 'community' as PlanTier, isPro: false, source: 'none' as const }));
 
   const exitRoutes = routes.filter((r: any) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0');
   const exitActive = exitRoutes.some((r: any) => r.enabled);
@@ -80,6 +86,9 @@ export default async function SettingsPage() {
       <PageHeader
         title="Settings"
         subtitle="Network configuration and access control"
+        actions={
+          <Badge variant={plan.isPro ? 'green' : 'ghost'} dot={plan.isPro}>{TIER_LABEL[plan.tier]} plan</Badge>
+        }
         stats={
           <div className="grid grid-cols-4 gap-4">
             <StatCard index={1} label="EXIT NODE" value={exitActive ? 'Active' : exitRoutes.length > 0 ? 'Pending' : 'Off'} color={exitActive ? 'var(--green)' : undefined} />
@@ -150,7 +159,7 @@ export default async function SettingsPage() {
           </Card>
 
           {/* Developer API Key */}
-          <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} />
+          <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} isPro={plan.isPro} />
 
           {/* ACL Editor */}
           <Card accent="var(--amber)" padded={false} className="animate-fade-in-up" style={{ animationDelay: '120ms' }}>
