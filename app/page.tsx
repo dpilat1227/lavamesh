@@ -34,8 +34,8 @@ function Nav() {
             </svg>
           </div>
           <span className="font-semibold text-[17px] tracking-tight" style={{ color: 'white', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>LavaMesh</span>
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
-            style={{ color: 'var(--orange)', borderColor: 'rgba(255,90,0,0.3)', background: 'rgba(255,90,0,0.08)', letterSpacing: '0.05em' }}>BETA</span>
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+            style={{ color: '#FF5A00', background: 'rgba(255,90,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
         </Link>
         {/* Desktop links */}
         <div className="nav-desktop-links items-center gap-3">
@@ -209,7 +209,7 @@ export default function LandingPage() {
           <div className="animate-fade-in inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8 self-start"
             style={{ background: 'rgba(255,90,0,0.08)', border: '1px solid rgba(255,90,0,0.2)' }}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse-orange" style={{ background: '#FF5A00' }}></span>
-            <span className="text-[12px] font-medium" style={{ color: '#FF5A00' }}>Now in beta — self-hosted mesh for everyone</span>
+            <span className="text-[12px] font-medium" style={{ color: '#FF5A00' }}>Self-hosted WireGuard mesh — zero per-seat fees</span>
           </div>
 
           {/* Headline */}
