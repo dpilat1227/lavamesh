@@ -9,7 +9,7 @@ import TeamSettings from '@/components/TeamSettings';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getPlanStatus, type PlanTier } from '@/lib/billing';
+import { getPlanStatus, COMMUNITY_SEAT_LIMIT, type PlanTier } from '@/lib/billing';
 import { Badge, Card, PageHeader, StatCard } from '@/components/ui';
 
 const TIER_LABEL: Record<PlanTier, string> = { community: 'Community', pro: 'Pro', cloud: 'Cloud' };
@@ -190,7 +190,7 @@ export default async function SettingsPage() {
           <NotificationSettings config={notifications} isPro={plan.isPro} hasResend={!!process.env.RESEND_API_KEY} />
 
           {/* Team Settings */}
-          {members.length > 0 && <TeamSettings members={members} />}
+          {members.length > 0 && <TeamSettings members={members} isPro={plan.isPro} seatLimit={COMMUNITY_SEAT_LIMIT} />}
 
         </div>
       </div>

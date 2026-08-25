@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { seatsRemaining, COMMUNITY_SEAT_LIMIT } from '@/lib/billing';
 
 export async function POST(req: Request) {
   try {
@@ -26,6 +27,16 @@ export async function POST(req: Request) {
     }
 
     const tenantId = currentTenantUser.tenantId;
+
+    // Enforce the Community-tier seat cap — unlimited on Pro/Cloud.
+    const memberCount = await prisma.tenantUser.count({ where: { tenantId } });
+    const remaining = await seatsRemaining(tenantId, memberCount);
+    if (remaining === 0) {
+      return NextResponse.json(
+        { error: `Free plan is limited to ${COMMUNITY_SEAT_LIMIT} team members. Upgrade to Pro or Cloud for unlimited seats.` },
+        { status: 402 }
+      );
+    }
 
     // Find or create the invited user
     let invitedUser = await prisma.user.findUnique({
