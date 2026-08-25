@@ -1,6 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Badge, Button, Card } from '@/components/ui';
 
 export default function TeamSettings({ members }: { members: any[] }) {
   const [email, setEmail] = useState('');
@@ -38,8 +39,8 @@ export default function TeamSettings({ members }: { members: any[] }) {
   };
 
   return (
-    <div className="animate-fade-in-up card p-6 overflow-hidden relative" style={{ animationDelay: '240ms' }}>
-      <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, #3b82f6, transparent)' }} />
+    <Card accent="#3b82f6" padded={false} className="animate-fade-in-up" style={{ animationDelay: '240ms' }}>
+      <div className="p-6">
       <h2 className="text-[14px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Team Management</h2>
       <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>Manage who has access to this LavaMesh network</p>
 
@@ -51,7 +52,7 @@ export default function TeamSettings({ members }: { members: any[] }) {
               <p className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{m.user?.name || m.user?.email}</p>
               <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>{m.user?.email}</p>
             </div>
-            <span className="badge badge-ghost capitalize">{m.role.toLowerCase()}</span>
+            <Badge className="capitalize">{m.role.toLowerCase()}</Badge>
           </div>
         ))}
       </div>
@@ -66,18 +67,20 @@ export default function TeamSettings({ members }: { members: any[] }) {
           className="input flex-1 text-[13px] py-2" 
           required 
         />
-        <button 
-          type="submit" 
-          disabled={inviting || !email} 
-          className="btn btn-primary px-4 py-2"
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={inviting || !email}
+          className="px-4 py-2"
           style={{ opacity: inviting || !email ? 0.6 : 1 }}
         >
           {inviting ? 'Inviting...' : 'Grant Access'}
-        </button>
+        </Button>
       </form>
 
       {error && <p className="text-[12px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
       {success && <p className="text-[12px] mt-3" style={{ color: 'var(--green)' }}>{success}</p>}
-    </div>
+      </div>
+    </Card>
   );
 }

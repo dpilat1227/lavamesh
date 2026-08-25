@@ -56,7 +56,15 @@
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-*:focus { outline: none; } /* Kill default blue rings globally */
+*:focus { outline: none; } /* Kill default blue rings on mouse-click focus */
+/* Safety-net keyboard focus ring — anything without a more specific focus-visible
+   style (`.btn`, `.input`, `.focus-ring`, etc.) still gets a visible outline for
+   keyboard users instead of silently losing focus indication. */
+*:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
 
 html { font-size: 14.5px; }
 
@@ -74,6 +82,13 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* Reveal-on-hover scrollbar — invisible until the container is interacted with */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: transparent; border-radius: 99px; }
+.custom-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
 
 /* ── Selection ─────────────────────────────────────────────────────────────── */
 ::selection { background: rgba(255,90,0,0.25); color: #fff; }
@@ -171,6 +186,14 @@ body {
   border: 1px solid rgba(255,255,255,0.1);
   box-shadow: 0 10px 30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
   border-radius: var(--radius-md);
+}
+/* Heaviest glass treatment — reserved for the single shared Modal primitive */
+.glass-strong {
+  background: rgba(14,14,16,0.88);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 /* ── Gradient text ─────────────────────────────────────────────────────────── */
@@ -292,6 +315,8 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: var(--text-3);
+  border-left: 2px solid transparent;
+  margin-left: -2px;
   transition: all 0.15s ease;
   cursor: pointer;
   text-decoration: none;
@@ -302,7 +327,13 @@ body {
 }
 .nav-item.active {
   color: var(--text-1);
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,107,26,0.08);
+  border-left-color: var(--orange);
+  font-weight: 600;
+}
+.nav-item:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: -2px;
 }
 
 /* ── Card ──────────────────────────────────────────────────────────────────── */
@@ -501,5 +532,161 @@ body {
     transform: none !important;
     height: 100vh;
     z-index: auto;
+  }
+}
+
+/* ── Split View: primary content + context/inspector pane ────────────────────
+   Shared by Nodes/Routes/Keys/Users. Desktop shows a real 1fr/pane-width grid
+   with a collapse toggle; below 1280px the pane becomes a slide-over drawer
+   triggered by a floating button, instead of squeezing the table. */
+.split-view {
+  display: grid;
+  grid-template-columns: 1fr var(--split-pane-width, 300px);
+  gap: 2rem;
+  position: relative;
+}
+.split-view[data-collapsed="true"] {
+  grid-template-columns: 1fr;
+}
+.split-view[data-collapsed="true"] > .split-pane {
+  display: none;
+}
+.split-main {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.split-pane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 0.75rem;
+  padding-bottom: 2rem;
+  padding-right: 0.5rem;
+}
+.split-pane-collapse-btn {
+  position: absolute;
+  top: -30px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--text-4);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.split-pane-collapse-btn:hover {
+  color: var(--text-1);
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-2);
+}
+.split-pane-close-mobile { display: none; }
+.split-pane-mobile-trigger { display: none; }
+.split-pane-backdrop { display: none; }
+
+/* ── Marketing site typography ────────────────────────────────────────────────
+   Space Grotesk for display headlines, Inter stays the body/UI face everywhere
+   else (including inside dashboard-preview mockups, which should look like the
+   real product). Scoped so imported section components inherit it for free. */
+.landing-page h1,
+.landing-page h2 {
+  font-family: var(--font-display);
+}
+
+@media (max-width: 1280px) {
+  .split-view {
+    grid-template-columns: 1fr !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+  .split-view > .split-pane {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(360px, 88vw);
+    z-index: 45;
+    background: rgba(9,9,11,0.98);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-left: 1px solid var(--border-2);
+    box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+    transform: translateX(100%);
+    transition: transform 0.25s var(--ease-out);
+    padding: 72px 20px 24px;
+    margin: 0;
+  }
+  .split-view[data-pane-open="true"] > .split-pane {
+    transform: translateX(0);
+  }
+  .split-pane-collapse-btn { display: none; }
+  .split-pane-close-mobile {
+    display: flex;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--text-3);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-2);
+    cursor: pointer;
+  }
+  .split-pane-mobile-trigger {
+    display: flex;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 44;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text-2);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    cursor: pointer;
+  }
+  .split-pane-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 44;
+  }
+}
+
+/* ── Spec index (Lambda-style numbered fact list) ─────────────────────────── */
+.spec-index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 0.05em;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+   Respect the OS-level "reduce motion" preference: keep opacity/color
+   transitions (they carry meaning, e.g. hover/focus states) but collapse
+   every duration-driven animation and transform to near-instant. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

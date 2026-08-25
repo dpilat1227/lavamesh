@@ -3,6 +3,7 @@ import { kvConfigured } from '@/lib/kv';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { Badge, Card, PageHeader } from '@/components/ui';
 
 const ACTION_LABELS: Record<string, string> = {
   'node.revoke':      'Node Revoked',
@@ -59,45 +60,47 @@ export default async function AuditPage() {
 
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
-      <header className="flex-shrink-0 flex items-center justify-between px-8 py-4" style={{ borderBottom: '1px solid var(--border-1)' }}>
-        <div>
-          <h1 className="text-[24px] font-semibold tracking-tight" style={{ color: 'var(--text-1)' }}>Audit Log</h1>
-          <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Last 200 events · newest first</p>
-        </div>
-        {!configured && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-[10px]" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#fbbf24' }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <p className="text-[12px]" style={{ color: '#fbbf24' }}>Vercel KV not configured — events won&apos;t be stored until KV is set up</p>
-          </div>
-        )}
-      </header>
+      <PageHeader
+        title="Audit Log"
+        subtitle={configured ? 'Last 200 events · newest first' : undefined}
+        actions={
+          !configured && (
+            <Badge variant="amber">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Vercel KV not configured — events won&apos;t be stored
+            </Badge>
+          )
+        }
+      />
 
-      <div className="flex-1 overflow-y-auto px-8 py-4" style={{ minHeight: 0 }}>
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6" style={{ minHeight: 0 }}>
         {events.length === 0 ? (
-          <div className="space-y-6">
+          <div className="max-w-[860px] space-y-5">
             {/* Pro CTA banner */}
-            <div className="p-5 rounded-[12px] flex items-start gap-4" style={{ background: 'rgba(255,90,0,0.04)', border: '1px solid rgba(255,90,0,0.12)' }}>
-              <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,90,0,0.08)', border: '1px solid rgba(255,90,0,0.20)' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--orange)' }}>
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-[14px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Audit Log — Pro Feature</p>
-                <p className="text-[13px] leading-relaxed mb-3" style={{ color: 'var(--text-3)' }}>
-                  Track every action across your mesh network. See who generated keys, provisioned nodes, changed routes, and more — with full timestamps and actor attribution.
-                </p>
-                <div className="flex items-center gap-3">
-                  <a href="/#pricing" className="btn btn-primary text-[12px]" style={{ padding: '7px 16px' }}>Upgrade to Pro →</a>
-                  <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>Starting at $19/mo</span>
+            <Card accent="var(--orange)" padded={false} className="animate-fade-in-up">
+              <div className="p-5 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,90,0,0.08)', border: '1px solid rgba(255,90,0,0.20)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--orange)' }}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-[14px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Audit Log — Pro Feature</p>
+                  <p className="text-[13px] leading-relaxed mb-3" style={{ color: 'var(--text-3)' }}>
+                    Track every action across your mesh network. See who generated keys, provisioned nodes, changed routes, and more — with full timestamps and actor attribution.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <a href="/#pricing" className="btn btn-primary text-[12px]" style={{ padding: '7px 16px' }}>Upgrade to Pro →</a>
+                    <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>Starting at $19/mo</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Card>
 
-            {/* Mockup preview — shows what the log looks like when populated */}
-            <div className="relative rounded-[12px] overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+            {/* Mockup preview — clearly labeled, shows what the log looks like when populated */}
+            <Card padded={false} className="animate-fade-in-up relative" style={{ animationDelay: '60ms' }}>
               <div className="px-5 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
-                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>Preview</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>Preview — sample data</span>
               </div>
               {/* Mockup table header */}
               <div className="grid px-5 py-2.5" style={{ gridTemplateColumns: '160px 180px 1fr', borderBottom: '1px solid var(--border-1)' }}>
@@ -124,10 +127,10 @@ export default async function AuditPage() {
               </div>
               {/* Fade overlay */}
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, background: 'linear-gradient(transparent, rgba(9,9,11,0.95))', pointerEvents: 'none' }} />
-            </div>
+            </Card>
 
             {/* Feature explainer */}
-            <div className="p-5 rounded-[12px]" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <Card className="animate-fade-in-up" style={{ animationDelay: '120ms' }}>
               <p className="text-[10px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>What Gets Logged</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
@@ -142,10 +145,10 @@ export default async function AuditPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
         ) : (
-          <div>
+          <Card padded={false}>
             {/* Header row */}
             <div className="grid px-5 py-3" style={{ gridTemplateColumns: '160px 180px 1fr', borderBottom: '1px solid var(--border-1)' }}>
               {['Time', 'Action', 'Details'].map(h => (
@@ -154,7 +157,7 @@ export default async function AuditPage() {
             </div>
             {events.map((event, i) => (
               <div key={event.id}
-                className="grid items-center px-5 py-3 row-alt"
+                className="grid items-center px-5 py-3 row-alt table-row-hover"
                 style={{ gridTemplateColumns: '160px 180px 1fr', borderBottom: i < events.length - 1 ? '1px solid var(--border-1)' : 'none' }}
               >
                 <div>
@@ -174,7 +177,7 @@ export default async function AuditPage() {
                 </p>
               </div>
             ))}
-          </div>
+          </Card>
         )}
       </div>
     </div>

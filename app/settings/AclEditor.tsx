@@ -1,6 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
 import { updatePolicyAction } from '@/app/actions';
+import { Badge, Button } from '@/components/ui';
 
 export default function AclEditor({ initialPolicy, policyAvailable }: { initialPolicy: string; policyAvailable: boolean }) {
   const [policy, setPolicy] = useState(initialPolicy);
@@ -53,13 +54,13 @@ export default function AclEditor({ initialPolicy, policyAvailable }: { initialP
       <div className="flex items-center justify-between">
         <div>
           {status === 'saved' && (
-            <span className="animate-fade-in badge badge-green">
+            <Badge variant="green" className="animate-fade-in">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
               Policy saved
-            </span>
+            </Badge>
           )}
           {status === 'error' && (
-            <span className="animate-fade-in badge badge-red text-[11px] max-w-[300px] truncate">{errorMsg}</span>
+            <Badge variant="red" className="animate-fade-in text-[11px] max-w-[300px] truncate">{errorMsg}</Badge>
           )}
           {isDirty && status === 'idle' && (
             <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>Unsaved changes</span>
@@ -67,16 +68,17 @@ export default function AclEditor({ initialPolicy, policyAvailable }: { initialP
         </div>
         <div className="flex gap-2">
           {isDirty && (
-            <button onClick={() => { setPolicy(initialPolicy); setStatus('idle'); }} className="btn btn-ghost text-[12px] px-3 py-1.5">Reset</button>
+            <Button variant="ghost" onClick={() => { setPolicy(initialPolicy); setStatus('idle'); }} className="text-[12px] px-3 py-1.5">Reset</Button>
           )}
-          <button
+          <Button
+            variant="primary"
             onClick={save}
             disabled={isPending || !isDirty}
-            className="btn btn-primary text-[12px] px-4 py-1.5"
+            className="text-[12px] px-4 py-1.5"
             style={{ opacity: !isDirty ? 0.5 : 1 }}
           >
             {isPending ? 'Saving…' : 'Save Policy'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
