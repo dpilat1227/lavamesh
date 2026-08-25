@@ -11,6 +11,9 @@ import {
   getNodes,
 } from '@/lib/headscale';
 import { revalidatePath } from 'next/cache';
+import { logEvent } from '@/lib/audit';
+import { setNodeTags, getNodeTags, getTagsForNodes } from '@/lib/tags';
+import { generateApiKey, getCurrentApiKey, revokeApiKey } from '@/lib/apikeys';
 
 // ── Node ──────────────────────────────────────────────────────────────────────
 
@@ -27,11 +30,13 @@ export async function generatePreAuthKey() {
 
 export async function revokeNode(nodeId: string) {
   await fetchHeadscale(`machine/${nodeId}`, { method: 'DELETE' });
+  await logEvent('node.revoke', { nodeId });
   revalidatePath('/');
 }
 
 export async function renameMachineAction(nodeId: string, newName: string) {
   await _renameMachine(nodeId, newName);
+  await logEvent('node.rename', { nodeId, newName });
   revalidatePath('/');
 }
 
@@ -51,6 +56,7 @@ export async function disableRoute(routeId: string) {
 
 export async function expireKeyAction(user: string, key: string) {
   await _expireKey(user, key);
+  await logEvent('key.expire', { user, key: key.slice(0, 8) + '…' });
   revalidatePath('/keys');
 }
 
@@ -65,6 +71,7 @@ export async function generateKeyForUser(
     method: 'POST',
     body: JSON.stringify({ user, reusable, ephemeral, expiration }),
   });
+  await logEvent('key.generate', { user, ephemeral: String(ephemeral), expiryDays: String(expiryDays) });
   revalidatePath('/keys');
   return res.preAuthKey?.key || res.key || '';
 }
@@ -73,16 +80,19 @@ export async function generateKeyForUser(
 
 export async function createUserAction(name: string) {
   await _createUser(name);
+  await logEvent('user.create', { name });
   revalidatePath('/users');
 }
 
 export async function deleteUserAction(name: string) {
   await _deleteUser(name);
+  await logEvent('user.delete', { name });
   revalidatePath('/users');
 }
 
 export async function renameUserAction(oldName: string, newName: string) {
   await _renameUser(oldName, newName);
+  await logEvent('user.rename', { oldName, newName });
   revalidatePath('/users');
 }
 
@@ -90,6 +100,7 @@ export async function renameUserAction(oldName: string, newName: string) {
 
 export async function updatePolicyAction(policy: string) {
   await _setPolicy(policy);
+  await logEvent('acl.update', {});
   revalidatePath('/settings');
 }
 
@@ -117,3 +128,37 @@ export async function exportNodesCsvAction(): Promise<string> {
   ];
   return rows.map(r => r.map((cell: unknown) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
 }
+
+// ── Tags ────────────────────────────────────────────────────────────────
+
+export async function getNodeTagsAction(nodeId: string) {
+  return getNodeTags(nodeId);
+}
+
+export async function setNodeTagsAction(nodeId: string, tags: string[]) {
+  await setNodeTags(nodeId, tags);
+  await logEvent('tag.set', { nodeId, tags: tags.join(',') });
+  revalidatePath('/dashboard');
+}
+
+export async function getTagsForNodesAction(nodeIds: string[]) {
+  return getTagsForNodes(nodeIds);
+}
+
+// ── API Keys ───────────────────────────────────────────────────────────────
+
+export async function generateApiKeyAction() {
+  const record = await generateApiKey();
+  await logEvent('apikey.generate', {});
+  return record;
+}
+
+export async function getCurrentApiKeyAction() {
+  return getCurrentApiKey();
+}
+
+export async function revokeApiKeyAction() {
+  await revokeApiKey();
+  await logEvent('apikey.revoke', {});
+}
+

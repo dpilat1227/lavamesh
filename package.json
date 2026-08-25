@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@prisma/client": "^7.9.1",
+    "@vercel/kv": "^3.0.0",
     "axios": "^1.19.0",
     "lucide-react": "^1.33.0",
     "next": "16.3.2",
