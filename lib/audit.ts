@@ -18,6 +18,7 @@ export type AuditAction =
   | 'apikey.generate'
   | 'apikey.revoke'
   | 'notifications.update'
+  | 'route.failover'
   | 'auth.login';
 
 export interface AuditEvent {

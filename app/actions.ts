@@ -209,8 +209,8 @@ export async function revokeApiKeyAction() {
 // ── Notifications ────────────────────────────────────────────────────────────
 
 export async function saveNotificationConfigAction(patch: Partial<NotificationConfig>) {
-  // Webhook alerts are a Pro/Cloud perk; email stays free for everyone.
-  if (patch.webhookEnabled) {
+  // Webhook + failover alerts are a Pro/Cloud perk; email stays free for everyone.
+  if (patch.webhookEnabled || patch.failoverAlertsEnabled) {
     await requirePro();
   }
   const next = await saveNotificationConfig(patch);

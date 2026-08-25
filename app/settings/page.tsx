@@ -24,7 +24,7 @@ async function fetchSettingsData() {
     ns: ns.status === 'fulfilled' ? ns.value : null,
     policy: policy.status === 'fulfilled' ? policy.value : null,
     apiKey: apiKey.status === 'fulfilled' ? apiKey.value : null,
-    notifications: notifications.status === 'fulfilled' ? notifications.value : { emailEnabled: true, email: '', webhookEnabled: false, webhookUrl: '' },
+    notifications: notifications.status === 'fulfilled' ? notifications.value : { emailEnabled: true, email: '', webhookEnabled: false, webhookUrl: '', failoverAlertsEnabled: false },
   };
 }
 
