@@ -31,6 +31,14 @@ const PRO_PLANS: Record<string, PlanTier> = { pro: 'pro', cloud: 'cloud' };
 
 const COMMUNITY: PlanStatus = { tier: 'community', isPro: false, source: 'none' };
 
+/**
+ * Free-tier team-seat cap (see components/PricingSection.tsx — collaboration
+ * is the one limit that's meaningfully enforceable regardless of hosting
+ * model, since it lives in this app's own database rather than Headscale).
+ * Pro and Cloud have unlimited seats.
+ */
+export const COMMUNITY_SEAT_LIMIT = 2;
+
 export function hasLicenseKey(): boolean {
   return !!process.env.LAVAMESH_LICENSE_KEY?.trim();
 }
@@ -41,12 +49,11 @@ export async function getTenantIdForUser(userId: string | null | undefined): Pro
   return tenantUser?.tenantId ?? null;
 }
 
-export async function getPlanStatus(userId: string | null | undefined): Promise<PlanStatus> {
+/** Resolves plan status directly from a tenantId, skipping the userId → tenantId lookup. */
+export async function getPlanStatusForTenant(tenantId: string | null | undefined): Promise<PlanStatus> {
   if (hasLicenseKey()) {
     return { tier: 'pro', isPro: true, source: 'license' };
   }
-
-  const tenantId = await getTenantIdForUser(userId);
   if (!tenantId) return COMMUNITY;
 
   const sub = await prisma.subscription.findUnique({ where: { tenantId } });
@@ -58,4 +65,19 @@ export async function getPlanStatus(userId: string | null | undefined): Promise<
     return { tier, isPro: true, source: 'subscription' };
   }
   return { ...COMMUNITY, source: 'subscription' };
+}
+
+export async function getPlanStatus(userId: string | null | undefined): Promise<PlanStatus> {
+  if (hasLicenseKey()) {
+    return { tier: 'pro', isPro: true, source: 'license' };
+  }
+  const tenantId = await getTenantIdForUser(userId);
+  return getPlanStatusForTenant(tenantId);
+}
+
+/** How many additional seats a tenant can fill, or null if unlimited (Pro/Cloud). */
+export async function seatsRemaining(tenantId: string, currentMemberCount: number): Promise<number | null> {
+  const plan = await getPlanStatusForTenant(tenantId);
+  if (plan.isPro) return null;
+  return Math.max(0, COMMUNITY_SEAT_LIMIT - currentMemberCount);
 }

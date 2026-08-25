@@ -19,6 +19,7 @@ const plans = [
       'Full dashboard — nodes, keys, users, routes',
       'Self-hosted on your own server',
       'ACL policy editor',
+      'Up to 2 team members',
       'Open source on GitHub',
       'Community support (Discord)',
     ],
@@ -40,6 +41,7 @@ const plans = [
     savings: 'Save $79 vs monthly',
     features: [
       'Everything in Community',
+      'Unlimited team members',
       'Advanced audit log & event history',
       'Node tagging & label management',
       'Webhook alerts (Slack, Discord)',
