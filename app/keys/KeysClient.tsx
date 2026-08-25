@@ -188,7 +188,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
   );
 }
 
-export default function KeysClient({ keys, users }: { keys: PreAuthKey[]; users: string[] }) {
+export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[]; users: string[]; isPro: boolean }) {
   const [showModal, setShowModal] = useState(false);
   const [localKeys, setLocalKeys] = useState(keys);
 
@@ -272,17 +272,33 @@ export default function KeysClient({ keys, users }: { keys: PreAuthKey[]; users:
           { title: 'Ephemeral Nodes', desc: 'Keys marked ephemeral create nodes that auto-deregister when they go offline. Perfect for CI/CD runners or temp environments.', icon: '⏱️', color: '#34D399' },
         ]}
       />
-      <UpsellCard
-        eyebrow="Pro Feature"
-        eyebrowColor="var(--orange)"
-        title="Advanced ACLs"
-        description="Lock down your mesh network with tag-based access control policies. Coming soon to LavaMesh Pro."
-        icon={
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-        }
-      />
+      {isPro ? (
+        <UpsellCard
+          eyebrow="Pro Feature"
+          eyebrowColor="var(--green)"
+          title="Advanced ACLs"
+          description="Build tag-based access rules visually, no HuJSON required — head to Settings → Access Control Policy."
+          href="/settings"
+          ctaLabel="Open ACL builder"
+          icon={
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          }
+        />
+      ) : (
+        <UpsellCard
+          eyebrow="Pro Feature"
+          eyebrowColor="var(--orange)"
+          title="Advanced ACLs"
+          description="Lock down your mesh network with tag-based access control policies — build rules visually in Settings on LavaMesh Pro."
+          icon={
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          }
+        />
+      )}
     </>
   );
 

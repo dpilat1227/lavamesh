@@ -2,7 +2,7 @@ import { getRoutes, getDnsConfig, getNameservers, getPolicy } from '@/lib/headsc
 import { getCurrentApiKey } from '@/lib/apikeys';
 import { kvConfigured } from '@/lib/kv';
 import { getNotificationConfig } from '@/lib/notifications';
-import AclEditor from './AclEditor';
+import AclPolicyCard from './AclPolicyCard';
 import ApiKeyCard from './ApiKeyCard';
 import NotificationSettings from './NotificationSettings';
 import TeamSettings from '@/components/TeamSettings';
@@ -169,7 +169,7 @@ export default async function SettingsPage() {
             <div className="p-6">
               <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Access Control Policy</h2>
               <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>HuJSON policy defining which devices can communicate</p>
-              <AclEditor initialPolicy={policyText} policyAvailable={!!policy} />
+              <AclPolicyCard initialPolicy={policyText} policyAvailable={!!policy} isPro={plan.isPro} />
             </div>
           </Card>
 

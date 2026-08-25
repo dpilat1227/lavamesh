@@ -16,6 +16,7 @@ import { setNodeTags, getNodeTags, getTagsForNodes } from '@/lib/tags';
 import { generateApiKey, getCurrentApiKey, revokeApiKey } from '@/lib/apikeys';
 import { getPlanStatus } from '@/lib/billing';
 import { saveNotificationConfig, type NotificationConfig } from '@/lib/notifications';
+import { getTagGroups, compilePolicy, validateRule, type AclRule } from '@/lib/aclBuilder';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -114,6 +115,36 @@ export async function updatePolicyAction(policy: string) {
   await _setPolicy(policy);
   await logEvent('acl.update', {});
   revalidatePath('/settings');
+}
+
+// ── Visual ACL Builder (Pro) ──────────────────────────────────────────────────
+
+export async function getTagGroupsAction() {
+  return getTagGroups();
+}
+
+export async function previewAclBuilderPolicyAction(rules: AclRule[]) {
+  await requirePro();
+  const groups = await getTagGroups();
+  for (const rule of rules) {
+    const err = validateRule(rule, groups);
+    if (err) throw new Error(err);
+  }
+  return compilePolicy(rules, groups);
+}
+
+export async function applyAclBuilderPolicyAction(rules: AclRule[]) {
+  await requirePro();
+  const groups = await getTagGroups();
+  for (const rule of rules) {
+    const err = validateRule(rule, groups);
+    if (err) throw new Error(err);
+  }
+  const policy = compilePolicy(rules, groups);
+  await _setPolicy(policy);
+  await logEvent('acl.update', { source: 'visual-builder', rules: String(rules.length) });
+  revalidatePath('/settings');
+  return policy;
 }
 
 // ── Users (read) ──────────────────────────────────────────────────────────────
