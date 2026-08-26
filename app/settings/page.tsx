@@ -1,22 +1,28 @@
-import { getRoutes, getDnsConfig, getNameservers, getPolicy } from '@/lib/headscale';
+import { getRoutes, getDnsConfig, getNameservers, getPolicy, headscaleLoginServer } from '@/lib/headscale';
 import { getCurrentApiKey } from '@/lib/apikeys';
 import { kvConfigured } from '@/lib/kv';
 import { getNotificationConfig } from '@/lib/notifications';
+import { listBackups } from '@/lib/backups';
 import AclPolicyCard from './AclPolicyCard';
 import ApiKeyCard from './ApiKeyCard';
+import BackupsCard from './BackupsCard';
+import CloudInstanceCard from './CloudInstanceCard';
+import DnsRecordsCard from './DnsRecordsCard';
+import LicenseCard from './LicenseCard';
 import NotificationSettings from './NotificationSettings';
 import TeamSettings from '@/components/TeamSettings';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getPlanStatus, COMMUNITY_SEAT_LIMIT, type PlanTier } from '@/lib/billing';
-import { Badge, Card, PageHeader, StatCard } from '@/components/ui';
+import { getExtraRecords, policyTextFromResponse } from '@/lib/policyDns';
+import { Badge, Card, PageHeader, StatCard, ProShowcase } from '@/components/ui';
 
-const TIER_LABEL: Record<PlanTier, string> = { community: 'Community', pro: 'Pro', cloud: 'Cloud' };
+export const dynamic = 'force-dynamic';
 
 async function fetchSettingsData() {
-  const [routes, dns, ns, policy, apiKey, notifications] = await Promise.allSettled([
-    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey(), getNotificationConfig()
+  const [routes, dns, ns, policy, apiKey, notifications, backups] = await Promise.allSettled([
+    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey(), getNotificationConfig(), listBackups()
   ]);
   return {
     routes: routes.status === 'fulfilled' ? routes.value : [],
@@ -25,6 +31,7 @@ async function fetchSettingsData() {
     policy: policy.status === 'fulfilled' ? policy.value : null,
     apiKey: apiKey.status === 'fulfilled' ? apiKey.value : null,
     notifications: notifications.status === 'fulfilled' ? notifications.value : { emailEnabled: true, email: '', webhookEnabled: false, webhookUrl: '', failoverAlertsEnabled: false },
+    backups: backups.status === 'fulfilled' ? backups.value : [],
   };
 }
 
@@ -38,9 +45,10 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
 }
 
 export default async function SettingsPage() {
-  const { routes, dns, ns, policy, apiKey, notifications } = await fetchSettingsData();
+  const { routes, dns, ns, policy, apiKey, notifications, backups } = await fetchSettingsData();
 
   let members: any[] = [];
+  let cloudInstance: { url: string; status: string; region: string | null; errorMessage: string | null; provisionedAt: Date | null } | null = null;
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   try {
@@ -49,10 +57,23 @@ export default async function SettingsPage() {
         where: { userId }
       });
       if (currentTenantUser) {
-        members = await prisma.tenantUser.findMany({
-          where: { tenantId: currentTenantUser.tenantId },
-          include: { user: true }
-        });
+        const [team, instance] = await Promise.all([
+          prisma.tenantUser.findMany({
+            where: { tenantId: currentTenantUser.tenantId },
+            include: { user: true }
+          }),
+          prisma.headscaleInstance.findUnique({ where: { tenantId: currentTenantUser.tenantId } }),
+        ]);
+        members = team;
+        if (instance) {
+          cloudInstance = {
+            url: instance.url,
+            status: instance.status,
+            region: instance.region,
+            errorMessage: instance.errorMessage,
+            provisionedAt: instance.provisionedAt,
+          };
+        }
       }
     }
   } catch (e) {
@@ -63,15 +84,17 @@ export default async function SettingsPage() {
 
   const exitRoutes = routes.filter((r: any) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0');
   const exitActive = exitRoutes.some((r: any) => r.enabled);
+  // Card accent mirrors real state (matches MagicDNS below), not a fixed decorative hue:
+  // green when actually routing traffic, amber while a route is advertised but unapproved,
+  // neutral when off.
+  const exitAccent = exitActive ? 'var(--green)' : exitRoutes.length > 0 ? 'var(--amber)' : undefined;
   const baseDomain: string = dns?.domains?.[0] || dns?.baseDomain || '';
   const nameservers: string[] = ns?.dnsConfig?.nameservers || ns?.nameservers || [];
   const magicDnsOn = nameservers.length > 0 || !!baseDomain;
   const customPolicy = !!(policy?.policy || policy?.acl);
   const headscaleKeyConfigured = !!process.env.HEADSCALE_API_KEY;
   const policyText: string =
-    policy?.policy ||
-    policy?.acl ||
-    (policy != null ? JSON.stringify(policy, null, 2) : '') ||
+    policyTextFromResponse(policy) ||
     `{
   // Default policy — allow all traffic between all nodes
   // Edit and save to restrict access.
@@ -83,30 +106,33 @@ export default async function SettingsPage() {
     }
   ]
 }`;
+  const extraDnsRecords = getExtraRecords(policyText);
 
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
       <PageHeader
         title="Settings"
         subtitle="Network configuration and access control"
-        actions={
-          <Badge variant={plan.isPro ? 'green' : 'ghost'} dot={plan.isPro}>{TIER_LABEL[plan.tier]} plan</Badge>
-        }
         stats={
           <div className="grid grid-cols-4 gap-4">
-            <StatCard index={1} label="EXIT NODE" value={exitActive ? 'Active' : exitRoutes.length > 0 ? 'Pending' : 'Off'} color={exitActive ? 'var(--green)' : undefined} />
-            <StatCard index={2} label="MAGIC DNS" value={magicDnsOn ? 'On' : 'Off'} color={magicDnsOn ? 'var(--green)' : undefined} />
-            <StatCard index={3} label="ACL POLICY" value={customPolicy ? 'Custom' : 'Default'} color={customPolicy ? '#a78bfa' : undefined} />
-            <StatCard index={4} label="TEAM" value={members.length > 0 ? members.length : '—'} />
+            <StatCard label="EXIT NODE" value={exitActive ? 'Active' : exitRoutes.length > 0 ? 'Pending' : 'Off'} color={exitActive ? 'var(--green)' : undefined} />
+            <StatCard label="MAGIC DNS" value={magicDnsOn ? 'On' : 'Off'} color={magicDnsOn ? 'var(--green)' : undefined} />
+            <StatCard label="ACL POLICY" value={customPolicy ? 'Custom' : 'Default'} />
+            <StatCard label="TEAM" value={members.length > 0 ? members.length : '—'} />
           </div>
         }
       />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6" style={{ minHeight: 0 }}>
-        <div className="max-w-[860px] space-y-5">
+        <div style={plan.isPro ? { maxWidth: 860 } : { display: 'grid', gridTemplateColumns: 'minmax(0, 860px) 300px', gap: '2rem', alignItems: 'start' }}>
+        <div className="space-y-5">
+
+          {cloudInstance && <CloudInstanceCard instance={cloudInstance} />}
+
+          <LicenseCard isPro={plan.isPro} source={plan.source} />
 
           {/* Exit Node */}
-          <Card accent="var(--purple)" padded={false} className="animate-fade-in-up">
+          <Card accent={exitAccent} padded={false} className="animate-fade-in-up">
             <div className="p-6">
               <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Exit Node</h2>
               <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>Route all client traffic through a designated node</p>
@@ -140,7 +166,7 @@ export default async function SettingsPage() {
           </Card>
 
           {/* MagicDNS */}
-          <Card accent={magicDnsOn ? 'var(--green)' : 'var(--text-4)'} padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
+          <Card accent={magicDnsOn ? 'var(--green)' : undefined} padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
@@ -158,6 +184,7 @@ export default async function SettingsPage() {
                   )) : <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>No nameservers configured</p>}
                 </div>
               </div>
+              <DnsRecordsCard records={extraDnsRecords} policyAvailable={!!policy} />
             </div>
           </Card>
 
@@ -165,7 +192,7 @@ export default async function SettingsPage() {
           <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} isPro={plan.isPro} />
 
           {/* ACL Editor */}
-          <Card accent="var(--amber)" padded={false} className="animate-fade-in-up" style={{ animationDelay: '120ms' }}>
+          <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '120ms' }}>
             <div className="p-6">
               <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Access Control Policy</h2>
               <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>HuJSON policy defining which devices can communicate</p>
@@ -174,24 +201,35 @@ export default async function SettingsPage() {
           </Card>
 
           {/* API Config */}
-          <Card accent="var(--orange)" padded={false} className="animate-fade-in-up" style={{ animationDelay: '180ms' }}>
+          <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '180ms' }}>
             <div className="p-6">
               <h2 className="text-[14px] font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Control Plane Connection</h2>
               <InfoRow label="Control Server" value={process.env.HEADSCALE_API_URL || 'https://api.lavamesh.com'} mono />
+              <InfoRow label="Login Server" value={headscaleLoginServer()} mono />
               <div className="flex items-center justify-between py-3">
                 <span className="text-[13px]" style={{ color: 'var(--text-3)' }}>Admin API Key</span>
                 <Badge variant={headscaleKeyConfigured ? 'green' : 'red'}>{headscaleKeyConfigured ? 'Configured' : 'Not set'}</Badge>
               </div>
-              <InfoRow label="Headscale Compatibility" value="v0.22.3" />
+              <InfoRow label="Headscale Compatibility" value="v0.22 – v0.26" />
             </div>
           </Card>
+
+          {/* Config Backups */}
+          <BackupsCard initialBackups={backups} isPro={plan.isPro} kvReady={kvConfigured()} />
 
           {/* Alerts & Notifications */}
           <NotificationSettings config={notifications} isPro={plan.isPro} hasResend={!!process.env.RESEND_API_KEY} />
 
           {/* Team Settings */}
-          {members.length > 0 && <TeamSettings members={members} isPro={plan.isPro} seatLimit={COMMUNITY_SEAT_LIMIT} />}
+          <TeamSettings members={members} isPro={plan.isPro} seatLimit={COMMUNITY_SEAT_LIMIT} />
 
+        </div>
+
+        {!plan.isPro && (
+          <div style={{ position: 'sticky', top: 0 }}>
+            <ProShowcase />
+          </div>
+        )}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { createUserAction, deleteUserAction, renameUserAction } from '@/app/actions';
-import { Badge, Button, Modal, ModalHeader, PageHeader, StatCard, SplitView, ContextSection, InsightCard } from '@/components/ui';
+import { Badge, Button, Modal, ModalHeader, PageHeader, SplitView, ContextSection, InsightCard, HealthMeter } from '@/components/ui';
 
 interface User {
   name: string;
@@ -9,11 +9,21 @@ interface User {
   nodeCount?: number;
 }
 
-function UserRow({ user, onDelete, onRename }: { user: User; onDelete: () => void; onRename: (newName: string) => void }) {
+function UserRow({ user, onDelete, onRename, highlighted, totalNodes }: { user: User; onDelete: () => void; onRename: (newName: string) => void; highlighted?: boolean; totalNodes: number }) {
   const [isPending, startTransition] = useTransition();
   const [mode, setMode] = useState<'idle' | 'rename' | 'delete'>('idle');
   const [newName, setNewName] = useState(user.name);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [menuOpen]);
 
   const formatDate = (d?: string) => {
     if (!d || d.startsWith('0001')) return '—';
@@ -37,8 +47,8 @@ function UserRow({ user, onDelete, onRename }: { user: User; onDelete: () => voi
   };
 
   return (
-    <div className="animate-fade-in flex items-center justify-between px-8 py-4 table-row-hover row-alt"
-      style={{ borderBottom: '1px solid var(--border-1)', position: 'relative', zIndex: menuOpen ? 20 : 1 }}>
+    <div id={`user-row-${user.name}`} className="animate-fade-in flex items-center justify-between px-8 py-4 table-row-hover row-alt"
+      style={{ borderBottom: '1px solid var(--border-1)', position: 'relative', zIndex: menuOpen ? 20 : 1, background: highlighted ? 'rgba(255,107,26,0.08)' : undefined, transition: 'background 0.8s ease' }}>
 
       {/* Left: Name */}
       <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
@@ -59,10 +69,7 @@ function UserRow({ user, onDelete, onRename }: { user: User; onDelete: () => voi
             <Button variant="ghost" onClick={() => setMode('idle')} className="text-[12px] px-2.5 py-1.5">Cancel</Button>
           </div>
         ) : (
-          <div>
-            <p className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{user.name}</p>
-            <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Created {formatDate(user.createdAt)}</p>
-          </div>
+          <p className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{user.name}</p>
         )}
       </div>
 
@@ -73,14 +80,23 @@ function UserRow({ user, onDelete, onRename }: { user: User; onDelete: () => voi
         </div>
         <div className="w-[100px]">
           {typeof user.nodeCount === 'number' ? (
-            <Badge variant="ghost">{user.nodeCount} node{user.nodeCount !== 1 ? 's' : ''}</Badge>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-3)' }}>{user.nodeCount} node{user.nodeCount !== 1 ? 's' : ''}</span>
+              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)', maxWidth: 72 }}>
+                <div style={{
+                  width: `${Math.min(100, (user.nodeCount / Math.max(totalNodes, 1)) * 100)}%`,
+                  height: '100%',
+                  background: user.nodeCount > 0 ? 'var(--green)' : 'transparent',
+                }} />
+              </div>
+            </div>
           ) : (
             <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>—</span>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end relative">
+        <div ref={menuRef} className="flex justify-end relative">
           {mode === 'delete' ? (
             <>
               <Button variant="ghost" onClick={() => setMode('idle')} className="text-[11px] px-2.5 py-1.5">Cancel</Button>
@@ -101,33 +117,30 @@ function UserRow({ user, onDelete, onRename }: { user: User; onDelete: () => voi
                 </svg>
               </button>
               {menuOpen && (
-                <>
-                  <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} />
-                  <div className="animate-scale-in glass-menu" style={{
-                    position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50,
-                    padding: '4px 0', minWidth: 140,
-                  }}>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMode('rename'); }}
-                      className="w-full text-left px-3 py-2 text-[12px] font-medium"
-                      style={{ color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                    >
-                      Rename
-                    </button>
-                    <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMode('delete'); }}
-                      className="w-full text-left px-3 py-2 text-[12px] font-medium"
-                      style={{ color: 'var(--red)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.06)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                    >
-                      Delete User
-                    </button>
-                  </div>
-                </>
+                <div className="animate-scale-in glass-menu" style={{
+                  position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50,
+                  padding: '4px 0', minWidth: 140,
+                }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMode('rename'); }}
+                    className="w-full text-left px-3 py-2 text-[12px] font-medium"
+                    style={{ color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  >
+                    Rename
+                  </button>
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMode('delete'); }}
+                    className="w-full text-left px-3 py-2 text-[12px] font-medium"
+                    style={{ color: 'var(--red)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.06)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                  >
+                    Delete User
+                  </button>
+                </div>
               )}
             </>
           ) : null}
@@ -185,11 +198,26 @@ function AddUserModal({ open, onClose, onAdded }: { open: boolean; onClose: () =
 export default function UsersClient({ users, nodeCounts }: { users: User[]; nodeCounts: Record<string, number> }) {
   const [localUsers, setLocalUsers] = useState(users.map(u => ({ ...u, nodeCount: nodeCounts[u.name] ?? 0 })));
   const [showAdd, setShowAdd] = useState(false);
+  const [highlightedUser, setHighlightedUser] = useState<string | null>(null);
 
   const totalNodes = Object.values(nodeCounts).reduce((a, b) => a + b, 0);
 
+  const focusUser = (name: string) => {
+    document.getElementById(`user-row-${name}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightedUser(name);
+    setTimeout(() => setHighlightedUser(null), 1600);
+  };
+
   const table = (
     <div className="flex flex-col min-h-0 relative h-full">
+      <div className="flex-shrink-0 pb-3 px-8">
+        <HealthMeter
+          segments={[
+            { label: 'with nodes', count: localUsers.filter(u => (u.nodeCount ?? 0) > 0).length, color: 'var(--green)' },
+            { label: 'empty', count: localUsers.filter(u => (u.nodeCount ?? 0) === 0).length, color: 'var(--amber)' },
+          ]}
+        />
+      </div>
       <div className="flex-shrink-0 flex items-center justify-between px-8 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
         <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>User / Namespace</span>
         <div className="flex items-center flex-shrink-0">
@@ -200,18 +228,21 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
       </div>
       <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
         {localUsers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ color: 'var(--text-4)' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75" />
-            </svg>
-            <p className="text-[13px]">No users</p>
+          <div
+            className="flex flex-col items-center justify-center text-center py-16 px-8 gap-4 my-4"
+            style={{ borderRadius: 'var(--radius-xl)', border: '1px dashed var(--border-2)', background: 'rgba(255,255,255,0.015)' }}
+          >
+            <p className="text-[14px] font-medium" style={{ color: 'var(--text-1)' }}>Namespaces organize who owns which nodes</p>
+            <p className="text-[12.5px] max-w-[300px]" style={{ color: 'var(--text-4)' }}>Create a user, generate a key for it, and every device that joins with that key lives in this namespace.</p>
+            <Button variant="primary" onClick={() => setShowAdd(true)} className="text-[12px]" style={{ padding: '9px 18px' }}>Add your first user →</Button>
           </div>
         ) : (
           localUsers.map(u => (
             <UserRow
               key={u.name}
               user={u}
+              totalNodes={totalNodes}
+              highlighted={highlightedUser === u.name}
               onDelete={() => setLocalUsers(prev => prev.filter(x => x.name !== u.name))}
               onRename={newName => setLocalUsers(prev => prev.map(x => x.name === u.name ? { ...x, name: newName } : x))}
             />
@@ -229,11 +260,14 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
         title="Needs Attention"
         accent="rgba(245,158,11,0.15)"
         emptyLabel="Every namespace has at least one node."
-        items={emptyNamespaces.map(u => ({ label: u.name, value: '0 nodes', tone: 'amber' }))}
+        items={emptyNamespaces.map(u => ({
+          label: `${u.name} — no nodes yet, generate a key`,
+          tone: 'amber',
+          onClick: () => focusUser(u.name),
+        }))}
       />
       <ContextSection
         title="About Users &amp; Namespaces"
-        accent="rgba(52,211,153,0.15)"
         collapsible
         items={[
           { title: 'Namespaces', desc: 'Each user is a namespace that owns nodes and keys. Use namespaces to organize devices by team, environment, or purpose.', icon: '📁', color: '#FF5A00' },
@@ -254,18 +288,13 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
 
       <PageHeader
         title="Users"
+        subtitle={`${localUsers.length} namespace${localUsers.length === 1 ? '' : 's'} · ${totalNodes} node${totalNodes === 1 ? '' : 's'}`}
         actions={
           <Button variant="primary" onClick={() => setShowAdd(true)} icon={
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           }>
             Add User
           </Button>
-        }
-        stats={
-          <div className="grid grid-cols-2 gap-4">
-            <StatCard index={1} label="NAMESPACES" value={localUsers.length} />
-            <StatCard index={2} label="TOTAL NODES" value={totalNodes} color="var(--green)" />
-          </div>
         }
       />
 

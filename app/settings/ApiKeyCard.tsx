@@ -1,5 +1,5 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { generateApiKeyAction, revokeApiKeyAction } from '@/app/actions';
 import type { ApiKeyRecord } from '@/lib/apikeys';
 import { Badge, Button, Card } from '@/components/ui';
@@ -18,6 +18,11 @@ export default function ApiKeyCard({
   const [copied, setCopied] = useState(false);
   const [generating, startGenerate] = useTransition();
   const [revoking, startRevoke] = useTransition();
+  const [origin, setOrigin] = useState('https://www.lavamesh.com');
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const generate = () => {
     startGenerate(async () => {
@@ -49,7 +54,7 @@ export default function ApiKeyCard({
     : null;
 
   return (
-    <Card accent="#60a5fa" padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
+    <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }} accent={isPro ? 'var(--orange)' : undefined}>
       <div className="p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -58,7 +63,7 @@ export default function ApiKeyCard({
             Use with <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>Authorization: Bearer lm_…</code> to access <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>/api/v1/*</code>
           </p>
         </div>
-        <Badge variant="blue" className="text-[10px] uppercase tracking-wider">Pro</Badge>
+        <Badge variant="orange" className="text-[10px] uppercase tracking-wider">Pro</Badge>
       </div>
 
       {!kvReady && isPro && (
@@ -111,13 +116,26 @@ export default function ApiKeyCard({
         </div>
       )}
 
-      {/* Usage example */}
+      {/* Usage examples */}
       {isPro && (
         <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-1)' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>Example</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>Examples</p>
+          <p className="text-[11px] mb-2" style={{ color: 'var(--text-4)' }}>
+            Headscale 0.23+ uses <code style={{ fontFamily: 'var(--font-mono)' }}>/node</code>. The proxy also accepts <code style={{ fontFamily: 'var(--font-mono)' }}>/machine</code> and retries automatically.
+          </p>
           <pre className="text-[11px] px-3 py-2.5 rounded-[8px] overflow-x-auto" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-2)', color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
-{`curl https://www.lavamesh.com/api/v1/machine \\
-  -H "Authorization: Bearer ${currentKey?.token ?? 'lm_…'}"`}
+{`ORIGIN="${origin}"
+KEY="${currentKey?.token ?? 'lm_…'}"
+
+# List nodes (0.23+)
+curl "$ORIGIN/api/v1/node" -H "Authorization: Bearer $KEY"
+
+# Same on Headscale 0.22
+curl "$ORIGIN/api/v1/machine" -H "Authorization: Bearer $KEY"
+
+# Users + ACL policy
+curl "$ORIGIN/api/v1/user" -H "Authorization: Bearer $KEY"
+curl "$ORIGIN/api/v1/policy" -H "Authorization: Bearer $KEY"`}
           </pre>
         </div>
       )}
