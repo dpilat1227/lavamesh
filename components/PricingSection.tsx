@@ -2,8 +2,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-const MONTHLY_LINK = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_LINK || null;
-const LIFETIME_LINK = process.env.NEXT_PUBLIC_STRIPE_LIFETIME_LINK || null;
+const MONTHLY_LINK =
+  process.env.NEXT_PUBLIC_STRIPE_MONTHLY_LINK ||
+  'https://buy.stripe.com/fZu3cv6UEe6y3iAfgJ5Vu00';
+const LIFETIME_LINK =
+  process.env.NEXT_PUBLIC_STRIPE_LIFETIME_LINK ||
+  'https://buy.stripe.com/dRm3cv6UE9QibP64C55Vu01';
 
 type Billing = 'monthly' | 'lifetime';
 
@@ -18,7 +22,8 @@ const plans = [
     features: [
       'Full dashboard — nodes, keys, users, routes',
       'Self-hosted on your own server',
-      'ACL policy editor',
+      'ACL policy editor + extra DNS records',
+      'Expire or revoke nodes from the dashboard',
       'Up to 2 team members',
       'Open source on GitHub',
       'Community support (Discord)',
@@ -42,9 +47,9 @@ const plans = [
     features: [
       'Everything in Community',
       'Unlimited team members',
-      'Advanced audit log & event history',
-      'Visual tag-based ACL builder',
-      'Webhook alerts (Slack, Discord)',
+      'Searchable audit log + CSV export',
+      'Visual ACL builder (merges into your policy)',
+      'Webhook alerts with a send-test button',
       'Subnet route failover alerts',
       'Automated config backups',
       'Priority email support',
@@ -61,10 +66,10 @@ const plans = [
   {
     id: 'cloud',
     name: 'Cloud',
-    badge: null,
+    badge: 'Coming Soon',
     desc: 'Zero infrastructure. We host Headscale and LavaMesh together for you.',
-    price: { monthly: '$39', lifetime: null },
-    sub: { monthly: '/month', lifetime: null },
+    price: { monthly: '$39', lifetime: '$39' },
+    sub: { monthly: '/month', lifetime: '/month · billed monthly' },
     features: [
       'Everything in Pro',
       'Managed Headscale instance',
@@ -75,9 +80,13 @@ const plans = [
       'Custom domain support',
     ],
     notIncluded: [],
+    // Cloud infrastructure is actively being built (real per-tenant Fly.io
+    // provisioning — see app/api/provision) but isn't production-ready yet.
+    // Route interest to the waitlist instead of live Stripe checkout so we
+    // don't take payment for something that isn't ready to hand over.
     cta: (billing: Billing) => ({
-      label: 'Deploy Cloud Instance →',
-      href: '/api/checkout?plan=cloud',
+      label: 'Join Cloud Waitlist →',
+      href: '#waitlist',
       external: false,
     }),
     highlight: false,
@@ -132,7 +141,7 @@ export default function PricingSection() {
                 {b === 'monthly' ? 'Monthly' : 'Lifetime'}
                 {b === 'lifetime' && (
                   <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                    style={{ background: billing === 'lifetime' ? 'rgba(255,255,255,0.2)' : 'rgba(255,90,0,0.15)', color: billing === 'lifetime' ? 'white' : '#FF5A00' }}>
+                    style={{ background: billing === 'lifetime' ? 'rgba(0,0,0,0.28)' : 'rgba(255,90,0,0.15)', color: billing === 'lifetime' ? 'white' : '#FF5A00' }}>
                     SAVE 35%
                   </span>
                 )}
@@ -151,13 +160,13 @@ export default function PricingSection() {
             return (
               <div
                 key={plan.id}
-                className="relative flex flex-col"
+                className="relative flex flex-col lift-on-hover"
                 style={{
-                  background: plan.highlight ? 'rgba(255,90,0,0.04)' : 'rgba(255,255,255,0.02)',
-                  border: plan.highlight ? '1px solid rgba(255,90,0,0.25)' : '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: 20,
+                  background: plan.highlight ? 'linear-gradient(180deg, rgba(255,90,0,0.06) 0%, rgba(255,90,0,0.02) 100%)' : 'rgba(255,255,255,0.02)',
+                  border: plan.highlight ? '1px solid rgba(255,90,0,0.28)' : '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 'var(--radius-xl)',
                   padding: '32px 28px',
-                  boxShadow: plan.highlight ? '0 0 60px rgba(255,90,0,0.06)' : 'none',
+                  boxShadow: plan.highlight ? '0 0 60px rgba(255,90,0,0.08), var(--shadow-md)' : 'none',
                 }}
               >
                 {/* Badge */}

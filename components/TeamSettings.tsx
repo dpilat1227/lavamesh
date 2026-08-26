@@ -29,7 +29,7 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
       if (!res.ok) {
         setError(data.error || 'Failed to invite user');
       } else {
-        setSuccess('User granted access successfully');
+        setSuccess(data.message || 'User granted access successfully');
         setEmail('');
         router.refresh(); // Reload to show the new member in the list
       }
@@ -40,7 +40,7 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
   };
 
   return (
-    <Card accent="#3b82f6" padded={false} className="animate-fade-in-up" style={{ animationDelay: '240ms' }}>
+    <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '240ms' }}>
       <div className="p-6">
       <div className="flex items-start justify-between mb-1">
         <h2 className="text-[14px] font-semibold" style={{ color: 'var(--text-1)' }}>Team Management</h2>

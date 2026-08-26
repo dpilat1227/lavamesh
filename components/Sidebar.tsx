@@ -4,27 +4,53 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { navSections } from './navConfig';
+import { Badge, Modal, ProShowcase } from './ui';
+import { TIER_LABEL, type PlanTier } from '@/lib/planTier';
 
-export default function Sidebar({ onClose, onOpenPalette }: { onClose?: () => void; onOpenPalette?: () => void }) {
+export default function Sidebar({ onClose, onOpenPalette, planTier = 'community', isPro = false }: { onClose?: () => void; onOpenPalette?: () => void; planTier?: PlanTier; isPro?: boolean }) {
   const pathname = usePathname();
   const [isMac, setIsMac] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
   useEffect(() => { setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform)); }, []);
 
   return (
     <aside className="w-[220px] flex flex-col min-h-screen" style={{ background: 'rgba(0,0,0,0.3)', borderRight: '1px solid var(--border-1)', flexShrink: 0 }}>
 
-      {/* Logo + health inline */}
+      <Modal open={showPlanModal} onClose={() => setShowPlanModal(false)} maxWidth={420} labelledBy="plan-modal-title">
+        {isPro ? (
+          <div className="relative">
+            <button
+              onClick={() => setShowPlanModal(false)}
+              className="absolute top-0 right-0 btn btn-ghost p-1.5 rounded-[8px]"
+              style={{ border: 'none', color: 'var(--text-3)' }}
+              aria-label="Close"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+            <Badge variant="green" dot className="mb-2.5">{TIER_LABEL[planTier]} plan</Badge>
+            <h3 id="plan-modal-title" className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>You&apos;re all set</h3>
+            <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-3)' }}>Thanks for supporting LavaMesh — every Pro feature is unlocked on this account.</p>
+          </div>
+        ) : (
+          <div id="plan-modal-title">
+            <ProShowcase onClose={() => setShowPlanModal(false)} />
+          </div>
+        )}
+      </Modal>
+
+      {/* Logo + BETA badge */}
       <Link href="/" className="h-[56px] flex items-center justify-between px-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-1)', textDecoration: 'none' }}>
-        <div className="flex items-center">
+        <div className="flex items-center min-w-0">
           <div className="w-7 h-7 rounded-[8px] flex items-center justify-center mr-2.5 flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.3)', boxShadow: '0 0 14px rgba(255,90,0,0.18)' }}>
             <svg className="w-3.5 h-3.5" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
             </svg>
           </div>
-          <span className="font-semibold text-[14px] tracking-tight" style={{ color: 'var(--text-1)' }}>LavaMesh</span>
+          <span className="font-semibold text-[14px] tracking-tight truncate" style={{ color: 'var(--text-1)' }}>LavaMesh</span>
+          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full ml-1.5 flex-shrink-0" style={{ color: '#FF5A00', background: 'rgba(255,90,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
         </div>
-        <span className="status-dot online" title="Network Healthy" />
+        <span className="status-dot online flex-shrink-0" title="Network Healthy" />
       </Link>
 
       {/* Quick jump / command palette trigger */}
@@ -67,7 +93,21 @@ export default function Sidebar({ onClose, onOpenPalette }: { onClose?: () => vo
       </nav>
 
       {/* Bottom */}
-      <div className="p-3" style={{ borderTop: '1px solid var(--border-1)' }}>
+      <div className="p-3 space-y-2" style={{ borderTop: '1px solid var(--border-1)' }}>
+        <button
+          onClick={() => setShowPlanModal(true)}
+          className="w-full flex items-center justify-between px-2.5 py-2 rounded-[8px] transition-all"
+          style={{
+            background: isPro ? 'var(--green-soft)' : 'rgba(255,107,26,0.08)',
+            border: `1px solid ${isPro ? 'rgba(52,211,153,0.18)' : 'rgba(255,107,26,0.18)'}`,
+            cursor: 'pointer',
+          }}
+        >
+          <span className="text-[11.5px] font-semibold" style={{ color: isPro ? 'var(--green)' : 'var(--orange)' }}>
+            {TIER_LABEL[planTier]} plan
+          </span>
+          {!isPro && <span className="text-[10.5px] font-medium" style={{ color: 'var(--orange)' }}>Upgrade →</span>}
+        </button>
         <div className="flex items-center gap-2.5 px-2 py-2">
           <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
             style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.25)', color: 'var(--orange)' }}>

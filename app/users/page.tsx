@@ -1,11 +1,17 @@
 import { getUsers, getNodes } from '@/lib/headscale';
 import UsersClient from './UsersClient';
+import HeadscaleUnavailable from '@/components/HeadscaleUnavailable';
+
+export const dynamic = 'force-dynamic';
 
 export default async function UsersPage() {
-  const [users, allNodes] = await Promise.all([
-    getUsers().catch(() => []),
-    getNodes().catch(() => []),
-  ]);
+  const [usersResult, nodesResult] = await Promise.allSettled([getUsers(), getNodes()]);
+  if (usersResult.status === 'rejected' && nodesResult.status === 'rejected') {
+    return <HeadscaleUnavailable message={usersResult.reason?.message} />;
+  }
+
+  const users = usersResult.status === 'fulfilled' ? usersResult.value : [];
+  const allNodes = nodesResult.status === 'fulfilled' ? nodesResult.value : [];
 
   // Count nodes per user
   const nodeCounts: Record<string, number> = {};

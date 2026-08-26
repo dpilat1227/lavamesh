@@ -2,22 +2,43 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/** Login-server URL Tailscale clients should use (`tailscale up --login-server=`). */
+export function headscaleLoginServer(): string {
+  if (process.env.HEADSCALE_PUBLIC_URL?.trim()) {
+    return process.env.HEADSCALE_PUBLIC_URL.replace(/\/$/, '');
+  }
+  const api = (process.env.HEADSCALE_API_URL || '').replace(/\/$/, '');
+  return api.replace(/\/api\/v1$/i, '') || 'https://mesh.lavamesh.com';
+}
+
+function isNotFound(err: unknown): boolean {
+  return /Headscale API error \(404\)/.test(String((err as Error)?.message ?? err));
+}
+
+function nodeAlias(endpoint: string): string | null {
+  if (endpoint === 'machine' || endpoint.startsWith('machine?') || endpoint.startsWith('machine/')) {
+    return endpoint.replace(/^machine/, 'node');
+  }
+  return null;
+}
+
 export async function fetchHeadscale(endpoint: string, options: RequestInit = {}) {
   let baseUrl = process.env.HEADSCALE_API_URL || "https://api.lavamesh.com";
   let apiKey = process.env.HEADSCALE_API_KEY || "";
 
-  // 1. Dynamic Routing for Cloud Tenants
+  // Cloud tenants: only route to a dedicated instance that's actually ready.
+  // A leftover 'error'/'provisioning' row with an empty apiKey would otherwise
+  // shadow the self-hosted ENV and break the whole dashboard.
   try {
     const session = await getServerSession(authOptions);
     if ((session?.user as any)?.id) {
-      // Find the user's tenant and their Headscale instance
       const tenantUser = await prisma.tenantUser.findFirst({
         where: { userId: (session?.user as any).id },
         include: { tenant: { include: { headscaleInstance: true } } }
       });
-      
+
       const instance = tenantUser?.tenant?.headscaleInstance;
-      if (instance) {
+      if (instance?.status === 'active' && instance.apiKey && instance.url) {
         baseUrl = instance.url;
         apiKey = instance.apiKey;
       }
@@ -26,35 +47,51 @@ export async function fetchHeadscale(endpoint: string, options: RequestInit = {}
     console.warn("Could not fetch dynamic Headscale config, falling back to ENV", e);
   }
 
-  const url = `${baseUrl}/api/v1/${endpoint}`;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const attempt = async (ep: string) => {
+    const url = `${baseUrl}/api/v1/${ep}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const res = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Headscale API error (${res.status}): ${errorText}`);
+      }
+
+      return res.json();
+    } catch (e: any) {
+      if (e?.name === 'AbortError') {
+        throw new Error(`Headscale API timeout — could not reach ${baseUrl} within 8s`);
+      }
+      throw e;
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
 
   try {
-    const res = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Headscale API error (${res.status}): ${errorText}`);
-    }
-
-    return res.json();
-  } catch (e: any) {
-    if (e?.name === 'AbortError') {
-      throw new Error(`Headscale API timeout — could not reach ${baseUrl} within 5s`);
+    return await attempt(endpoint);
+  } catch (e) {
+    // Headscale 0.23+ renamed /machine → /node. Retry once so both generations work.
+    const aliased = nodeAlias(endpoint);
+    if (aliased && isNotFound(e)) {
+      const data = await attempt(aliased);
+      if (data && data.nodes && !data.machines) data.machines = data.nodes;
+      if (data && data.node && !data.machine) data.machine = data.node;
+      return data;
     }
     throw e;
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -63,7 +100,7 @@ export async function fetchHeadscale(endpoint: string, options: RequestInit = {}
 export async function getNodes(user?: string) {
   const qs = user ? `?user=${encodeURIComponent(user)}` : "";
   const data = await fetchHeadscale(`machine${qs}`);
-  return data.machines || [];
+  return data.machines || data.nodes || [];
 }
 
 export async function deleteMachine(machineId: string | number) {
@@ -72,6 +109,11 @@ export async function deleteMachine(machineId: string | number) {
 
 export async function renameMachine(machineId: string | number, newName: string) {
   return fetchHeadscale(`machine/${machineId}/rename/${encodeURIComponent(newName)}`, { method: "POST" });
+}
+
+/** Force the node to reauthenticate without deleting it from the registry. */
+export async function expireMachine(machineId: string | number) {
+  return fetchHeadscale(`machine/${machineId}/expire`, { method: "POST" });
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────────

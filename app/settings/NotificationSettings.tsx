@@ -1,6 +1,7 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { saveNotificationConfigAction } from '@/app/actions';
+import { useRouter } from 'next/navigation';
+import { saveNotificationConfigAction, testNotificationAction } from '@/app/actions';
 import type { NotificationConfig } from '@/lib/notifications';
 import { Badge, Button, Card } from '@/components/ui';
 
@@ -15,15 +16,37 @@ export default function NotificationSettings({
 }) {
   const [form, setForm] = useState(config);
   const [isPending, startTransition] = useTransition();
-  const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'saved' | 'error' | 'tested'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [testResult, setTestResult] = useState('');
   const isDirty = JSON.stringify(form) !== JSON.stringify(config);
+  const router = useRouter();
+  const [testing, startTest] = useTransition();
+
+  const test = () => {
+    startTest(async () => {
+      try {
+        const result = await testNotificationAction();
+        const bits = [
+          result.email ? 'email' : null,
+          result.webhook ? 'webhook' : null,
+        ].filter(Boolean);
+        setTestResult(`Sent via ${bits.join(' + ')}`);
+        setStatus('tested');
+        setTimeout(() => setStatus('idle'), 4000);
+      } catch (e: any) {
+        setStatus('error');
+        setErrorMsg(e?.message || 'Test alert failed');
+      }
+    });
+  };
 
   const save = () => {
     startTransition(async () => {
       try {
         await saveNotificationConfigAction(form);
         setStatus('saved');
+        router.refresh();
         setTimeout(() => setStatus('idle'), 3000);
       } catch (e: any) {
         setStatus('error');
@@ -33,7 +56,7 @@ export default function NotificationSettings({
   };
 
   return (
-    <Card accent="#34d399" padded={false} className="animate-fade-in-up" style={{ animationDelay: '220ms' }}>
+    <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '220ms' }}>
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -106,7 +129,7 @@ export default function NotificationSettings({
           ) : (
             <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
               <div>
-                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Webhook alerts <Badge variant="blue" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
+                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Webhook alerts <Badge variant="orange" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
                 <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Send node/key alerts to Slack or Discord on the Pro or Cloud plan.</p>
               </div>
               <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
@@ -136,7 +159,7 @@ export default function NotificationSettings({
           ) : (
             <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
               <div>
-                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Route failover alerts <Badge variant="blue" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
+                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Route failover alerts <Badge variant="orange" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
                 <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Get notified the moment a subnet route fails over to its backup node.</p>
               </div>
               <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
@@ -152,6 +175,9 @@ export default function NotificationSettings({
                 Saved
               </Badge>
             )}
+            {status === 'tested' && (
+              <Badge variant="green" className="animate-fade-in">{testResult || 'Test sent'}</Badge>
+            )}
             {status === 'error' && (
               <Badge variant="red" className="animate-fade-in text-[11px] max-w-[300px] truncate">{errorMsg}</Badge>
             )}
@@ -159,15 +185,26 @@ export default function NotificationSettings({
               <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>Unsaved changes</span>
             )}
           </div>
-          <Button
-            variant="primary"
-            onClick={save}
-            disabled={isPending || !isDirty}
-            className="text-[12px] px-4 py-1.5"
-            style={{ opacity: !isDirty ? 0.5 : 1 }}
-          >
-            {isPending ? 'Saving…' : 'Save'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              onClick={test}
+              disabled={testing || isDirty}
+              className="text-[12px] px-3 py-1.5"
+              title={isDirty ? 'Save first, then send a test' : 'Send a test email/webhook'}
+            >
+              {testing ? 'Sending…' : 'Send test'}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={save}
+              disabled={isPending || !isDirty}
+              className="text-[12px] px-4 py-1.5"
+              style={{ opacity: !isDirty ? 0.5 : 1 }}
+            >
+              {isPending ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
         </div>
       </div>
     </Card>

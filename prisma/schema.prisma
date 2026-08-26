@@ -79,14 +79,25 @@ model TenantUser {
 }
 
 model HeadscaleInstance {
-  id        String   @id @default(cuid())
-  tenantId  String   @unique
-  url       String
-  apiKey    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  tenantId      String    @unique
+  url           String
+  apiKey        String
+  // Provisioning lifecycle — set by /api/provision and polled/updated by
+  // /api/cron/cloud-status. 'provisioning' until the Fly Machine boots and
+  // the Headscale API key callback lands; 'active' once apiKey is usable;
+  // 'error' if Fly isn't configured, boot fails, or provisioning times out.
+  status        String    @default("provisioning")
+  errorMessage  String?   @db.Text
+  flyAppName    String?
+  flyMachineId  String?
+  flyVolumeId   String?
+  region        String?
+  provisionedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {

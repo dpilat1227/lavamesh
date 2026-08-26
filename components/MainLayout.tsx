@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import CommandPalette from '@/components/CommandPalette';
+import type { PlanTier } from '@/lib/planTier';
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout({ children, planTier = 'community', isPro = false }: { children: React.ReactNode; planTier?: PlanTier; isPro?: boolean }) {
   const pathname = usePathname();
   const isPublic = pathname === '/login' || pathname === '/' || pathname.startsWith('/draft');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,7 +32,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       {/* Sidebar — slides in on mobile, fixed on desktop */}
       <div className={`sidebar-mobile ${sidebarOpen ? 'open' : ''}`} style={{ position: 'relative' }}>
-        <Sidebar onClose={() => setSidebarOpen(false)} onOpenPalette={() => setPaletteOpen(true)} />
+        <Sidebar onClose={() => setSidebarOpen(false)} onOpenPalette={() => setPaletteOpen(true)} planTier={planTier} isPro={isPro} />
       </div>
 
       {/* Mobile backdrop */}

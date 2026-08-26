@@ -1,5 +1,6 @@
 'use client';
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { updatePolicyAction } from '@/app/actions';
 import { Badge, Button } from '@/components/ui';
 
@@ -9,12 +10,14 @@ export default function AclEditor({ initialPolicy, policyAvailable }: { initialP
   const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const isDirty = policy !== initialPolicy;
+  const router = useRouter();
 
   const save = () => {
     startTransition(async () => {
       try {
         await updatePolicyAction(policy);
         setStatus('saved');
+        router.refresh();
         setTimeout(() => setStatus('idle'), 3000);
       } catch (e: any) {
         setStatus('error');

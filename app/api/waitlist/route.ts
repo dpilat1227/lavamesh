@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { emailFrom } from '@/lib/email';
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'LavaMesh Waitlist <onboarding@resend.dev>',
+        from: emailFrom('LavaMesh Waitlist <alerts@lavamesh.com>'),
         to: [adminEmail],
         subject: `🔥 New Cloud waitlist signup: ${email}`,
         html: `
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Drew at LavaMesh <onboarding@resend.dev>',
+          from: emailFrom('Drew at LavaMesh <alerts@lavamesh.com>'),
           to: [email],
           subject: "You're on the LavaMesh Cloud waitlist 🔥",
           html: `

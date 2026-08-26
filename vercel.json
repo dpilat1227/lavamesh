@@ -15,6 +15,14 @@
     {
       "path": "/api/cron/route-failover",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/cloud-status",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/config-backup",
+      "schedule": "0 3 * * *"
     }
   ]
 }

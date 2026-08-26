@@ -19,6 +19,7 @@
  */
 
 import { kvGet, kvSet } from '@/lib/kv';
+import { emailFrom } from '@/lib/email';
 
 export interface NotificationConfig {
   emailEnabled: boolean;
@@ -58,7 +59,7 @@ async function deliverEmail(subject: string, html: string, config: NotificationC
     method: 'POST',
     headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'LavaMesh Alerts <alerts@lavamesh.com>',
+      from: emailFrom('LavaMesh Alerts <alerts@lavamesh.com>'),
       to: [to],
       subject,
       html,
@@ -129,6 +130,37 @@ export async function sendKeyExpiringAlert(keys: { user: string; keyPrefix: stri
     ),
     deliverWebhook(`⏰ **Key(s) expiring soon** — ${list.join(' · ')}`, config),
   ]);
+}
+
+/** Fire a one-shot test through whichever channels are currently enabled. */
+export async function sendTestAlert(): Promise<{ email: boolean; webhook: boolean }> {
+  const config = await getNotificationConfig();
+  const emailTo = config.emailEnabled ? (config.email || process.env.ADMIN_EMAIL) : null;
+  const canEmail = !!(process.env.RESEND_API_KEY && emailTo);
+  const canWebhook = !!(config.webhookEnabled && config.webhookUrl);
+
+  if (!canEmail && !canWebhook) {
+    throw new Error('Turn on email (with RESEND_API_KEY) or a webhook URL, then try again.');
+  }
+
+  await Promise.all([
+    canEmail
+      ? deliverEmail(
+          'LavaMesh test alert',
+          emailShell(
+            'Test Alert',
+            '#FF5A00',
+            '<p style="color: #a3a3a3; margin: 0 0 12px;">If you can read this, email alerts are working.</p>'
+          ),
+          config
+        )
+      : Promise.resolve(),
+    canWebhook
+      ? deliverWebhook('🔥 **LavaMesh test** — if you see this, webhooks are working.', config)
+      : Promise.resolve(),
+  ]);
+
+  return { email: canEmail, webhook: canWebhook };
 }
 
 /** Send an alert when a subnet route's primary (active) node changes — a real Headscale failover. */

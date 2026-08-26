@@ -39,6 +39,7 @@ function Nav() {
         </Link>
         {/* Desktop links */}
         <div className="nav-desktop-links items-center gap-3">
+          <a href="#features" className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>Features</a>
           <a href="#pricing" className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>Pricing</a>
           <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
             className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>GitHub</a>
@@ -60,6 +61,8 @@ function Nav() {
       {mobileMenuOpen && (
         <div className="fixed inset-x-0 z-40 flex flex-col gap-1 p-4"
           style={{ top: 56, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <a href="#features" onClick={() => setMobileMenuOpen(false)}
+            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Features</a>
           <a href="#pricing" onClick={() => setMobileMenuOpen(false)}
             className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Pricing</a>
           <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
@@ -222,7 +225,7 @@ export default function LandingPage() {
           {/* Sub */}
           <p className="animate-fade-in-up text-[17px] leading-relaxed mb-10"
             style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 460, letterSpacing: '-0.01em', animationDelay: '160ms' }}>
-            A self-hosted mesh network with a beautiful dashboard. Powered by Headscale and WireGuard. Zero subscriptions. Total control.
+            A self-hosted mesh network with a beautiful dashboard. Powered by Headscale and WireGuard. Zero per-seat fees. Total control.
           </p>
 
           {/* CTAs */}
@@ -256,7 +259,7 @@ export default function LandingPage() {
       <ComparisonSection />
 
       {/* ── FEATURES ──────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '120px 24px' }}>
+      <section id="features" style={{ padding: '120px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div className="text-center mb-16">
             <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>Built for control</p>

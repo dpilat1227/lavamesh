@@ -12,7 +12,12 @@ export function proxy(req: NextRequest) {
   const isPublic =
     PUBLIC_PATHS.includes(pathname) ||
     pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/install");
+    pathname.startsWith("/api/install") ||
+    pathname.startsWith("/api/waitlist") ||
+    pathname.startsWith("/api/checkout") ||
+    pathname.startsWith("/api/webhooks/") ||
+    pathname.startsWith("/api/provision") ||
+    pathname.startsWith("/api/cron/");
 
   if (!token && !isPublic) {
     return NextResponse.redirect(new URL("/login", req.url));

@@ -5,7 +5,7 @@ export default function FounderSection() {
   return (
     <section style={{ padding: '0 24px 120px' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <div className="card p-8 sm:p-12 relative overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px' }}>
+        <div className="card p-8 sm:p-12 relative overflow-hidden lift-on-hover" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px' }}>
           
           {/* Subtle glow */}
           <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,90,0,0.05) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />

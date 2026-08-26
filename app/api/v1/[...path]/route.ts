@@ -4,8 +4,10 @@
  * Requires a valid Bearer token (lm_*) generated from the Settings page.
  *
  * Usage:
- *   curl https://www.lavamesh.com/api/v1/machine \
+ *   curl https://www.lavamesh.com/api/v1/node \
  *     -H "Authorization: Bearer lm_xxxxxxxxxxxxxxxx"
+ *
+ * Headscale 0.23+ renamed /machine → /node. If /machine 404s we retry /node.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -16,8 +18,26 @@ const HEADSCALE_KEY = process.env.HEADSCALE_API_KEY || '';
 
 type Params = { path: string[] };
 
+function nodeAliasPath(headscalePath: string): string | null {
+  if (headscalePath === 'machine' || headscalePath.startsWith('machine/') || headscalePath.startsWith('machine?')) {
+    return headscalePath.replace(/^machine/, 'node');
+  }
+  return null;
+}
+
+async function forward(headscalePath: string, qs: string, req: NextRequest, body: string | undefined) {
+  const url = `${HEADSCALE_BASE}/api/v1/${headscalePath}${qs}`;
+  return fetch(url, {
+    method: req.method,
+    headers: {
+      Authorization: `Bearer ${HEADSCALE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: body || undefined,
+  });
+}
+
 async function handler(req: NextRequest, { params }: { params: Promise<Params> }) {
-  // Validate our custom Bearer token
   const auth = req.headers.get('authorization') ?? '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   const valid = await validateApiKey(token);
@@ -28,26 +48,23 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
     );
   }
 
-  // Forward to Headscale
   const { path } = await params;
   const headscalePath = path.join('/');
   const qs = req.nextUrl.search;
-  const url = `${HEADSCALE_BASE}/api/v1/${headscalePath}${qs}`;
 
   const body = req.method !== 'GET' && req.method !== 'HEAD'
     ? await req.text()
     : undefined;
 
-  const upstream = await fetch(url, {
-    method: req.method,
-    headers: {
-      Authorization: `Bearer ${HEADSCALE_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: body || undefined,
-  });
+  let upstream = await forward(headscalePath, qs, req, body);
+  const aliased = nodeAliasPath(headscalePath);
+  if (upstream.status === 404 && aliased) {
+    upstream = await forward(aliased, qs, req, body);
+  }
 
   const data = await upstream.json().catch(() => ({}));
+  if (data && data.nodes && !data.machines) data.machines = data.nodes;
+  if (data && data.node && !data.machine) data.machine = data.node;
   return NextResponse.json(data, { status: upstream.status });
 }
 

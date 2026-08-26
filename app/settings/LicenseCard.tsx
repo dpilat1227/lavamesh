@@ -47,7 +47,7 @@ export default function LicenseCard({ isPro, source }: { isPro: boolean; source:
           <div>
             <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Activate Pro</h2>
             <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>
-              Paste the license key from your purchase. It unlocks audit log, ACL builder, webhooks, backups, and unlimited seats — no redeploy required.
+              After you pay, we email you a key. Paste it here — it unlocks audit log, ACL builder, webhooks, backups, and unlimited seats. No redeploy.
             </p>
           </div>
           <Badge variant="orange" className="text-[10px] uppercase tracking-wider">Pro</Badge>
@@ -70,7 +70,7 @@ export default function LicenseCard({ isPro, source }: { isPro: boolean; source:
         {error && <p className="text-[12px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
         {ok && <p className="text-[12px] mt-3" style={{ color: 'var(--green)' }}>License saved. Pro features are on.</p>}
         <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>
-          Don&apos;t have a key? <a href="/#pricing" style={{ color: 'var(--orange)', textDecoration: 'none' }}>Get Pro →</a>
+          Paid but no email yet? Check spam, then <a href="/#pricing" style={{ color: 'var(--orange)', textDecoration: 'none' }}>buy Pro →</a> or write drew@lavamesh.com.
         </p>
       </div>
     </Card>

@@ -3,6 +3,7 @@ import EmailProvider from "next-auth/providers/email";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
+import { emailFrom } from "./email";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -16,7 +17,7 @@ export const authOptions: AuthOptions = {
           pass: process.env.RESEND_API_KEY,
         },
       },
-      from: "LavaMesh <onboarding@resend.dev>",
+      from: emailFrom(),
     }),
     CredentialsProvider({
       id: "password",

@@ -3,17 +3,21 @@ import { getPlanStatus } from '@/lib/billing';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import KeysClient from './KeysClient';
+import HeadscaleUnavailable from '@/components/HeadscaleUnavailable';
+
+export const dynamic = 'force-dynamic';
 
 export default async function KeysPage() {
-  const [users, keys, session] = await Promise.all([
-    getUsers().catch(() => []),
-    // List keys for all users. Start with admin; expand to all users.
-    getUsers()
-      .then(us => Promise.all(us.map((u: any) => listPreAuthKeys(u.name).catch(() => []))))
-      .then(nested => nested.flat())
-      .catch(() => listPreAuthKeys('admin').catch(() => [])),
-    getServerSession(authOptions),
-  ]);
+  let users: any[] = [];
+  try {
+    users = await getUsers();
+  } catch (e: any) {
+    return <HeadscaleUnavailable message={e?.message} />;
+  }
+
+  const keysNested = await Promise.all(users.map((u: any) => listPreAuthKeys(u.name).catch(() => [])));
+  const keys = keysNested.flat();
+  const session = await getServerSession(authOptions);
 
   const userNames = users.map((u: any) => u.name).filter(Boolean);
   if (!userNames.includes('admin')) userNames.unshift('admin');
