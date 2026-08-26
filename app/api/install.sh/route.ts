@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const isEphemeral = searchParams.get('ephemeral') === 'true';
     const tag = searchParams.get('tag');
     const routes = searchParams.get('routes'); // e.g. "192.168.1.0/24,10.0.0.0/16"
-    const serverUrl = headscaleLoginServer();
+    const serverUrl = await headscaleLoginServer();
 
     if (!token) {
         return new NextResponse('#!/bin/sh\necho "Error: Missing token parameter." >&2\nexit 1\n', {

@@ -2,7 +2,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { expireKeyAction, generateKeyForUser } from '@/app/actions';
-import { Badge, Button, Modal, ModalHeader, PageHeader, SplitView, ContextSection, UpsellCard, InsightCard, HealthMeter } from '@/components/ui';
+import { Badge, Button, ConfirmDialog, Modal, ModalHeader, PageHeader, SplitView, ContextSection, UpsellCard, InsightCard, HealthMeter } from '@/components/ui';
 
 interface PreAuthKey {
   id?: string;
@@ -12,18 +12,18 @@ interface PreAuthKey {
   used: boolean;
   expiration: string;
   createdAt: string;
-  user?: { name: string };
+  // Headscale's API returns this as a plain username string, not {name}.
+  user?: string;
 }
 
 function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
-  const [isPending, startTransition] = useTransition();
-  const [confirmed, setConfirmed] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
 
   const expired = k.expiration ? new Date(k.expiration) < new Date() : false;
   const isValid = !expired && !k.used;
-  const userName = k.user?.name || 'admin';
+  const userName = k.user || 'admin';
 
   const copy = async () => {
     await navigator.clipboard.writeText(k.key);
@@ -31,12 +31,10 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const expire = () => {
-    startTransition(async () => {
-      await expireKeyAction(userName, k.key);
-      onExpire();
-      router.refresh();
-    });
+  const expire = async () => {
+    await expireKeyAction(userName, k.key);
+    onExpire();
+    router.refresh();
   };
 
   const expiryParts = (d: string) => {
@@ -89,18 +87,21 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
       </div>
       <div className="flex justify-end">
         {isValid ? (
-          confirmed ? (
-            <div className="flex gap-1.5">
-              <Button variant="ghost" onClick={() => setConfirmed(false)} className="text-[11px] px-2 py-1 rounded-[7px]">Cancel</Button>
-              <Button variant="danger" onClick={expire} disabled={isPending} className="text-[11px] px-2 py-1 rounded-[7px]">{isPending ? '…' : 'Expire'}</Button>
-            </div>
-          ) : (
-            <Button variant="ghost" onClick={() => setConfirmed(true)} className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ color: 'var(--red)', borderColor: 'rgba(248,113,113,0.15)' }}>Revoke</Button>
-          )
+          <Button variant="ghost" onClick={() => setConfirming(true)} className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ color: 'var(--red)', borderColor: 'rgba(248,113,113,0.15)' }}>Revoke</Button>
         ) : (
-          <Button variant="ghost" disabled className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ opacity: 0.3, cursor: 'not-allowed' }}>Revoke</Button>
+          <Button variant="ghost" disabled className="text-[11px] px-3 py-1.5 rounded-[8px]">Revoke</Button>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirming}
+        title="Revoke pre-auth key"
+        description={<>Revoke this key for <strong style={{ color: 'var(--text-1)' }}>{userName}</strong>? Any device that hasn&apos;t used it yet won&apos;t be able to join with it anymore.</>}
+        confirmLabel="Revoke"
+        tone="danger"
+        onConfirm={expire}
+        onClose={() => setConfirming(false)}
+      />
     </div>
   );
 }
@@ -138,7 +139,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
           used: false,
           expiration: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
           createdAt: new Date().toISOString(),
-          user: { name: user },
+          user,
         });
       } catch (e: any) {
         setError(e?.message || 'Failed to generate key');
@@ -168,7 +169,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
 
       {newKey ? (
         <div className="space-y-4">
-          <div className="flex items-center gap-2 px-3 py-3 rounded-[10px]" style={{ background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)' }}>
+          <div className="flex items-center gap-2 px-3 py-3 rounded-[10px]" style={{ background: 'rgba(61,220,132,0.06)', border: '1px solid rgba(61,220,132,0.15)' }}>
             <code className="flex-1 text-[12px] break-all" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{newKey}</code>
           </div>
           <div className="flex gap-2">
@@ -195,7 +196,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
             ].map(({ label, desc, val, set }) => (
               <button key={label} onClick={() => set(!val)}
                 className="text-left p-3 rounded-[12px] transition-all"
-                style={{ background: val ? 'rgba(255,90,0,0.08)' : 'var(--surface-3)', border: `1px solid ${val ? 'rgba(255,90,0,0.2)' : 'var(--border-2)'}` }}>
+                style={{ background: val ? 'rgba(255,115,0,0.08)' : 'var(--surface-3)', border: `1px solid ${val ? 'rgba(255,115,0,0.2)' : 'var(--border-2)'}` }}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[12px] font-medium" style={{ color: 'var(--text-1)' }}>{label}</span>
                   <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: val ? 'var(--orange)' : 'var(--border-3)', background: val ? 'var(--orange)' : 'transparent' }}>
@@ -214,7 +215,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
               {[1, 7, 30, 90].map(d => (
                 <button key={d} onClick={() => setExpiryDays(d)}
                   className="py-2 rounded-[8px] text-[12px] font-medium transition-all"
-                  style={{ background: expiryDays === d ? 'rgba(255,90,0,0.12)' : 'var(--surface-3)', border: `1px solid ${expiryDays === d ? 'rgba(255,90,0,0.25)' : 'var(--border-2)'}`, color: expiryDays === d ? 'var(--orange)' : 'var(--text-3)' }}>
+                  style={{ background: expiryDays === d ? 'rgba(255,115,0,0.12)' : 'var(--surface-3)', border: `1px solid ${expiryDays === d ? 'rgba(255,115,0,0.25)' : 'var(--border-2)'}`, color: expiryDays === d ? 'var(--orange)' : 'var(--text-3)' }}>
                   {d}d
                 </button>
               ))}
@@ -256,9 +257,18 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
       <div className="flex-shrink-0 pb-3">
         <HealthMeter
           segments={[
-            { label: 'active', count: healthyN, color: 'var(--green)' },
-            { label: 'expiring (7d)', count: expiringSoon.length, color: 'var(--amber)' },
-            { label: 'used', count: usedN, color: '#60a5fa' },
+            /* This bar mixes 3 hues at once, so it gets its own deliberately
+               harmonized set rather than the generic --green/--amber/--blue
+               tokens — those read as "a warning yellow next to two unrelated
+               pastels" (a mint, a gold, a sky blue all at different
+               saturations). Deepening all three to a matched vibrancy and
+               shifting the middle stop from yellow-gold toward amber-orange
+               (keeping it well short of the brand orange, which means
+               "upgrade/CTA" everywhere else) makes them read as one
+               considered trio instead of three unrelated defaults. */
+            { label: 'active', count: healthyN, color: '#22d98a' },
+            { label: 'expiring (7d)', count: expiringSoon.length, color: '#f2994a' },
+            { label: 'used', count: usedN, color: '#3b82f6' },
             { label: 'expired', count: expiredN, color: 'var(--text-4)' },
           ]}
         />
@@ -281,7 +291,7 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
             className="flex flex-col items-center justify-center text-center py-16 px-8 gap-4 my-4"
             style={{ borderRadius: 'var(--radius-xl)', border: '1px dashed var(--border-2)', background: 'rgba(255,255,255,0.015)' }}
           >
-            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(255,90,0,0.1)', border: '1px solid rgba(255,90,0,0.2)', color: 'var(--orange)' }}>
+            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(255,115,0,0.1)', border: '1px solid rgba(255,115,0,0.2)', color: 'var(--orange)' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
               </svg>
@@ -300,7 +310,13 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
               if (k.used) return 1;
               return 2;
             };
-            return getStatus(a) - getStatus(b);
+            const statusDiff = getStatus(a) - getStatus(b);
+            // Within the same bucket (active/used/expired), most recent first —
+            // previously ties fell back to whatever order Headscale returned
+            // them in, which read as "not sorted at all" once you had more
+            // than one key in a bucket.
+            if (statusDiff !== 0) return statusDiff;
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           }).map((k) => (
             <KeyRow
               key={k.key}
@@ -328,7 +344,7 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
         accent="rgba(245,158,11,0.15)"
         emptyLabel="No active keys expire in the next 7 days."
         items={expiringSoon.map(k => ({
-          label: `${k.key.slice(0, 12)}… · ${k.user?.name || 'admin'}`,
+          label: `${k.key.slice(0, 12)}… · ${k.user || 'admin'}`,
           value: new Date(k.expiration).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           tone: 'amber',
         }))}
@@ -337,9 +353,9 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
         title="About Pre-Auth Keys"
         collapsible
         items={[
-          { title: 'What are they?', desc: 'Pre-auth keys let new devices join your mesh network without manual approval. Share a key, run the install command, and the node connects instantly.', icon: '🔑', color: '#FF5A00' },
+          { title: 'What are they?', desc: 'Pre-auth keys let new devices join your mesh network without manual approval. Share a key, run the install command, and the node connects instantly.', icon: '🔑', color: '#ff7300' },
           { title: 'Reusable vs One-Time', desc: 'Reusable keys can provision multiple nodes. One-time keys expire after a single use — ideal for secure provisioning.', icon: '♻️', color: '#8B5CF6' },
-          { title: 'Ephemeral Nodes', desc: 'Keys marked ephemeral create nodes that auto-deregister when they go offline. Perfect for CI/CD runners or temp environments.', icon: '⏱️', color: '#34D399' },
+          { title: 'Ephemeral Nodes', desc: 'Keys marked ephemeral create nodes that auto-deregister when they go offline. Perfect for CI/CD runners or temp environments.', icon: '⏱️', color: '#3ddc84' },
         ]}
       />
       {isPro ? (

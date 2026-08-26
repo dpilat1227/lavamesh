@@ -2,8 +2,30 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-/** Login-server URL Tailscale clients should use (`tailscale up --login-server=`). */
-export function headscaleLoginServer(): string {
+/**
+ * Login-server URL Tailscale clients should use (`tailscale up --login-server=`).
+ * Tenant-aware like fetchHeadscale below: a Cloud tenant on its own dedicated
+ * Headscale instance must get *that* instance's URL here, or a device runs
+ * `tailscale up` against the wrong server entirely — the authkey is only
+ * valid on the tenant's own instance, so the node silently never joins (and
+ * never appears anywhere, since it's not registered against the server this
+ * dashboard queries). Falls back to the single-tenant env config otherwise.
+ */
+export async function headscaleLoginServer(): Promise<string> {
+  try {
+    const session = await getServerSession(authOptions);
+    const userId = (session?.user as any)?.id;
+    if (userId) {
+      const tenantUser = await prisma.tenantUser.findFirst({
+        where: { userId },
+        include: { tenant: { include: { headscaleInstance: true } } },
+      });
+      const instance = tenantUser?.tenant?.headscaleInstance;
+      if (instance?.status === 'active' && instance.url) {
+        return instance.url.replace(/\/$/, '');
+      }
+    }
+  } catch {}
   if (process.env.HEADSCALE_PUBLIC_URL?.trim()) {
     return process.env.HEADSCALE_PUBLIC_URL.replace(/\/$/, '');
   }

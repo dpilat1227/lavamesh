@@ -70,7 +70,7 @@ export default function LicenseCard({ isPro, source }: { isPro: boolean; source:
         {error && <p className="text-[12px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
         {ok && <p className="text-[12px] mt-3" style={{ color: 'var(--green)' }}>License saved. Pro features are on.</p>}
         <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>
-          Paid but no email yet? Check spam, then <a href="/#pricing" style={{ color: 'var(--orange)', textDecoration: 'none' }}>buy Pro →</a> or write drew@lavamesh.com.
+          Paid but no email yet? Check spam, then <a href="/#pricing" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--orange)', textDecoration: 'none' }}>buy Pro →</a> or write drew@lavamesh.com.
         </p>
       </div>
     </Card>

@@ -45,7 +45,7 @@ export default function CloudProvisioningStatus({ initialStatus, initialError }:
           className="w-14 h-14 rounded-[16px] flex items-center justify-center mx-auto mb-6"
           style={{
             background: isError ? 'var(--red-soft)' : 'var(--orange-soft)',
-            border: `1px solid ${isError ? 'rgba(248,113,113,0.2)' : 'rgba(255,90,0,0.2)'}`,
+            border: `1px solid ${isError ? 'rgba(248,113,113,0.2)' : 'rgba(255,115,0,0.2)'}`,
           }}
         >
           {isError ? (

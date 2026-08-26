@@ -28,9 +28,9 @@ export default function OpenGraphImage() {
               alignItems: 'center',
               justifyContent: 'center',
               background: 'linear-gradient(135deg, #1a0802 0%, #3a1405 100%)',
-              border: '1px solid rgba(255,90,0,0.5)',
-              boxShadow: '0 0 40px rgba(255,90,0,0.35)',
-              color: '#FF5A00',
+              border: '1px solid rgba(255,115,0,0.5)',
+              boxShadow: '0 0 40px rgba(255,115,0,0.35)',
+              color: '#ff7300',
               fontSize: 44,
               fontWeight: 700,
             }}
@@ -62,9 +62,9 @@ export default function OpenGraphImage() {
                 width: i === 5 ? 18 : 12,
                 height: i === 5 ? 18 : 12,
                 borderRadius: 999,
-                background: '#FF5A00',
+                background: '#ff7300',
                 opacity: i === 5 ? 1 : 0.7,
-                boxShadow: '0 0 16px #FF5A00',
+                boxShadow: '0 0 16px #ff7300',
               }}
             />
           ))}

@@ -16,6 +16,7 @@
  * a distribution concern.
  */
 
+import { cache } from 'react';
 import { prisma } from './prisma';
 import { kvGet, kvSet } from './kv';
 import type { PlanTier } from './planTier';
@@ -38,31 +39,44 @@ const COMMUNITY: PlanStatus = { tier: 'community', isPro: false, source: 'none' 
  * Free-tier team-seat cap (see components/PricingSection.tsx — collaboration
  * is the one limit that's meaningfully enforceable regardless of hosting
  * model, since it lives in this app's own database rather than Headscale).
- * Pro and Cloud have unlimited seats.
+ *
+ * Set to 1: a single dashboard login (the owner), unlimited devices. That's the
+ * true-hobbyist/homelab shape — the moment a *second person* needs access it's a
+ * team, which is exactly the collaboration line worth charging for. Pro and Cloud
+ * have unlimited seats.
  */
-export const COMMUNITY_SEAT_LIMIT = 2;
+export const COMMUNITY_SEAT_LIMIT = 1;
 
 const LICENSE_KV_KEY = 'license:key';
 
-export async function hasLicenseKey(): Promise<boolean> {
+/**
+ * Every function below is wrapped in React's `cache()`. Root layout and the
+ * page it wraps both need plan/tenant info (nav badge vs. page content), so
+ * without this each request was paying for the *same* TenantUser lookup,
+ * license KV read, and Subscription lookup twice — once from layout, once
+ * from the page — as sequential round-trips (a real, measurable chunk of the
+ * "why does this feel slow" latency, on top of dev-mode/Turbopack overhead).
+ * `cache()` memoizes by arguments for the lifetime of a single server
+ * render, then discards — it never leaks state across requests or users. */
+export const hasLicenseKey = cache(async (): Promise<boolean> => {
   if (process.env.LAVAMESH_LICENSE_KEY?.trim()) return true;
   const stored = await kvGet<string>(LICENSE_KV_KEY);
   const value = typeof stored === 'string' ? stored : stored != null ? String(stored) : '';
   return !!value.trim();
-}
+});
 
 export async function saveLicenseKey(key: string): Promise<void> {
   await kvSet(LICENSE_KV_KEY, key.trim());
 }
 
-export async function getTenantIdForUser(userId: string | null | undefined): Promise<string | null> {
+export const getTenantIdForUser = cache(async (userId: string | null | undefined): Promise<string | null> => {
   if (!userId) return null;
   const tenantUser = await prisma.tenantUser.findFirst({ where: { userId } });
   return tenantUser?.tenantId ?? null;
-}
+});
 
 /** Resolves plan status directly from a tenantId, skipping the userId → tenantId lookup. */
-export async function getPlanStatusForTenant(tenantId: string | null | undefined): Promise<PlanStatus> {
+export const getPlanStatusForTenant = cache(async (tenantId: string | null | undefined): Promise<PlanStatus> => {
   if (await hasLicenseKey()) {
     return { tier: 'pro', isPro: true, source: 'license' };
   }
@@ -77,15 +91,12 @@ export async function getPlanStatusForTenant(tenantId: string | null | undefined
     return { tier, isPro: true, source: 'subscription' };
   }
   return { ...COMMUNITY, source: 'subscription' };
-}
+});
 
-export async function getPlanStatus(userId: string | null | undefined): Promise<PlanStatus> {
-  if (await hasLicenseKey()) {
-    return { tier: 'pro', isPro: true, source: 'license' };
-  }
+export const getPlanStatus = cache(async (userId: string | null | undefined): Promise<PlanStatus> => {
   const tenantId = await getTenantIdForUser(userId);
   return getPlanStatusForTenant(tenantId);
-}
+});
 
 /** How many additional seats a tenant can fill, or null if unlimited (Pro/Cloud). */
 export async function seatsRemaining(tenantId: string, currentMemberCount: number): Promise<number | null> {

@@ -11,14 +11,17 @@ export default async function UsersPage() {
   }
 
   const users = usersResult.status === 'fulfilled' ? usersResult.value : [];
-  const allNodes = nodesResult.status === 'fulfilled' ? nodesResult.value : [];
+  const allNodes: any[] = nodesResult.status === 'fulfilled' ? nodesResult.value : [];
 
-  // Count nodes per user
+  // Group nodes per user — the inspector pane needs more than a count (which
+  // node, is it online) once someone clicks into a user.
   const nodeCounts: Record<string, number> = {};
+  const nodesByUser: Record<string, { id: string; givenName: string; online: boolean; lastSeen: string }[]> = {};
   for (const node of allNodes) {
     const uname = node.user?.name || 'admin';
     nodeCounts[uname] = (nodeCounts[uname] || 0) + 1;
+    (nodesByUser[uname] ||= []).push({ id: node.id, givenName: node.givenName, online: node.online, lastSeen: node.lastSeen });
   }
 
-  return <UsersClient users={users} nodeCounts={nodeCounts} />;
+  return <UsersClient users={users} nodeCounts={nodeCounts} nodesByUser={nodesByUser} />;
 }

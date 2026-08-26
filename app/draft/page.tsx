@@ -13,8 +13,8 @@ function Nav() {
       style={{ background: 'rgba(5,5,5,0.7)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
       <Link href="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
         <div className="w-7 h-7 rounded-[7px] flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.35)' }}>
-          <svg className="w-3.5 h-3.5" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+          style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.35)' }}>
+          <svg className="w-3.5 h-3.5" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
           </svg>
         </div>
@@ -24,7 +24,7 @@ function Nav() {
         {['Features', 'How it works', 'Pricing'].map(l => (
           <a key={l} href="#" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, textDecoration: 'none' }}>{l}</a>
         ))}
-        <Link href="/dashboard" style={{ fontSize: 13, fontWeight: 500, padding: '7px 18px', borderRadius: 8, background: '#FF5A00', color: 'white', textDecoration: 'none' }}>Dashboard →</Link>
+        <Link href="/dashboard" style={{ fontSize: 13, fontWeight: 500, padding: '7px 18px', borderRadius: 8, background: 'var(--orange-cta)', color: 'white', textDecoration: 'none' }}>Dashboard →</Link>
       </div>
     </nav>
   );
@@ -35,7 +35,7 @@ export default function DraftHero() {
     <div style={{ background: '#050505', minHeight: '100vh', color: 'white', overflowX: 'hidden' }}>
       {/* Ambient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-        <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 800, height: 800, background: 'radial-gradient(circle, rgba(255,90,0,0.06) 0%, transparent 60%)', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 800, height: 800, background: 'radial-gradient(circle, rgba(255,115,0,0.06) 0%, transparent 60%)', filter: 'blur(80px)' }} />
         <div style={{ position: 'absolute', bottom: '-15%', left: '-10%', width: 700, height: 700, background: 'radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 60%)', filter: 'blur(100px)' }} />
       </div>
 
@@ -46,12 +46,12 @@ export default function DraftHero() {
         {/* Left — Text */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '140px 64px 80px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', marginBottom: 32, alignSelf: 'flex-start' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF5A00' }} /> NOW IN BETA
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff7300' }} /> NOW IN BETA
           </div>
 
           <h1 style={{ fontSize: 'clamp(56px, 7vw, 100px)', fontWeight: 700, letterSpacing: '-0.06em', lineHeight: 0.9, marginBottom: 40 }}>
             Private<br />mesh<br />
-            <span style={{ background: 'linear-gradient(135deg, #FF5A00, #FF8A00, #FFC857)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>networking.</span>
+            <span style={{ background: 'linear-gradient(135deg, #ff7300, #FF8A00, #FFC857)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>networking.</span>
           </h1>
 
           <p style={{ fontSize: 17, lineHeight: 1.65, color: 'rgba(255,255,255,0.35)', maxWidth: 420, marginBottom: 40, letterSpacing: '-0.01em' }}>
@@ -59,7 +59,7 @@ export default function DraftHero() {
           </p>
 
           <div className="flex items-center gap-3">
-            <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 26px', borderRadius: 10, fontSize: 14, fontWeight: 500, background: '#FF5A00', color: 'white', textDecoration: 'none', boxShadow: '0 0 40px rgba(255,90,0,0.25)' }}>
+            <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 26px', borderRadius: 10, fontSize: 14, fontWeight: 500, background: '#ff7300', color: 'white', textDecoration: 'none', boxShadow: '0 0 40px rgba(255,115,0,0.25)' }}>
               Deploy Free <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </Link>
             <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 26px', borderRadius: 10, fontSize: 14, border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', textDecoration: 'none' }}>
@@ -72,7 +72,7 @@ export default function DraftHero() {
 
         {/* Right — Node animation (no background fill) */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '140px 32px 80px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, height: 400, background: 'radial-gradient(ellipse, rgba(255,90,0,0.08) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 500, height: 400, background: 'radial-gradient(ellipse, rgba(255,115,0,0.08) 0%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
           <div style={{ width: '100%', maxWidth: 560, height: 440, position: 'relative', zIndex: 1 }}>
             <HeroAnimation />
           </div>
@@ -83,7 +83,7 @@ export default function DraftHero() {
       <div style={{ width: '100%', height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)' }} />
       <div style={{ padding: '40px 64px', textAlign: 'center' }}>
         <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.2)' }}>
-          ↑ This is a draft hero layout test. Compare with <a href="/" style={{ color: '#FF5A00', textDecoration: 'none' }}>localhost:3000/</a> (centered hero).
+          ↑ This is a draft hero layout test. Compare with <a href="/" style={{ color: '#ff7300', textDecoration: 'none' }}>localhost:3000/</a> (centered hero).
         </p>
       </div>
     </div>

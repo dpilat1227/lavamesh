@@ -26,9 +26,9 @@ const reasons = [
 ];
 
 const stats = [
-  { val: 'Flat rate', label: 'Pricing model', color: '#FF5A00' },
+  { val: 'Flat rate', label: 'Pricing model', color: '#ff7300' },
   { val: 'WireGuard', label: 'Encryption', color: '#60a5fa' },
-  { val: 'Self-hosted', label: 'Data sovereignty', color: '#34d399' },
+  { val: 'Self-hosted', label: 'Data sovereignty', color: '#3ddc84' },
   { val: 'Open source', label: 'No lock-in', color: '#a78bfa' },
 ];
 
@@ -38,7 +38,7 @@ export default function SocialProof() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-16">
-          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>
+          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>
             Community
           </p>
           <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(32px, 5vw, 52px)', letterSpacing: '-0.03em', color: 'white' }}>
@@ -64,7 +64,7 @@ export default function SocialProof() {
             <div key={r.title} className="flex flex-col lift-on-hover"
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 'var(--radius-xl)', padding: '28px 24px' }}>
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center mb-4"
-                style={{ background: 'rgba(255,90,0,0.1)', border: '1px solid rgba(255,90,0,0.2)', color: '#FF5A00' }}>
+                style={{ background: 'rgba(255,115,0,0.1)', border: '1px solid rgba(255,115,0,0.2)', color: '#ff7300' }}>
                 {r.icon}
               </div>
               <h3 className="text-[15px] font-semibold mb-2" style={{ color: 'white', letterSpacing: '-0.01em' }}>{r.title}</h3>
@@ -78,7 +78,7 @@ export default function SocialProof() {
           <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
             LavaMesh is in public beta — no case studies yet, just a working product and an open repo.
           </span>
-          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium" style={{ color: '#FF5A00', textDecoration: 'none' }}>
+          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium" style={{ color: '#ff7300', textDecoration: 'none' }}>
             See for yourself →
           </a>
         </div>

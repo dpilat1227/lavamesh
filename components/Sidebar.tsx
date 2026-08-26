@@ -4,17 +4,29 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { navSections } from './navConfig';
-import { Badge, Modal, ProShowcase } from './ui';
+import { Badge, IconChip, Modal, ProShowcase } from './ui';
 import { TIER_LABEL, type PlanTier } from '@/lib/planTier';
 
-export default function Sidebar({ onClose, onOpenPalette, planTier = 'community', isPro = false }: { onClose?: () => void; onOpenPalette?: () => void; planTier?: PlanTier; isPro?: boolean }) {
+const PULSE_SEEN_KEY = 'lavamesh_plan_pulse_seen';
+
+export default function Sidebar({ onClose, planTier = 'community', isPro = false, controlHost = 'api.lavamesh.com' }: { onClose?: () => void; planTier?: PlanTier; isPro?: boolean; controlHost?: string }) {
   const pathname = usePathname();
-  const [isMac, setIsMac] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  useEffect(() => { setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform)); }, []);
+  // Pulse a few times to catch the eye on a brand-new session, then settle
+  // into a calmer, still-premium (but static) look — an upgrade nudge that
+  // never stops moving reads as an ad, not a feature of the product.
+  const [pulsing, setPulsing] = useState(false);
+  useEffect(() => {
+    if (isPro) return;
+    if (typeof window === 'undefined' || sessionStorage.getItem(PULSE_SEEN_KEY)) return;
+    sessionStorage.setItem(PULSE_SEEN_KEY, '1');
+    setPulsing(true);
+    const t = setTimeout(() => setPulsing(false), 3600 * 3); // ~3 breathing cycles
+    return () => clearTimeout(t);
+  }, [isPro]);
 
   return (
-    <aside className="w-[220px] flex flex-col min-h-screen" style={{ background: 'rgba(0,0,0,0.3)', borderRight: '1px solid var(--border-1)', flexShrink: 0 }}>
+    <aside className="w-[220px] flex flex-col min-h-screen" style={{ background: 'linear-gradient(180deg, rgba(255,115,0,0.05) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.3) 100%)', borderRight: '1px solid var(--border-1)', flexShrink: 0 }}>
 
       <Modal open={showPlanModal} onClose={() => setShowPlanModal(false)} maxWidth={420} labelledBy="plan-modal-title">
         {isPro ? (
@@ -41,36 +53,16 @@ export default function Sidebar({ onClose, onOpenPalette, planTier = 'community'
       {/* Logo + BETA badge */}
       <Link href="/" className="h-[56px] flex items-center justify-between px-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-1)', textDecoration: 'none' }}>
         <div className="flex items-center min-w-0">
-          <div className="w-7 h-7 rounded-[8px] flex items-center justify-center mr-2.5 flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.3)', boxShadow: '0 0 14px rgba(255,90,0,0.18)' }}>
-            <svg className="w-3.5 h-3.5" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <IconChip size={28} className="mr-2.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
             </svg>
-          </div>
+          </IconChip>
           <span className="font-semibold text-[14px] tracking-tight truncate" style={{ color: 'var(--text-1)' }}>LavaMesh</span>
-          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full ml-1.5 flex-shrink-0" style={{ color: '#FF5A00', background: 'rgba(255,90,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
+          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full ml-1.5 flex-shrink-0" style={{ color: '#ff7300', background: 'rgba(255,115,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
         </div>
         <span className="status-dot online flex-shrink-0" title="Network Healthy" />
       </Link>
-
-      {/* Quick jump / command palette trigger */}
-      <div className="px-3 pt-3 flex-shrink-0">
-        <button
-          onClick={onOpenPalette}
-          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-left transition-all"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-1)', color: 'var(--text-4)', cursor: 'pointer' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'var(--border-2)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'var(--border-1)'; }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <span className="text-[12px] flex-1">Jump to…</span>
-          <kbd className="text-[10px] font-medium px-1.5 py-0.5 rounded-[4px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-2)', color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>
-            {isMac ? '⌘K' : 'Ctrl K'}
-          </kbd>
-        </button>
-      </div>
 
       {/* Nav sections */}
       <nav className="flex-1 px-3 pt-4 space-y-4 overflow-y-auto pb-4">
@@ -93,28 +85,53 @@ export default function Sidebar({ onClose, onOpenPalette, planTier = 'community'
       </nav>
 
       {/* Bottom */}
-      <div className="p-3 space-y-2" style={{ borderTop: '1px solid var(--border-1)' }}>
+      <div className="p-3 space-y-2.5" style={{ borderTop: '1px solid var(--border-1)' }}>
+        {/* Bigger, bubble-shaped upgrade nudge — this is the one thing in the
+            sidebar we actually want people to click, so it gets more size,
+            rounder corners, an icon, a benefit line, and a slow breathing
+            glow instead of reading as just another quiet nav-adjacent pill. */}
         <button
           onClick={() => setShowPlanModal(true)}
-          className="w-full flex items-center justify-between px-2.5 py-2 rounded-[8px] transition-all"
+          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-[18px] text-left transition-all ${pulsing ? 'animate-pulse-orange-soft' : ''}`}
           style={{
-            background: isPro ? 'var(--green-soft)' : 'rgba(255,107,26,0.08)',
-            border: `1px solid ${isPro ? 'rgba(52,211,153,0.18)' : 'rgba(255,107,26,0.18)'}`,
+            background: isPro
+              ? 'var(--green-soft)'
+              : 'linear-gradient(135deg, rgba(255,115,0,0.18), rgba(255,115,0,0.05))',
+            border: `1px solid ${isPro ? 'rgba(61,220,132,0.22)' : 'rgba(255,115,0,0.32)'}`,
+            // Settled (post-pulse) state keeps a quiet resting glow — same
+            // language as the BETA badge / "+ Add" affordance — instead of
+            // going fully flat, so it still reads as "special" without moving.
+            boxShadow: !isPro && !pulsing ? '0 0 0 1px rgba(255,115,0,0.08), 0 4px 16px rgba(255,115,0,0.12)' : 'none',
             cursor: 'pointer',
           }}
+          onMouseEnter={e => { if (!isPro) { e.currentTarget.style.transform = 'translateY(-1px) scale(1.015)'; e.currentTarget.style.borderColor = 'rgba(255,115,0,0.5)'; } }}
+          onMouseLeave={e => { if (!isPro) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,115,0,0.32)'; } }}
         >
-          <span className="text-[11.5px] font-semibold" style={{ color: isPro ? 'var(--green)' : 'var(--orange)' }}>
-            {TIER_LABEL[planTier]} plan
-          </span>
-          {!isPro && <span className="text-[10.5px] font-medium" style={{ color: 'var(--orange)' }}>Upgrade →</span>}
+          <IconChip
+            size={34}
+            radius={12}
+            glow={!isPro}
+            style={isPro ? { background: 'var(--green-soft)', border: '1px solid rgba(61,220,132,0.3)', color: 'var(--green)', boxShadow: 'none' } : undefined}
+          >
+            {isPro ? (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l1.6 4.9L18.5 8l-4.9 1.6L12 14.5l-1.6-4.9L5.5 8l4.9-1.6z"/><path d="M19 15l.9 2.7L22.5 18.5l-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.8z"/></svg>
+            )}
+          </IconChip>
+          <div className="min-w-0 flex-1">
+            <p className="text-[12.5px] font-semibold leading-none" style={{ color: isPro ? 'var(--green)' : 'var(--orange)' }}>{TIER_LABEL[planTier]} plan</p>
+            <p className="text-[10.5px] mt-1 truncate" style={{ color: 'var(--text-4)' }}>
+              {isPro ? 'Every feature unlocked' : 'Unlock unlimited seats →'}
+            </p>
+          </div>
         </button>
         <div className="flex items-center gap-2.5 px-2 py-2">
-          <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
-            style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.25)', color: 'var(--orange)' }}>
+          <IconChip size={28} glow={false} className="text-[11px] font-bold">
             N
-          </div>
+          </IconChip>
           <div className="min-w-0 flex-1">
-            <p className="text-[12px] font-medium truncate" style={{ color: 'var(--text-2)' }}>api.lavamesh.com</p>
+            <p className="text-[12px] font-medium truncate" style={{ color: 'var(--text-2)' }}>{controlHost}</p>
             <p className="text-[10px] truncate" style={{ color: 'var(--text-4)' }}>Connected</p>
           </div>
           <button

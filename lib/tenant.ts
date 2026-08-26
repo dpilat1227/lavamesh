@@ -8,13 +8,16 @@
  */
 
 import { prisma } from './prisma';
+import { getTenantIdForUser } from './billing';
 
 export async function ensureTenantForUser(
   userId: string,
   opts?: { email?: string | null; name?: string | null }
 ): Promise<string> {
-  const existing = await prisma.tenantUser.findFirst({ where: { userId } });
-  if (existing) return existing.tenantId;
+  // Shares billing.ts's request-scoped cache() lookup rather than re-querying —
+  // root layout already resolves this same userId→tenantId before this runs.
+  const existingTenantId = await getTenantIdForUser(userId);
+  if (existingTenantId) return existingTenantId;
 
   const label = opts?.name || opts?.email?.split('@')[0] || 'My';
   const tenant = await prisma.tenant.create({

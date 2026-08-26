@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getPlanStatus } from '@/lib/billing';
 import { ensureTenantForUser } from '@/lib/tenant';
+import { headscaleLoginServer } from '@/lib/headscale';
 
 export const metadata: Metadata = {
   title: 'LavaMesh · Private Mesh Networking',
@@ -39,6 +40,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     await ensureTenantForUser(userId, { email: session?.user?.email, name: session?.user?.name }).catch(() => null);
   }
   const plan = userId ? await getPlanStatus(userId).catch(() => null) : null;
+  // Only worth resolving (and worth a DB round-trip) once a user is actually
+  // signed in — anonymous marketing-site requests skip it entirely.
+  const controlHost = userId
+    ? await headscaleLoginServer().then(u => u.replace(/^https?:\/\//, '').replace(/\/$/, '')).catch(() => 'api.lavamesh.com')
+    : 'api.lavamesh.com';
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -51,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         }}
       >
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <MainLayout planTier={plan?.tier ?? 'community'} isPro={plan?.isPro ?? false}>{children}</MainLayout>
+          <MainLayout planTier={plan?.tier ?? 'community'} isPro={plan?.isPro ?? false} controlHost={controlHost}>{children}</MainLayout>
         </div>
       </body>
     </html>

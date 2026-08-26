@@ -34,7 +34,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange, c
           onClick={() => onChange(opt.value)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-colors"
           style={{
-            background: value === opt.value ? 'rgba(255,107,26,0.14)' : 'transparent',
+            background: value === opt.value ? 'rgba(255,115,0,0.14)' : 'transparent',
             color: value === opt.value ? 'var(--orange)' : 'var(--text-4)',
             border: 'none',
             cursor: 'pointer',

@@ -1,8 +1,10 @@
 export { Button } from './Button';
 export { Badge } from './Badge';
 export { Card } from './Card';
+export { IconChip } from './IconChip';
 export { StatCard } from './StatCard';
 export { Modal, ModalHeader } from './Modal';
+export { ConfirmDialog } from './ConfirmDialog';
 export { PageHeader } from './PageHeader';
 export { SplitView } from './SplitView';
 export { SegmentedControl } from './SegmentedControl';
@@ -10,4 +12,6 @@ export { ContextSection, UpsellCard, InsightCard } from './ContextPane';
 export type { ContextItem, InsightItem } from './ContextPane';
 export { HealthMeter } from './HealthMeter';
 export type { MeterSegment } from './HealthMeter';
+export { StatsHero } from './StatsHero';
+export type { HeroRing, HeroMetric, HeroTrend } from './StatsHero';
 export { ProShowcase } from './ProShowcase';

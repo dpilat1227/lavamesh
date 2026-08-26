@@ -132,7 +132,7 @@ export default function NotificationSettings({
                 <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Webhook alerts <Badge variant="orange" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
                 <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Send node/key alerts to Slack or Discord on the Pro or Cloud plan.</p>
               </div>
-              <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+              <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
             </div>
           )}
         </div>
@@ -162,7 +162,7 @@ export default function NotificationSettings({
                 <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Route failover alerts <Badge variant="orange" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
                 <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Get notified the moment a subnet route fails over to its backup node.</p>
               </div>
-              <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+              <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
             </div>
           )}
         </div>

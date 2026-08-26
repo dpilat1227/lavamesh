@@ -45,7 +45,7 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
       <div className="flex items-start justify-between mb-1">
         <h2 className="text-[14px] font-semibold" style={{ color: 'var(--text-1)' }}>Team Management</h2>
         {!isPro && (
-          <Badge variant={atSeatLimit ? 'amber' : 'ghost'} className="text-[10px]">{members.length} / {seatLimit} seats</Badge>
+          <Badge variant={atSeatLimit ? 'amber' : 'ghost'} className="text-[10px]">{members.length} / {seatLimit} {seatLimit === 1 ? 'seat' : 'seats'}</Badge>
         )}
       </div>
       <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>Manage who has access to this LavaMesh network</p>
@@ -67,9 +67,11 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
       {atSeatLimit ? (
         <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
           <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
-            Free plan is limited to {seatLimit} team members. Upgrade for unlimited seats.
+            {seatLimit === 1
+              ? 'The Free plan includes a single dashboard login. Invite teammates by upgrading to Pro — unlimited seats.'
+              : `Free plan is limited to ${seatLimit} team members. Upgrade for unlimited seats.`}
           </p>
-          <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+          <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
         </div>
       ) : (
         <form onSubmit={handleInvite} className="flex gap-2">

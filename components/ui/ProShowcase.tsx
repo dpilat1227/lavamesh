@@ -1,5 +1,6 @@
 'use client';
 import { Badge } from './Badge';
+import { STRIPE_MONTHLY_LINK, STRIPE_LIFETIME_LINK } from '@/lib/pricing';
 
 const PRO_FEATURES = [
   'Unlimited team members',
@@ -26,7 +27,7 @@ function CheckIcon() {
  */
 export function ProShowcase({ onClose }: { onClose?: () => void }) {
   return (
-    <div className="relative flex flex-col gap-4 p-5 rounded-[12px]" style={{ background: 'linear-gradient(135deg, rgba(255,107,26,0.05) 0%, rgba(255,255,255,0) 100%)', border: '1px solid rgba(255,107,26,0.14)' }}>
+    <div className="relative flex flex-col gap-4 p-5 rounded-[12px]" style={{ background: 'linear-gradient(135deg, rgba(255,115,0,0.05) 0%, rgba(255,255,255,0) 100%)', border: '1px solid rgba(255,115,0,0.14)' }}>
       {onClose && (
         <button
           onClick={onClose}
@@ -54,8 +55,19 @@ export function ProShowcase({ onClose }: { onClose?: () => void }) {
         <span className="text-[26px] font-bold leading-none" style={{ color: 'var(--text-1)' }}>$19</span>
         <span className="text-[12px] mb-0.5" style={{ color: 'var(--text-4)' }}>/mo · or $149 lifetime</span>
       </div>
-      <a href="/#pricing" className="btn btn-primary justify-center text-[13px] w-full" style={{ borderRadius: 10 }}>
-        View plans &amp; pricing →
+      {/* Opens Stripe checkout in a new tab instead of navigating this tab to
+          the marketing site — clicking "view pricing" from inside the
+          dashboard shouldn't make someone wonder if they got signed out. */}
+      <div className="flex gap-2">
+        <a href={STRIPE_MONTHLY_LINK} target="_blank" rel="noopener noreferrer" className="btn btn-primary justify-center text-[13px] flex-1" style={{ borderRadius: 10 }}>
+          Monthly →
+        </a>
+        <a href={STRIPE_LIFETIME_LINK} target="_blank" rel="noopener noreferrer" className="btn btn-ghost justify-center text-[13px] flex-1" style={{ borderRadius: 10 }}>
+          Lifetime →
+        </a>
+      </div>
+      <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="text-center text-[11px]" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>
+        Full plan comparison ↗
       </a>
     </div>
   );

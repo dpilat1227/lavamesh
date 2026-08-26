@@ -8,7 +8,7 @@ export default function FounderSection() {
         <div className="card p-8 sm:p-12 relative overflow-hidden lift-on-hover" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px' }}>
           
           {/* Subtle glow */}
-          <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,90,0,0.05) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+          <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,115,0,0.05) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
           
           <div className="flex flex-col md:flex-row gap-10 items-center">
             
@@ -22,12 +22,12 @@ export default function FounderSection() {
                   style={{ objectFit: 'cover' }}
                 />
               </div>
-              <div className="absolute inset-0 rounded-full blur-xl" style={{ background: '#FF5A00', opacity: 0.15, transform: 'scale(1.1)' }} />
+              <div className="absolute inset-0 rounded-full blur-xl" style={{ background: '#ff7300', opacity: 0.15, transform: 'scale(1.1)' }} />
             </div>
 
             {/* Content */}
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,90,0,0.8)' }}>A message from the founder</p>
+              <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'rgba(255,115,0,0.8)' }}>A message from the founder</p>
               <h3 className="text-[24px] font-semibold mb-4" style={{ color: 'white', letterSpacing: '-0.02em' }}>
                 Why I built LavaMesh
               </h3>

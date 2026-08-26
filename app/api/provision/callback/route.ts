@@ -57,12 +57,12 @@ async function notifyOwnerInstanceReady(tenantId: string): Promise<void> {
       subject: '🔥 Your LavaMesh Cloud instance is ready',
       html: `
         <div style="font-family:sans-serif;max-width:480px;padding:32px;">
-          <h2 style="color:#FF5A00;margin:0 0 8px;">Your Cloud instance is live.</h2>
+          <h2 style="color:#ff7300;margin:0 0 8px;">Your Cloud instance is live.</h2>
           <p style="color:#444;line-height:1.6;margin:0 0 24px;">
             We finished provisioning your dedicated Headscale instance. Head back to your dashboard —
             it'll pick it up automatically, no config needed.
           </p>
-          <a href="${process.env.NEXTAUTH_URL || 'https://www.lavamesh.com'}/dashboard" style="display:inline-block;background:#FF5A00;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">Open Dashboard →</a>
+          <a href="${process.env.NEXTAUTH_URL || 'https://www.lavamesh.com'}/dashboard" style="display:inline-block;background:#ff7300;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">Open Dashboard →</a>
         </div>
       `,
     }),

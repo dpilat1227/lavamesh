@@ -42,7 +42,7 @@ export default function WaitlistForm() {
           }}
         >
           {/* Subtle glow */}
-          <div style={{ position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)', width: 400, height: 200, background: 'radial-gradient(circle, rgba(255,90,0,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)', width: 400, height: 200, background: 'radial-gradient(circle, rgba(255,115,0,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
 
           <div style={{ position: 'relative' }}>
             {/* Icon */}
@@ -56,7 +56,7 @@ export default function WaitlistForm() {
             <h2 className="font-bold tracking-tight mb-2" style={{ fontSize: 28, letterSpacing: '-0.03em', color: 'white' }}>
               LavaMesh Cloud
             </h2>
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.7)' }}>
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.7)' }}>
               Coming soon · Managed hosting
             </p>
             <p className="mb-8 text-[15px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -65,11 +65,11 @@ export default function WaitlistForm() {
 
             {status === 'success' ? (
               <div className="flex items-center justify-center gap-2.5 px-5 py-4 rounded-[12px]"
-                style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.15)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#34d399' }}>
+                style={{ background: 'rgba(61,220,132,0.08)', border: '1px solid rgba(61,220,132,0.15)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#3ddc84' }}>
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                <span className="text-[14px] font-medium" style={{ color: '#34d399' }}>You&apos;re on the list — we&apos;ll reach out when Cloud launches.</span>
+                <span className="text-[14px] font-medium" style={{ color: '#3ddc84' }}>You&apos;re on the list — we&apos;ll reach out when Cloud launches.</span>
               </div>
             ) : (
               <form onSubmit={submit} className="flex flex-col gap-3">
@@ -83,12 +83,12 @@ export default function WaitlistForm() {
                     className="flex-1 px-4 py-3 rounded-[10px] text-[14px] outline-none transition-all"
                     style={{
                       background: 'rgba(255,255,255,0.04)',
-                      border: status === 'error' ? '1px solid rgba(255,90,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                      border: status === 'error' ? '1px solid rgba(255,115,0,0.4)' : '1px solid rgba(255,255,255,0.08)',
                       color: 'white',
                       fontFamily: 'var(--font-sans)',
                     }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(255,90,0,0.3)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = status === 'error' ? 'rgba(255,90,0,0.4)' : 'rgba(255,255,255,0.08)')}
+                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(255,115,0,0.3)')}
+                    onBlur={e => (e.currentTarget.style.borderColor = status === 'error' ? 'rgba(255,115,0,0.4)' : 'rgba(255,255,255,0.08)')}
                   />
                   <button
                     type="submit"
@@ -105,7 +105,7 @@ export default function WaitlistForm() {
                   </button>
                 </div>
                 {status === 'error' && (
-                  <p className="text-[12px]" style={{ color: 'rgba(255,90,0,0.8)' }}>{errorMsg}</p>
+                  <p className="text-[12px]" style={{ color: 'rgba(255,115,0,0.8)' }}>{errorMsg}</p>
                 )}
                 <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
                   No spam. Notified when Cloud launches.

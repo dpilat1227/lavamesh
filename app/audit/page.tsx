@@ -9,10 +9,10 @@ import { Badge, Card, PageHeader, SplitView, ContextSection, ProShowcase } from 
 import AuditClient from './AuditClient';
 
 const WHAT_GETS_LOGGED = [
-  { title: 'Key Events', desc: 'Generation, revocation, and expiration of pre-auth keys', icon: '🔑', color: '#FF5A00' },
+  { title: 'Key Events', desc: 'Generation, revocation, and expiration of pre-auth keys', icon: '🔑', color: '#ff7300' },
   { title: 'Node Events', desc: 'Rename, expire, revoke, and tag changes', icon: '🖥️', color: '#60a5fa' },
   { title: 'Route Changes', desc: 'Subnet route failover when a backup node takes over', icon: '🔀', color: '#a78bfa' },
-  { title: 'Policy & DNS', desc: 'ACL updates, extra DNS records, backups, and test alerts', icon: '👤', color: '#34D399' },
+  { title: 'Policy & DNS', desc: 'ACL updates, extra DNS records, backups, and test alerts', icon: '👤', color: '#3ddc84' },
 ];
 
 export default async function AuditPage() {
@@ -31,8 +31,8 @@ export default async function AuditPage() {
         {/* Mockup preview — clearly labeled, shows what the log looks like when populated */}
         <Card padded={false} className="animate-fade-in-up relative">
           <div className="flex items-center gap-2 px-5 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
-            <Badge variant="orange" className="text-[9px] uppercase tracking-wider">Sample</Badge>
-            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>Preview — not your events</span>
+            <Badge variant="orange" className="text-[9px] uppercase tracking-wider">Upgrade to Unlock</Badge>
+            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>Example data · not your real events</span>
           </div>
           <div className="grid px-5 py-2.5" style={{ gridTemplateColumns: '160px 180px 1fr', borderBottom: '1px solid var(--border-1)' }}>
             {['Time', 'Action', 'Details'].map(h => (

@@ -40,7 +40,7 @@ function HeroVariant({ img, index }: { img: string; index: number }) {
 
         {/* Eyebrow */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 8, background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', marginBottom: 32, marginLeft: 12 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF5A00', boxShadow: '0 0 12px rgba(255,90,0,0.6)' }} />
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff7300', boxShadow: '0 0 12px rgba(255,115,0,0.6)' }} />
           <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em' }}>NOW IN BETA</span>
         </div>
 
@@ -56,11 +56,11 @@ function HeroVariant({ img, index }: { img: string; index: number }) {
         }}>
           Private mesh<br />
           <span style={{
-            background: 'linear-gradient(135deg, #FF5A00 0%, #FF8A00 50%, #FFB84D 100%)',
+            background: 'linear-gradient(135deg, #ff7300 0%, #FF8A00 50%, #FFB84D 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-            filter: 'drop-shadow(0 4px 30px rgba(255,90,0,0.5))',
+            filter: 'drop-shadow(0 4px 30px rgba(255,115,0,0.5))',
           }}>networking.</span>
         </h1>
 
@@ -78,8 +78,8 @@ function HeroVariant({ img, index }: { img: string; index: number }) {
           <Link href="/dashboard" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             padding: '14px 30px', borderRadius: 12, fontSize: 15, fontWeight: 600,
-            background: '#FF5A00', color: 'white', textDecoration: 'none',
-            boxShadow: '0 0 50px rgba(255,90,0,0.35), 0 4px 20px rgba(0,0,0,0.3)',
+            background: 'var(--orange-cta)', color: 'white', textDecoration: 'none',
+            boxShadow: '0 0 50px rgba(255,115,0,0.35), 0 4px 20px rgba(0,0,0,0.3)',
           }}>
             Deploy Free <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </Link>
@@ -121,15 +121,15 @@ function Nav() {
       style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(24px)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
       <Link href="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
         <div className="w-7 h-7 rounded-[7px] flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.35)' }}>
-          <svg className="w-3.5 h-3.5" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+          style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.35)' }}>
+          <svg className="w-3.5 h-3.5" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
             <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
           </svg>
         </div>
         <span style={{ fontWeight: 500, fontSize: 16, color: 'white', letterSpacing: '-0.02em' }}>LavaMesh</span>
       </Link>
       <div className="flex items-center gap-5">
-        <Link href="/dashboard" style={{ fontSize: 13, fontWeight: 500, padding: '7px 18px', borderRadius: 8, background: '#FF5A00', color: 'white', textDecoration: 'none' }}>Dashboard →</Link>
+        <Link href="/dashboard" style={{ fontSize: 13, fontWeight: 500, padding: '7px 18px', borderRadius: 8, background: 'var(--orange-cta)', color: 'white', textDecoration: 'none' }}>Dashboard →</Link>
       </div>
     </nav>
   );

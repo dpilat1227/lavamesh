@@ -53,20 +53,40 @@ export default function NetworkTopology({ nodes }: { nodes: TopoNode[] }) {
   return (
     <div
       className="animate-fade-in"
-      style={{ width: '100%', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-1)', background: 'rgba(255,255,255,0.02)', overflow: 'hidden' }}
+      style={{
+        width: '100%',
+        borderRadius: 'var(--radius-xl)',
+        border: '1px solid var(--border-1)',
+        background: 'var(--surface-card)',
+        overflow: 'hidden',
+        boxShadow: 'var(--shadow-lg)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+      }}
     >
       <div className="flex items-center justify-between px-5 pt-4 pb-1">
         <div>
           <h3 className="text-[13px] font-medium" style={{ color: 'var(--text-2)' }}>Live mesh</h3>
           <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-4)' }}>Peer links · traffic does not hairpin through LavaMesh</p>
         </div>
-        <span
-          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold"
-          style={{ color: 'var(--green)', background: 'var(--green-soft)' }}
-        >
-          <span className="status-dot online" />
-          {onlineCount}/{nodes.length} online
-        </span>
+        {/* Fleet-health ring above already owns the online ratio — this badge just
+            signals the map is live (or flags offline peers), never repeats "N/N online". */}
+        {onlineCount === nodes.length ? (
+          <span
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold"
+            style={{ color: 'var(--green)', background: 'var(--green-soft)' }}
+          >
+            <span className="status-dot online" />
+            Live
+          </span>
+        ) : (
+          <span
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold"
+            style={{ color: 'var(--amber)', background: 'var(--amber-soft)' }}
+          >
+            {nodes.length - onlineCount} offline
+          </span>
+        )}
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
         <defs>
@@ -83,7 +103,7 @@ export default function NetworkTopology({ nodes }: { nodes: TopoNode[] }) {
             <line
               key={`l-${i}`}
               x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-              stroke={live ? '#FF5A00' : 'rgba(255,255,255,0.12)'}
+              stroke={live ? '#ff7300' : 'rgba(255,255,255,0.12)'}
               strokeWidth={live ? 2 : 1}
               strokeOpacity={live ? 0.55 : 0.35}
               strokeLinecap="round"
@@ -98,15 +118,15 @@ export default function NetworkTopology({ nodes }: { nodes: TopoNode[] }) {
         {layout.map(node => (
           <g key={node.id}>
             {node.online && (
-              <circle cx={node.x} cy={node.y} r={16} fill="none" stroke="rgba(52,211,153,0.25)" strokeWidth={1}>
+              <circle cx={node.x} cy={node.y} r={16} fill="none" stroke="rgba(61,220,132,0.25)" strokeWidth={1}>
                 <animate attributeName="r" values="12;18;12" dur="2.8s" repeatCount="indefinite" />
                 <animate attributeName="stroke-opacity" values="0.35;0.05;0.35" dur="2.8s" repeatCount="indefinite" />
               </circle>
             )}
             <circle
               cx={node.x} cy={node.y} r={8}
-              fill={node.online ? '#34d399' : 'rgba(255,255,255,0.12)'}
-              stroke={node.online ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.15)'}
+              fill={node.online ? '#3ddc84' : 'rgba(255,255,255,0.12)'}
+              stroke={node.online ? 'rgba(61,220,132,0.5)' : 'rgba(255,255,255,0.15)'}
               strokeWidth={2}
               filter={node.online ? 'url(#glow-green)' : undefined}
             />
