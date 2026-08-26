@@ -32,71 +32,103 @@ function RouteRow({ route, index, haRole }: { route: Route; index: number; haRol
     });
   };
 
+  const icon = (
+    <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
+      style={{ background: exit ? 'var(--purple-soft)' : 'var(--surface-3)', border: `1px solid ${exit ? 'rgba(167,139,250,0.2)' : 'var(--border-2)'}` }}>
+      {exit ? (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--purple)' }}>
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        </svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
+          <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+        </svg>
+      )}
+    </div>
+  );
+  const statusBadge = optimisticEnabled ? (
+    <Badge variant="green" dot pulse>Approved</Badge>
+  ) : (
+    <Badge variant="amber">Pending</Badge>
+  );
+  const actionBtn = (
+    <button
+      onClick={toggle}
+      disabled={isPending}
+      className="btn text-[12px] px-3 py-1.5"
+      style={{
+        background: optimisticEnabled ? 'var(--red-soft)' : 'var(--green-soft)',
+        color: optimisticEnabled ? 'var(--red)' : 'var(--green)',
+        border: `1px solid ${optimisticEnabled ? 'rgba(248,113,113,0.2)' : 'rgba(61,220,132,0.2)'}`,
+        opacity: isPending ? 0.6 : 1,
+        borderRadius: '8px',
+      }}
+    >
+      {isPending ? '…' : optimisticEnabled ? 'Disable' : 'Approve'}
+    </button>
+  );
+
   return (
     <div
-      className="animate-fade-in flex items-center justify-between px-1 py-3.5 table-row-hover row-alt"
+      className="animate-fade-in table-row-hover row-alt"
       style={{
         borderBottom: '1px solid var(--border-1)',
         animationDelay: `${index * 40}ms`,
       }}
     >
-      {/* Left: Prefix */}
-      <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-4">
-        <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
-          style={{ background: exit ? 'var(--purple-soft)' : 'var(--surface-3)', border: `1px solid ${exit ? 'rgba(167,139,250,0.2)' : 'var(--border-2)'}` }}>
-          {exit ? (
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--purple)' }}>
-              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-            </svg>
-          ) : (
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
-              <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-            </svg>
-          )}
+      {/* Desktop / tablet */}
+      <div className="route-row-desktop flex items-center justify-between px-1 py-3.5">
+        {/* Left: Prefix */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-4">
+          {icon}
+          <div>
+            <code className="text-[13px]" style={{ color: 'var(--text-1)', fontFamily: 'var(--font-mono)' }}>{route.prefix}</code>
+            {exit && <Badge variant="purple" className="ml-2 text-[10px]">Exit Node</Badge>}
+          </div>
         </div>
-        <div>
-          <code className="text-[13px]" style={{ color: 'var(--text-1)', fontFamily: 'var(--font-mono)' }}>{route.prefix}</code>
-          {exit && <Badge variant="purple" className="ml-2 text-[10px]">Exit Node</Badge>}
+
+        {/* Right: Packed Metadata */}
+        <div className="flex items-center flex-shrink-0">
+          <div className="w-[180px] min-w-0 pr-2">
+            <div className="flex items-center gap-1.5">
+              <p className="text-[13px] truncate" style={{ color: 'var(--text-2)' }}>{name}</p>
+              {haRole && (
+                <Badge variant={haRole === 'primary' ? 'green' : 'ghost'} className="text-[9px] flex-shrink-0">
+                  {haRole === 'primary' ? 'Primary' : 'Backup'}
+                </Badge>
+              )}
+            </div>
+            {ip && <p className="text-[11px] font-mono truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{ip}</p>}
+          </div>
+
+          <div className="w-[110px]">{statusBadge}</div>
+          <div className="w-[110px] flex justify-end">{actionBtn}</div>
         </div>
       </div>
 
-      {/* Right: Packed Metadata */}
-      <div className="flex items-center flex-shrink-0">
-        <div className="w-[180px] min-w-0 pr-2">
-          <div className="flex items-center gap-1.5">
-            <p className="text-[13px] truncate" style={{ color: 'var(--text-2)' }}>{name}</p>
-            {haRole && (
-              <Badge variant={haRole === 'primary' ? 'green' : 'ghost'} className="text-[9px] flex-shrink-0">
-                {haRole === 'primary' ? 'Primary' : 'Backup'}
-              </Badge>
-            )}
+      {/* Mobile: stacked card */}
+      <div className="route-row-mobile" style={{ display: 'none', padding: '12px 4px' }}>
+        <div className="flex items-center gap-2.5 mb-2">
+          {icon}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <code className="text-[13px]" style={{ color: 'var(--text-1)', fontFamily: 'var(--font-mono)' }}>{route.prefix}</code>
+              {exit && <Badge variant="purple" className="text-[10px]">Exit Node</Badge>}
+              {haRole && (
+                <Badge variant={haRole === 'primary' ? 'green' : 'ghost'} className="text-[9px]">
+                  {haRole === 'primary' ? 'Primary' : 'Backup'}
+                </Badge>
+              )}
+            </div>
           </div>
-          {ip && <p className="text-[11px] font-mono truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{ip}</p>}
+          {statusBadge}
         </div>
-
-        <div className="w-[110px]">
-          {optimisticEnabled ? (
-            <Badge variant="green" dot pulse>Approved</Badge>
-          ) : (
-            <Badge variant="amber">Pending</Badge>
-          )}
-        </div>
-
-        <div className="w-[110px] flex justify-end">
-          <button
-            onClick={toggle}
-            disabled={isPending}
-            className="btn text-[12px] px-3 py-1.5"
-            style={{
-              background: optimisticEnabled ? 'var(--red-soft)' : 'var(--green-soft)',
-              color: optimisticEnabled ? 'var(--red)' : 'var(--green)',
-              border: `1px solid ${optimisticEnabled ? 'rgba(248,113,113,0.2)' : 'rgba(61,220,132,0.2)'}`,
-              opacity: isPending ? 0.6 : 1,
-              borderRadius: '8px',
-            }}
-          >
-            {isPending ? '…' : optimisticEnabled ? 'Disable' : 'Approve'}
-          </button>
+        <div className="flex items-center justify-between gap-3 pl-[38px]">
+          <div className="min-w-0">
+            <p className="text-[12.5px] truncate" style={{ color: 'var(--text-2)' }}>{name}</p>
+            {ip && <p className="text-[11px] font-mono truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{ip}</p>}
+          </div>
+          {actionBtn}
         </div>
       </div>
     </div>
@@ -143,7 +175,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
           {exits.length > 0 && (
             <section>
               <p className="text-[10px] font-semibold uppercase tracking-wider px-1 mb-2" style={{ color: 'var(--text-4)' }}>Exit Nodes</p>
-              <div className="flex-shrink-0 flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
+              <div className="route-row-desktop flex-shrink-0 flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
                 <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Prefix</span>
                 <div className="flex items-center flex-shrink-0">
                   <span className="text-[11px] font-semibold uppercase tracking-wider w-[180px]" style={{ color: 'var(--text-3)' }}>Advertised By</span>
@@ -163,7 +195,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
                   <Badge variant="green" className="text-[9px]">{haGroupCount} HA group{haGroupCount > 1 ? 's' : ''}</Badge>
                 )}
               </div>
-              <div className="flex-shrink-0 flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
+              <div className="route-row-desktop flex-shrink-0 flex items-center justify-between px-1 py-2.5" style={{ borderBottom: '1px solid var(--border-1)' }}>
                 <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Prefix</span>
                 <div className="flex items-center flex-shrink-0">
                   <span className="text-[11px] font-semibold uppercase tracking-wider w-[180px]" style={{ color: 'var(--text-3)' }}>Advertised By</span>

@@ -299,7 +299,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── TERMINAL ──────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '0 24px 120px' }}>
+      <section style={{ padding: '0 24px 120px', overflowX: 'hidden' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div className="text-center mb-10">
             <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>One command</p>
@@ -316,7 +316,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── DASHBOARD PREVIEW ─────────────────────────────────────────────────── */}
-      <section style={{ padding: '0 24px 120px' }}>
+      <section style={{ padding: '0 24px 120px', overflowX: 'hidden' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div className="text-center mb-12">
             <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>The dashboard</p>

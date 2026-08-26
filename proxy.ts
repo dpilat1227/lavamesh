@@ -26,5 +26,12 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)" ],
+  // Exclude Next.js internals, generated metadata image routes (these are
+  // served without a file extension in their path, e.g. /apple-icon), and
+  // any request path with a file extension — this covers everything in
+  // `public/` (images, icons, etc.), which was previously being redirected
+  // to /login for signed-out visitors.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|apple-icon|icon|opengraph-image|twitter-image|.*\\..*).*)",
+  ],
 };

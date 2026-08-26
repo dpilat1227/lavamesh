@@ -136,8 +136,8 @@ export default async function SettingsPage() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-6" style={{ minHeight: 0 }}>
-        <div style={plan.isPro ? { maxWidth: 860 } : { display: 'grid', gridTemplateColumns: 'minmax(0, 860px) 300px', gap: '2rem', alignItems: 'start' }}>
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-5 sm:px-8 py-6" style={{ minHeight: 0 }}>
+        <div className={plan.isPro ? undefined : 'settings-layout'} style={plan.isPro ? { maxWidth: 860 } : { display: 'grid', gridTemplateColumns: 'minmax(0, 860px) 300px', gap: '2rem', alignItems: 'start' }}>
         <div className="space-y-5">
 
           <SectionLabel>Account</SectionLabel>

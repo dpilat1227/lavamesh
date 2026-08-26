@@ -22,6 +22,26 @@ function formatDate(d?: string) {
 }
 
 function UserRow({ user, selected, highlighted, onSelect }: { user: User; selected: boolean; highlighted?: boolean; onSelect: () => void }) {
+  const nodeBadge = typeof user.nodeCount === 'number' ? (
+    user.nodeCount > 0 ? (
+      <span
+        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold tabular-nums"
+        style={{ color: 'var(--text-accent)', background: 'color-mix(in srgb, var(--text-accent) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--text-accent) 28%, transparent)' }}
+      >
+        {user.nodeCount} node{user.nodeCount !== 1 ? 's' : ''}
+      </span>
+    ) : (
+      <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>0 nodes</span>
+    )
+  ) : (
+    <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>—</span>
+  );
+  const chevron = (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--text-4)', transform: selected ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease', flexShrink: 0 }}>
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+
   return (
     <div
       id={`user-row-${user.name}`}
@@ -29,7 +49,7 @@ function UserRow({ user, selected, highlighted, onSelect }: { user: User; select
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
       role="button"
       tabIndex={0}
-      className="animate-fade-in flex items-center justify-between px-8 py-4 cursor-pointer table-row-hover row-alt focus-ring lift-row-hover"
+      className="animate-fade-in cursor-pointer table-row-hover row-alt focus-ring lift-row-hover"
       style={{
         borderBottom: '1px solid var(--border-1)',
         borderLeft: selected ? '2px solid var(--orange)' : '2px solid transparent',
@@ -37,40 +57,40 @@ function UserRow({ user, selected, highlighted, onSelect }: { user: User; select
         transition: 'background 0.8s ease',
       }}
     >
-      {/* Left: Name */}
-      <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
-        <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 font-semibold text-[13px]"
-          style={{ background: 'rgba(255,115,0,0.08)', border: '1px solid rgba(255,115,0,0.15)', color: 'var(--orange)' }}>
-          {user.name[0]?.toUpperCase()}
+      {/* Desktop / tablet */}
+      <div className="user-row-desktop flex items-center justify-between px-8 py-4">
+        {/* Left: Name */}
+        <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
+          <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 font-semibold text-[13px]"
+            style={{ background: 'rgba(255,115,0,0.08)', border: '1px solid rgba(255,115,0,0.15)', color: 'var(--orange)' }}>
+            {user.name[0]?.toUpperCase()}
+          </div>
+          <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{user.name}</p>
         </div>
-        <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{user.name}</p>
+
+        {/* Right: Packed Metadata */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="w-[140px]">
+            <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>{formatDate(user.createdAt)}</span>
+          </div>
+          <div className="w-[100px]">{nodeBadge}</div>
+          <div className="w-[24px] flex justify-end">{chevron}</div>
+        </div>
       </div>
 
-      {/* Right: Packed Metadata */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="w-[140px]">
+      {/* Mobile: stacked card */}
+      <div className="user-row-mobile" style={{ display: 'none', padding: '14px 16px' }}>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 font-semibold text-[13px]"
+            style={{ background: 'rgba(255,115,0,0.08)', border: '1px solid rgba(255,115,0,0.15)', color: 'var(--orange)' }}>
+            {user.name[0]?.toUpperCase()}
+          </div>
+          <p className="text-[13px] font-medium truncate flex-1 min-w-0" style={{ color: 'var(--text-1)' }}>{user.name}</p>
+          {chevron}
+        </div>
+        <div className="flex items-center justify-between pl-[44px]">
           <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>{formatDate(user.createdAt)}</span>
-        </div>
-        <div className="w-[100px]">
-          {typeof user.nodeCount === 'number' ? (
-            user.nodeCount > 0 ? (
-              <span
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold tabular-nums"
-                style={{ color: 'var(--text-accent)', background: 'color-mix(in srgb, var(--text-accent) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--text-accent) 28%, transparent)' }}
-              >
-                {user.nodeCount} node{user.nodeCount !== 1 ? 's' : ''}
-              </span>
-            ) : (
-              <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>0 nodes</span>
-            )
-          ) : (
-            <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>—</span>
-          )}
-        </div>
-        <div className="w-[24px] flex justify-end">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--text-4)', transform: selected ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease' }}>
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          {nodeBadge}
         </div>
       </div>
     </div>
@@ -261,7 +281,7 @@ export default function UsersClient({ users, nodeCounts, nodesByUser = {} }: { u
           ]}
         />
       </div>
-      <div className="flex-shrink-0 flex items-center justify-between px-8 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+      <div className="user-row-desktop flex-shrink-0 flex items-center justify-between px-8 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
         <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>User / Namespace</span>
         <div className="flex items-center flex-shrink-0">
           <span className="text-[11px] font-semibold uppercase tracking-wider w-[140px]" style={{ color: 'var(--text-3)' }}>Created</span>

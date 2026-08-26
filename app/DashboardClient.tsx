@@ -545,7 +545,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
         main={
           <>
             {/* Table header — no card wrapper */}
-            <div className="flex-shrink-0 flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+            <div className="node-row-desktop flex-shrink-0 flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
               <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Node</span>
               <div className="flex items-center flex-shrink-0">
                 <span className="text-[11px] font-semibold uppercase tracking-wider w-[140px]" style={{ color: 'var(--text-3)' }}>Mesh IP</span>
@@ -575,66 +575,92 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
                 </div>
               ) : (
                 <>
-                  {visibleNodes.map((node, i) => (
+                  {visibleNodes.map((node, i) => {
+                    const iconChip = (
+                      <IconChip
+                        size={32}
+                        radius={9}
+                        glow={false}
+                        style={{
+                          color: OS_ACCENT[osKind(node.givenName)],
+                          background: `color-mix(in srgb, ${OS_ACCENT[osKind(node.givenName)]} 12%, transparent)`,
+                          border: `1px solid color-mix(in srgb, ${OS_ACCENT[osKind(node.givenName)]} 26%, transparent)`,
+                          opacity: node.online ? 1 : 0.55,
+                        }}
+                      >
+                        <OsIcon name={node.givenName} />
+                      </IconChip>
+                    );
+                    const statusBadge = node.online
+                      ? <Badge variant="green" dot pulse>Online</Badge>
+                      : <Badge variant="ghost" dot>Offline</Badge>;
+                    const chevron = (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--text-4)', transform: selectedNode?.id === node.id ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease', flexShrink: 0 }}>
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
+                    );
+                    const ip = node.ipAddresses?.[1] || node.ipAddresses?.[0] || '—';
+                    return (
                     <div key={node.id}
                       onClick={() => setSelectedNode(selectedNode?.id === node.id ? null : node)}
                       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedNode(selectedNode?.id === node.id ? null : node); } }}
                       role="button"
                       tabIndex={0}
-                      className="animate-fade-in flex items-center justify-between py-3 px-2 -mx-2 cursor-pointer table-row-hover row-alt focus-ring lift-row-hover"
+                      className="animate-fade-in cursor-pointer table-row-hover row-alt focus-ring lift-row-hover"
                       style={{ borderBottom: '1px solid var(--border-1)', animationDelay: `${i * 30}ms`, background: selectedNode?.id === node.id ? 'rgba(255,115,0,0.04)' : undefined, borderLeft: selectedNode?.id === node.id ? '2px solid var(--orange)' : '2px solid transparent' }}>
 
-                      {/* Left: Node Info */}
-                      <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
-                        <IconChip
-                          size={32}
-                          radius={9}
-                          glow={false}
-                          style={{
-                            color: OS_ACCENT[osKind(node.givenName)],
-                            background: `color-mix(in srgb, ${OS_ACCENT[osKind(node.givenName)]} 12%, transparent)`,
-                            border: `1px solid color-mix(in srgb, ${OS_ACCENT[osKind(node.givenName)]} 26%, transparent)`,
-                            opacity: node.online ? 1 : 0.55,
-                          }}
-                        >
-                          <OsIcon name={node.givenName} />
-                        </IconChip>
-                        <div className="min-w-0">
-                          <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{renamedNodes[node.id] || node.givenName}</p>
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
-                            {nodeTags[node.id]?.length > 0 && (
-                              <div className="flex gap-1 overflow-hidden max-w-[120px]">
-                                {nodeTags[node.id].map((t: string) => (
-                                  <span key={t} className="inline-block px-1.5 py-0.5 rounded-[4px] text-[9px] font-medium truncate flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text-3)' }}>{t}</span>
-                                ))}
-                              </div>
-                            )}
+                      {/* Desktop / tablet */}
+                      <div className="node-row-desktop flex items-center justify-between py-3 px-2 -mx-2">
+                        {/* Left: Node Info */}
+                        <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                          {iconChip}
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{renamedNodes[node.id] || node.givenName}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
+                              {nodeTags[node.id]?.length > 0 && (
+                                <div className="flex gap-1 overflow-hidden max-w-[120px]">
+                                  {nodeTags[node.id].map((t: string) => (
+                                    <span key={t} className="inline-block px-1.5 py-0.5 rounded-[4px] text-[9px] font-medium truncate flex-shrink-0" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)', color: 'var(--text-3)' }}>{t}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
+                        </div>
+
+                        {/* Right: Packed Metadata */}
+                        <div className="flex items-center flex-shrink-0">
+                          <div className="w-[140px]">
+                            <span className="text-[12px] font-mono" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}>{ip}</span>
+                          </div>
+                          <div className="w-[120px]">
+                            <span className="text-[12px]" style={{ color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>{formatDate(node.lastSeen)}</span>
+                          </div>
+                          <div className="w-[90px]">{statusBadge}</div>
+                          <div className="w-[32px] flex justify-end">{chevron}</div>
                         </div>
                       </div>
 
-                      {/* Right: Packed Metadata */}
-                      <div className="flex items-center flex-shrink-0">
-                        <div className="w-[140px]">
-                          <span className="text-[12px] font-mono" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}>{node.ipAddresses?.[1] || node.ipAddresses?.[0] || '—'}</span>
+                      {/* Mobile: stacked card */}
+                      <div className="node-row-mobile" style={{ display: 'none', padding: '12px 4px' }}>
+                        <div className="flex items-center gap-3 mb-2">
+                          {iconChip}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{renamedNodes[node.id] || node.givenName}</p>
+                            <p className="text-[11px] truncate" style={{ color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{node.user?.name || 'admin'}</p>
+                          </div>
+                          {statusBadge}
+                          {chevron}
                         </div>
-                        <div className="w-[120px]">
-                          <span className="text-[12px]" style={{ color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>{formatDate(node.lastSeen)}</span>
-                        </div>
-                        <div className="w-[90px]">
-                          {node.online
-                            ? <Badge variant="green" dot pulse>Online</Badge>
-                            : <Badge variant="ghost" dot>Offline</Badge>}
-                        </div>
-                        <div className="w-[32px] flex justify-end">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--text-4)', transform: selectedNode?.id === node.id ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease' }}>
-                            <polyline points="9 18 15 12 9 6"/>
-                          </svg>
+                        <div className="flex items-center justify-between gap-3 pl-[44px]">
+                          <span className="text-[11.5px] font-mono truncate" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>{ip}</span>
+                          <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-4)' }}>{formatDate(node.lastSeen)}</span>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
 
                   {/* Topology — the one place network shape/status is shown visually;
                       no longer paired with a "Network Health" tile that just restated the
