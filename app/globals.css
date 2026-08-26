@@ -643,12 +643,6 @@ body {
     display: none;
   }
 
-  /* Comparison table: hide on very small, show scrollable */
-  .comparison-grid {
-    grid-template-columns: 1.2fr 1fr 0.9fr 0.9fr !important;
-    font-size: 12px;
-  }
-
   /* Dashboard mockup stats: 4-col → 2-col */
   .grid.grid-cols-4 {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -662,13 +656,15 @@ body {
   /* Pricing cards already use auto-fit so they stack naturally */
 }
 
-@media (max-width: 540px) {
-  /* Comparison: hide Headscale column */
-  .comparison-grid > *:last-child {
+/* Comparison table: swap the horizontal-scroll table for stacked cards
+   below 640px — narrow phones can't fit 4 columns legibly no matter how
+   the grid tracks are squeezed. */
+@media (max-width: 640px) {
+  .comparison-desktop {
     display: none;
   }
-  .comparison-grid {
-    grid-template-columns: 1.4fr 1.2fr 1fr !important;
+  .comparison-mobile {
+    display: flex !important;
   }
 }
 
@@ -694,9 +690,52 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Nodes/Keys/Users/Routes rows: the desktop layout packs several
+     fixed-width columns (140px+120px+90px+32px, etc.) into a flex row that
+     only fits on wide screens — below 768px those columns don't have room
+     and collide/overlap. Swap to a stacked-card layout instead of trying
+     to shrink columns that can't shrink any further. */
+  .node-row-desktop,
+  .key-row-desktop,
+  .user-row-desktop,
+  .route-row-desktop {
+    display: none !important;
+  }
+  .node-row-mobile,
+  .key-row-mobile,
+  .user-row-mobile,
+  .route-row-mobile {
+    display: block !important;
+  }
+
+  /* Settings (Community plan): the 300px fixed upsell rail next to a
+     minmax(0,860px) main column doesn't fit a phone screen — the main
+     column gets crushed and its borders visually collide with the rail.
+     Stack them instead. */
+  .settings-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
   /* Page headers: smaller on mobile */
   .page-header {
     padding: 20px 16px 16px !important;
+  }
+
+  /* Title/subtitle block was squeezing into a tall, narrow column next to
+     fixed-width action buttons, causing the subtitle text to visually
+     collide with them. Let actions drop to their own full-width row. */
+  .page-header-row {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+  .page-header-actions {
+    flex-wrap: wrap;
+    flex-basis: 100%;
+  }
+  .page-header-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
   }
 }
 

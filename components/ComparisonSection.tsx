@@ -46,8 +46,8 @@ export default function ComparisonSection() {
           </p>
         </div>
 
-        {/* Table */}
-        <div style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#080808', boxShadow: 'var(--shadow-lg)' }}>
+        {/* Desktop / tablet table */}
+        <div className="comparison-desktop" style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#080808', boxShadow: 'var(--shadow-lg)' }}>
           <div className="overflow-x-auto">
             <div style={{ minWidth: 700 }}>
               {/* Column headers */}
@@ -110,6 +110,32 @@ export default function ComparisonSection() {
           ))}
             </div>
           </div>
+        </div>
+
+        {/* Mobile: stacked cards — one per feature, no horizontal scroll needed */}
+        <div className="comparison-mobile" style={{ display: 'none', flexDirection: 'column', gap: 10 }}>
+          {rows.map((row) => (
+            <div key={row.feature} style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: '#080808', overflow: 'hidden' }}>
+              <div style={{ padding: '11px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <span className="text-[12px] font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>{row.feature}</span>
+              </div>
+              <div style={{ padding: '10px 14px', background: 'rgba(255,115,0,0.04)', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <span className="text-[11px] font-bold w-[92px] flex-shrink-0" style={{ color: '#ff7300' }}>LavaMesh</span>
+                <Check />
+                <span className="text-[12.5px] font-medium" style={{ color: 'white' }}>{row.lava}</span>
+              </div>
+              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <span className="text-[11px] font-semibold w-[92px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>Tailscale</span>
+                {row.tailBad ? <Cross /> : <Check />}
+                <span className="text-[12.5px]" style={{ color: row.tailBad ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)' }}>{row.tail}</span>
+              </div>
+              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className="text-[11px] font-semibold w-[92px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>Headscale</span>
+                {row.headBad ? <Cross /> : <Check />}
+                <span className="text-[12.5px]" style={{ color: row.headBad ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)' }}>{row.head}</span>
+              </div>
+            </div>
+          ))}
         </div>
 
       </div>

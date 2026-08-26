@@ -46,51 +46,69 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
     };
   };
   const expiry = expiryParts(k.expiration);
+  const statusBadge = expired ? (
+    <Badge variant="ghost">Expired</Badge>
+  ) : k.used ? (
+    <Badge variant="ghost">Used</Badge>
+  ) : (
+    <Badge variant="green" dot pulse>Active</Badge>
+  );
+  const revokeBtn = isValid ? (
+    <Button variant="ghost" onClick={() => setConfirming(true)} className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ color: 'var(--red)', borderColor: 'rgba(248,113,113,0.15)' }}>Revoke</Button>
+  ) : (
+    <Button variant="ghost" disabled className="text-[11px] px-3 py-1.5 rounded-[8px]">Revoke</Button>
+  );
+
   return (
-    <div className="animate-fade-in grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-8 py-4 table-row-hover row-alt"
-      style={{ borderBottom: '1px solid var(--border-1)' }}>
+    <div className="animate-fade-in table-row-hover row-alt" style={{ borderBottom: '1px solid var(--border-1)' }}>
+      {/* Desktop / tablet: 7-col grid */}
+      <div className="key-row-desktop grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-8 py-4">
+        <div className="flex items-center gap-2.5 min-w-0 pr-4">
+          <button onClick={copy} className="flex items-center gap-2 min-w-0 group" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+            <code className="text-[11.5px] truncate max-w-[220px]" style={{ color: isValid ? 'var(--green)' : 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{k.key.slice(0, 28)}…</code>
+            <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-4)' }}>{copied ? '✓' : 'copy'}</span>
+          </button>
+        </div>
 
-      <div className="flex items-center gap-2.5 min-w-0 pr-4">
-        <button onClick={copy} className="flex items-center gap-2 min-w-0 group" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-          <code className="text-[11.5px] truncate max-w-[220px]" style={{ color: isValid ? 'var(--green)' : 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{k.key.slice(0, 28)}…</code>
-          <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-4)' }}>{copied ? '✓' : 'copy'}</span>
-        </button>
+        <div>
+          <span className="text-[12px] truncate block" style={{ color: 'var(--text-3)' }}>{userName}</span>
+        </div>
+        <div>
+          <span className="text-[12px]" style={{ color: k.reusable ? 'var(--text-2)' : 'var(--text-4)' }}>{k.reusable ? 'Yes' : '—'}</span>
+        </div>
+        <div>
+          <span className="text-[12px]" style={{ color: k.ephemeral ? 'var(--amber)' : 'var(--text-4)' }}>{k.ephemeral ? 'Yes' : '—'}</span>
+        </div>
+        <div>{statusBadge}</div>
+        <div>
+          {expiry ? (
+            <>
+              <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>{expiry.date}</p>
+              <p className="text-[10.5px]" style={{ color: 'var(--text-4)', opacity: 0.7 }}>{expiry.time}</p>
+            </>
+          ) : (
+            <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>—</span>
+          )}
+        </div>
+        <div className="flex justify-end">{revokeBtn}</div>
       </div>
 
-      <div>
-        <span className="text-[12px] truncate block" style={{ color: 'var(--text-3)' }}>{userName}</span>
-      </div>
-      <div>
-        <span className="text-[12px]" style={{ color: k.reusable ? 'var(--text-2)' : 'var(--text-4)' }}>{k.reusable ? 'Yes' : '—'}</span>
-      </div>
-      <div>
-        <span className="text-[12px]" style={{ color: k.ephemeral ? 'var(--amber)' : 'var(--text-4)' }}>{k.ephemeral ? 'Yes' : '—'}</span>
-      </div>
-      <div>
-        {expired ? (
-          <Badge variant="ghost">Expired</Badge>
-        ) : k.used ? (
-          <Badge variant="ghost">Used</Badge>
-        ) : (
-          <Badge variant="green" dot pulse>Active</Badge>
-        )}
-      </div>
-      <div>
-        {expiry ? (
-          <>
-            <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>{expiry.date}</p>
-            <p className="text-[10.5px]" style={{ color: 'var(--text-4)', opacity: 0.7 }}>{expiry.time}</p>
-          </>
-        ) : (
-          <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>—</span>
-        )}
-      </div>
-      <div className="flex justify-end">
-        {isValid ? (
-          <Button variant="ghost" onClick={() => setConfirming(true)} className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ color: 'var(--red)', borderColor: 'rgba(248,113,113,0.15)' }}>Revoke</Button>
-        ) : (
-          <Button variant="ghost" disabled className="text-[11px] px-3 py-1.5 rounded-[8px]">Revoke</Button>
-        )}
+      {/* Mobile: stacked card */}
+      <div className="key-row-mobile" style={{ display: 'none', padding: '14px 16px' }}>
+        <div className="flex items-center justify-between gap-3 mb-2.5">
+          <button onClick={copy} className="flex items-center gap-2 min-w-0 group" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+            <code className="text-[12px] truncate" style={{ color: isValid ? 'var(--green)' : 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{k.key.slice(0, 18)}…</code>
+            <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-4)' }}>{copied ? '✓' : 'copy'}</span>
+          </button>
+          {statusBadge}
+        </div>
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1.5 mb-3">
+          <span className="text-[12px]" style={{ color: 'var(--text-3)' }}>{userName}</span>
+          {k.reusable && <span className="text-[11px]" style={{ color: 'var(--text-2)' }}>Reusable</span>}
+          {k.ephemeral && <span className="text-[11px]" style={{ color: 'var(--amber)' }}>Ephemeral</span>}
+          {expiry && <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>Expires {expiry.date}</span>}
+        </div>
+        <div className="flex justify-end">{revokeBtn}</div>
       </div>
 
       <ConfirmDialog
@@ -273,7 +291,7 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
           ]}
         />
       </div>
-      <div className="flex-shrink-0 grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-1 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+      <div className="key-row-desktop flex-shrink-0 grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-1 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Key</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>User</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Reusable</span>
