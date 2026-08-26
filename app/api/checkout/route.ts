@@ -10,6 +10,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
 
 export async function GET(req: Request) {
   try {
+    // Cloud stays behind the waitlist until Fly provisioning is production-ready.
+    // Flip CLOUD_CHECKOUT_ENABLED=true when we're willing to take real money.
+    // The Stripe + /api/provision path is built and waiting; this gate is the
+    // only thing standing between a buyer and a charge.
+    if (process.env.CLOUD_CHECKOUT_ENABLED !== 'true') {
+      return NextResponse.redirect(new URL('/#waitlist', req.url));
+    }
+
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.redirect(new URL("/login?callbackUrl=/dashboard", req.url));

@@ -47,7 +47,7 @@ export default function ComparisonSection() {
         </div>
 
         {/* Table */}
-        <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#080808' }}>
+        <div style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', background: '#080808', boxShadow: 'var(--shadow-lg)' }}>
           <div className="overflow-x-auto">
             <div style={{ minWidth: 700 }}>
               {/* Column headers */}
@@ -77,7 +77,7 @@ export default function ComparisonSection() {
           {rows.map((row, i) => (
             <div
               key={row.feature}
-              className="comparison-grid"
+              className="comparison-grid table-row-hover"
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1.6fr 1.4fr 1.2fr 1.2fr',

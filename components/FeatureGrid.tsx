@@ -51,7 +51,7 @@ const features = [
     ),
     color: '#60a5fa',
     title: 'Fully Self-Hosted',
-    desc: 'Your Headscale server, your data, your rules. No subscriptions, no vendor lock-in, no data leaving your infrastructure.',
+    desc: 'Your Headscale server, your data, your rules. No per-seat fees, no vendor lock-in, no data leaving your infrastructure.',
   },
   {
     icon: (
@@ -71,14 +71,14 @@ export default function FeatureGrid() {
       {features.map((f, i) => (
         <div
           key={f.title}
-          className="animate-fade-in-up"
+          className="animate-fade-in-up lift-on-hover"
           style={{
             background: 'rgba(255,255,255,0.02)',
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 16,
             padding: '28px 28px',
             animationDelay: `${i * 60}ms`,
-            transition: 'border-color 0.2s ease, background 0.2s ease',
+            transition: 'border-color 0.2s ease, background 0.2s ease, transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out)',
             cursor: 'default',
           }}
           onMouseEnter={e => {

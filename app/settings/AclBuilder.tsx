@@ -154,17 +154,17 @@ export default function AclBuilder({ isPro }: { isPro: boolean }) {
       </Button>
 
       <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-4)' }}>
-        Rules resolve to each tag's current node IPs. Applying replaces your <strong>entire</strong> ACL policy —
-        preview first, and re-generate whenever tagged nodes change.
+        Rules resolve to each tag&apos;s current node IPs. Applying merges a marked block into your existing
+        policy — hand-written ACLs, groups, and DNS records stay. Re-generate whenever tagged nodes change.
       </p>
 
       <div className="flex items-center gap-2">
         <Button variant="ghost" onClick={handlePreview} disabled={isPending || !rulesReady} className="text-[12px] px-3 py-1.5" style={{ opacity: !rulesReady ? 0.5 : 1 }}>
           Preview policy
         </Button>
-        <Button variant="primary" onClick={handleApply} disabled={isPending || !preview} className="text-[12px] px-3 py-1.5" style={{ opacity: !preview ? 0.5 : 1 }}>
-          {isPending ? 'Working…' : 'Apply to network'}
-        </Button>
+          <Button variant="primary" onClick={handleApply} disabled={isPending || !preview} className="text-[12px] px-3 py-1.5" style={{ opacity: !preview ? 0.5 : 1 }}>
+            {isPending ? 'Working…' : 'Merge into policy'}
+          </Button>
         {applied && (
           <Badge variant="green" className="animate-fade-in">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>

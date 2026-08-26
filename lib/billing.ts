@@ -17,8 +17,11 @@
  */
 
 import { prisma } from './prisma';
+import { kvGet, kvSet } from './kv';
+import type { PlanTier } from './planTier';
 
-export type PlanTier = 'community' | 'pro' | 'cloud';
+export type { PlanTier } from './planTier';
+export { TIER_LABEL } from './planTier';
 
 export interface PlanStatus {
   tier: PlanTier;
@@ -39,8 +42,17 @@ const COMMUNITY: PlanStatus = { tier: 'community', isPro: false, source: 'none' 
  */
 export const COMMUNITY_SEAT_LIMIT = 2;
 
-export function hasLicenseKey(): boolean {
-  return !!process.env.LAVAMESH_LICENSE_KEY?.trim();
+const LICENSE_KV_KEY = 'license:key';
+
+export async function hasLicenseKey(): Promise<boolean> {
+  if (process.env.LAVAMESH_LICENSE_KEY?.trim()) return true;
+  const stored = await kvGet<string>(LICENSE_KV_KEY);
+  const value = typeof stored === 'string' ? stored : stored != null ? String(stored) : '';
+  return !!value.trim();
+}
+
+export async function saveLicenseKey(key: string): Promise<void> {
+  await kvSet(LICENSE_KV_KEY, key.trim());
 }
 
 export async function getTenantIdForUser(userId: string | null | undefined): Promise<string | null> {
@@ -51,7 +63,7 @@ export async function getTenantIdForUser(userId: string | null | undefined): Pro
 
 /** Resolves plan status directly from a tenantId, skipping the userId → tenantId lookup. */
 export async function getPlanStatusForTenant(tenantId: string | null | undefined): Promise<PlanStatus> {
-  if (hasLicenseKey()) {
+  if (await hasLicenseKey()) {
     return { tier: 'pro', isPro: true, source: 'license' };
   }
   if (!tenantId) return COMMUNITY;
@@ -68,7 +80,7 @@ export async function getPlanStatusForTenant(tenantId: string | null | undefined
 }
 
 export async function getPlanStatus(userId: string | null | undefined): Promise<PlanStatus> {
-  if (hasLicenseKey()) {
+  if (await hasLicenseKey()) {
     return { tier: 'pro', isPro: true, source: 'license' };
   }
   const tenantId = await getTenantIdForUser(userId);

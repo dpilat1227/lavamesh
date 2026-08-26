@@ -1,7 +1,7 @@
 'use client';
 import { ReactNode } from 'react';
 
-type BadgeVariant = 'green' | 'red' | 'amber' | 'purple' | 'blue' | 'ghost';
+type BadgeVariant = 'green' | 'red' | 'amber' | 'purple' | 'blue' | 'orange' | 'ghost';
 
 interface BadgeProps {
   variant?: BadgeVariant;

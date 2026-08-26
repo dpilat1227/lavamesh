@@ -8,6 +8,7 @@ import { kvLpush, kvLrange, kvLtrim } from '@/lib/kv';
 export type AuditAction =
   | 'node.revoke'
   | 'node.rename'
+  | 'node.expire'
   | 'key.generate'
   | 'key.expire'
   | 'user.create'
@@ -19,7 +20,10 @@ export type AuditAction =
   | 'apikey.revoke'
   | 'notifications.update'
   | 'route.failover'
-  | 'auth.login';
+  | 'auth.login'
+  | 'backup.create'
+  | 'dns.update'
+  | 'alert.test';
 
 export interface AuditEvent {
   id: string;

@@ -1,21 +1,27 @@
-const testimonials = [
+// LavaMesh is early — we don't have named customer testimonials yet, and we'd
+// rather say that plainly than fabricate quotes from people who don't exist.
+// These are the concrete, verifiable reasons people choose this stack instead.
+const reasons = [
   {
-    quote: "Honestly I just wanted something that didn't charge per seat. I've got 30+ raspberry pis and vps instances. LavaMesh works perfectly and the UI is genuinely better than the alternatives.",
-    name: "Alex",
-    role: "Homelabber",
-    avatar: "A",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/></svg>
+    ),
+    title: "Nothing rented, nothing revoked",
+    desc: "Headscale runs on infrastructure you control. No account to get suspended, no company that can raise your price or shut down and take your network with it.",
   },
   {
-    quote: "Set up the control plane in about 5 mins on a $5 DigitalOcean droplet. The magic dns just worked instantly. Way less headache than manually configuring wireguard tunnels.",
-    name: "James T.",
-    role: "SysAdmin",
-    avatar: "J",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    ),
+    title: "Open source, auditable core",
+    desc: "The control plane isn't a black box. Read the code, run it air-gapped, fork it if we ever disappear. That's the actual guarantee — not a promise on a pricing page.",
   },
   {
-    quote: "I tried Headscale natively first but quickly realized managing ACLs in raw json files is a huge pain. The visual editor here is exactly what I needed.",
-    name: "Elena M.",
-    role: "Backend Engineer",
-    avatar: "E",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20"/></svg>
+    ),
+    title: "Priced like a tool, not a tax",
+    desc: "One flat rate covers your entire mesh, whether that's 3 devices or 300. No per-seat math to redo every time you add a machine.",
   },
 ];
 
@@ -44,7 +50,7 @@ export default function SocialProof() {
         {/* Stat pills */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-16">
           {stats.map(s => (
-            <div key={s.label} className="flex items-center gap-3 px-5 py-3 rounded-full"
+            <div key={s.label} className="flex items-center gap-3 px-5 py-3 rounded-full lift-on-hover"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
               <span className="text-[15px] font-bold" style={{ color: s.color }}>{s.val}</span>
               <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</span>
@@ -52,42 +58,29 @@ export default function SocialProof() {
           ))}
         </div>
 
-        {/* Testimonial cards */}
+        {/* Why self-hosted — honest reasoning instead of invented reviews */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-          {testimonials.map((t) => (
-            <div key={t.name} className="flex flex-col"
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16, padding: '28px 24px' }}>
-              {/* Stars */}
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill="#FF5A00" style={{ opacity: 0.9 }}>
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                ))}
+          {reasons.map((r) => (
+            <div key={r.title} className="flex flex-col lift-on-hover"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 'var(--radius-xl)', padding: '28px 24px' }}>
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center mb-4"
+                style={{ background: 'rgba(255,90,0,0.1)', border: '1px solid rgba(255,90,0,0.2)', color: '#FF5A00' }}>
+                {r.icon}
               </div>
-
-              {/* Quote */}
-              <p className="text-[14px] leading-relaxed flex-1 mb-6" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                &ldquo;{t.quote}&rdquo;
-              </p>
-
-              {/* Author */}
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0"
-                  style={{ background: 'rgba(255,90,0,0.15)', color: '#FF5A00', border: '1px solid rgba(255,90,0,0.2)' }}>
-                  {t.avatar}
-                </div>
-                <div>
-                  <div className="text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{t.name}</div>
-                  <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{t.role}</div>
-                </div>
-                <div className="ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.25)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                  Beta tester
-                </div>
-              </div>
+              <h3 className="text-[15px] font-semibold mb-2" style={{ color: 'white', letterSpacing: '-0.01em' }}>{r.title}</h3>
+              <p className="text-[13px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{r.desc}</p>
             </div>
           ))}
+        </div>
+
+        {/* Honest framing instead of fabricated reviews — this is genuinely early software */}
+        <div className="mt-6 flex items-center justify-center gap-2 text-center">
+          <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            LavaMesh is in public beta — no case studies yet, just a working product and an open repo.
+          </span>
+          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium" style={{ color: '#FF5A00', textDecoration: 'none' }}>
+            See for yourself →
+          </a>
         </div>
       </div>
     </section>

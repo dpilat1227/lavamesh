@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { deleteFlyApp, flyConfigured } from "@/lib/fly";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
   apiVersion: '2025-02-24.acacia' as any,
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
         if (!provisionReq.ok) {
           console.error(`Failed to provision Headscale: ${await provisionReq.text()}`);
         } else {
-          console.log(`Successfully provisioned Headscale for Tenant ${tenantId}`);
+          console.log(`Provisioning started for Tenant ${tenantId} (async — wait for callback)`);
         }
       } catch (e) {
         console.error(`Fetch to provisioning engine failed:`, e);
@@ -71,11 +72,24 @@ export async function POST(req: Request) {
       
     case "customer.subscription.deleted":
       const subscription = event.data.object as Stripe.Subscription;
-      await prisma.subscription.update({
+      const canceledSub = await prisma.subscription.update({
         where: { stripeSubscriptionId: subscription.id },
         data: { status: "canceled" }
       });
-      // Here you would theoretically spin DOWN the container in the Provisioning Engine
+
+      // Tear down the tenant's Fly resources — stop paying for compute the
+      // moment the subscription that funds it ends.
+      if (flyConfigured()) {
+        const instance = await prisma.headscaleInstance.findUnique({ where: { tenantId: canceledSub.tenantId } });
+        if (instance?.flyAppName) {
+          console.log(`[Stripe Webhook] Subscription canceled — tearing down Fly app ${instance.flyAppName}`);
+          await deleteFlyApp(instance.flyAppName);
+          await prisma.headscaleInstance.update({
+            where: { tenantId: canceledSub.tenantId },
+            data: { status: 'error', errorMessage: 'Subscription canceled — instance torn down.' },
+          }).catch(() => {});
+        }
+      }
       break;
       
     default:
