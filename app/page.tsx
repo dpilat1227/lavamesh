@@ -9,73 +9,8 @@ import WaitlistForm from '@/components/WaitlistForm';
 import ComparisonSection from '@/components/ComparisonSection';
 import SocialProof from '@/components/SocialProof';
 import FounderSection from '@/components/FounderSection';
-
-// ── Nav ────────────────────────────────────────────────────────────────────────
-function Nav() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  return (
-    <>
-      <style>{`
-        .nav-gh-link:hover { color: rgba(255,255,255,0.85) !important; }
-        .nav-desktop-links { display: flex; }
-        .nav-mobile-btn { display: none; }
-        @media (max-width: 640px) {
-          .nav-desktop-links { display: none; }
-          .nav-mobile-btn { display: flex; }
-        }
-      `}</style>
-      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-6 h-16"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)' }}>
-        <Link href="/" className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
-          <div className="w-8 h-8 rounded-[9px] flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.35)', boxShadow: '0 0 16px rgba(255,115,0,0.25)' }}>
-            <svg className="w-4 h-4" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-            </svg>
-          </div>
-          <span className="font-semibold text-[17px] tracking-tight" style={{ color: 'white', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>LavaMesh</span>
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-            style={{ color: '#ff7300', background: 'rgba(255,115,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
-        </Link>
-        {/* Desktop links */}
-        <div className="nav-desktop-links items-center">
-          <div className="flex items-center gap-8">
-            <a href="#features" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Features</a>
-            <a href="#pricing" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Pricing</a>
-            <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
-              className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>GitHub</a>
-          </div>
-          <Link href="/dashboard" className="btn btn-primary ml-7" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: 13 }}>Dashboard →</Link>
-        </div>
-        {/* Mobile hamburger */}
-        <button className="nav-mobile-btn items-center justify-center w-9 h-9 rounded-[8px]"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
-          onClick={() => setMobileMenuOpen(o => !o)}
-          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          aria-expanded={mobileMenuOpen}>
-          {mobileMenuOpen
-            ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-          }
-        </button>
-      </nav>
-      {/* Mobile dropdown menu */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-x-0 z-40 flex flex-col gap-1 p-4"
-          style={{ top: 56, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <a href="#features" onClick={() => setMobileMenuOpen(false)}
-            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Features</a>
-          <a href="#pricing" onClick={() => setMobileMenuOpen(false)}
-            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Pricing</a>
-          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
-            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>GitHub ↗</a>
-          <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}
-            className="px-4 py-3 rounded-[10px] text-[14px] font-bold text-center" style={{ background: 'var(--orange-cta)', color: 'white' }}>Open Dashboard →</Link>
-        </div>
-      )}
-    </>
-  );
-}
+import SiteNav from '@/components/marketing/SiteNav';
+import SiteFooter from '@/components/marketing/SiteFooter';
 
 // ── Dashboard mockup ──────────────────────────────────────────────────────────
 function DashboardMockup() {
@@ -109,33 +44,32 @@ function DashboardMockup() {
         ))}
       </div>
       <div className="px-6 pb-5">
-        <div className="rounded-[12px] overflow-hidden overflow-x-auto" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div style={{ minWidth: 500 }}>
-            <div className="grid px-4 py-2.5" style={{ gridTemplateColumns: '1fr 110px 90px 80px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
-            {['NODE', 'MESH IP', 'LAST SEEN', 'STATUS'].map(h => (
-              <span key={h} className="text-[9px] font-semibold" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>{h}</span>
-            ))}
+        <div className="rounded-[12px] overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="mockup-row px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
+            <span className="text-[9px] font-semibold" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>NODE</span>
+            <span className="mockup-col-drop text-[9px] font-semibold" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>MESH IP</span>
+            <span className="mockup-col-drop text-[9px] font-semibold" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>LAST SEEN</span>
+            <span className="text-[9px] font-semibold" style={{ color: 'rgba(255,255,255,0.25)', letterSpacing: '0.08em' }}>STATUS</span>
           </div>
           {nodes.map((node, i) => (
-            <div key={node.name} className="grid items-center px-4 py-3"
-              style={{ gridTemplateColumns: '1fr 110px 90px 80px', borderBottom: i < nodes.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
-              <div className="flex items-center gap-2.5">
-                <div className="w-5 h-5 rounded-[5px]" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }} />
-                <div>
-                  <div className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>{node.name}</div>
-                  <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>{node.user}</div>
+            <div key={node.name} className="mockup-row items-center px-4 py-3"
+              style={{ borderBottom: i < nodes.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-5 h-5 rounded-[5px] flex-shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }} />
+                <div className="min-w-0">
+                  <div className="text-[11px] font-medium truncate" style={{ color: 'rgba(255,255,255,0.85)' }}>{node.name}</div>
+                  <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>{node.user}</div>
                 </div>
               </div>
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{node.ip}</span>
-              <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Just now</span>
+              <span className="mockup-col-drop text-[10px]" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)' }}>{node.ip}</span>
+              <span className="mockup-col-drop text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Just now</span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium w-fit"
-                style={{ background: node.online ? 'rgba(61,220,132,0.1)' : 'rgba(255,255,255,0.04)', color: node.online ? '#3ddc84' : 'rgba(255,255,255,0.3)', border: `1px solid ${node.online ? 'rgba(61,220,132,0.15)' : 'rgba(255,255,255,0.06)'}` }}>
-                <span className="w-1 h-1 rounded-full" style={{ background: node.online ? '#3ddc84' : 'rgba(255,255,255,0.2)' }}></span>
+                style={{ background: node.online ? 'rgba(61,220,132,0.1)' : 'rgba(255,255,255,0.04)', color: node.online ? '#3ddc84' : 'rgba(255,255,255,0.45)', border: `1px solid ${node.online ? 'rgba(61,220,132,0.15)' : 'rgba(255,255,255,0.06)'}` }}>
+                <span className="w-1 h-1 rounded-full" style={{ background: node.online ? '#3ddc84' : 'rgba(255,255,255,0.3)' }}></span>
                 {node.online ? 'Online' : 'Offline'}
               </span>
             </div>
           ))}
-          </div>
         </div>
       </div>
     </div>
@@ -183,7 +117,7 @@ export default function LandingPage() {
           radial-gradient(1px 1px at 78% 82%, rgba(255,255,255,0.06) 0%, transparent 100%)
         `,
       }} />
-      <Nav />
+      <SiteNav />
 
       {/* ── HERO — split layout: pitch and proof side by side ────────────────── */}
       <style>{`
@@ -257,66 +191,10 @@ export default function LandingPage() {
       </section>
 
 
-      {/* ── COMPARISON ────────────────────────────────────────────────────────── */}
-      <ComparisonSection />
-
-      {/* ── FEATURES ──────────────────────────────────────────────────────────── */}
-      <section id="features" style={{ padding: '120px 24px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div className="text-center mb-16">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>Built for control</p>
-            <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
-              Everything you need.<br />
-              <span style={{ color: 'rgba(255,255,255,0.3)' }}>Nothing you don&apos;t.</span>
-            </h2>
-          </div>
-          <FeatureGrid />
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ──────────────────────────────────────────────────────── */}
-      <section style={{ padding: '0 24px 120px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div className="text-center mb-16">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>How it works</p>
-            <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
-              Online in three steps.
-            </h2>
-          </div>
-          <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
-            {steps.map((step, i) => (
-              <div key={step.n} style={{ background: '#000', padding: '40px 36px', position: 'relative' }}>
-                {i < steps.length - 1 && (
-                  <div className="step-divider" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 1, height: '40%', background: 'rgba(255,255,255,0.05)' }} />
-                )}
-                <div className="text-[11px] font-semibold mb-4" style={{ color: 'rgba(255,115,0,0.5)', letterSpacing: '0.08em' }}>{step.n}</div>
-                <h3 className="text-[20px] font-semibold mb-3" style={{ color: 'white', letterSpacing: '-0.02em' }}>{step.title}</h3>
-                <p className="text-[14px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TERMINAL ──────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '0 24px 120px', overflowX: 'hidden' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="text-center mb-10">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>One command</p>
-            <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(32px, 4vw, 48px)', letterSpacing: '-0.03em', color: 'white' }}>
-              Join the mesh instantly.
-            </h2>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Generate a token from the dashboard. Paste one line. Done.</p>
-          </div>
-          <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: '-40px', background: 'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(61,220,132,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
-            <TerminalBlock />
-          </div>
-        </div>
-      </section>
-
-      {/* ── DASHBOARD PREVIEW ─────────────────────────────────────────────────── */}
-      <section style={{ padding: '0 24px 120px', overflowX: 'hidden' }}>
+      {/* ── DASHBOARD PREVIEW ──────────────────────────────────────────────────
+           Sits directly under the hero on purpose: the first scroll should
+           land on the actual product, not on an argument about competitors. */}
+      <section style={{ padding: 'clamp(48px, 7vw, 90px) 24px clamp(64px, 9vw, 120px)', overflowX: 'hidden' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div className="text-center mb-12">
             <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>The dashboard</p>
@@ -335,6 +213,72 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── COMPARISON ────────────────────────────────────────────────────────── */}
+      <ComparisonSection />
+
+      {/* ── FEATURES ──────────────────────────────────────────────────────────── */}
+      <section id="features" style={{ padding: 'clamp(64px, 9vw, 120px) 24px' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div className="text-center mb-16">
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>Built for control</p>
+            <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
+              Everything you need.<br />
+              <span style={{ color: 'rgba(255,255,255,0.3)' }}>Nothing you don&apos;t.</span>
+            </h2>
+          </div>
+          <FeatureGrid />
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ──────────────────────────────────────────────────────── */}
+      <section style={{ padding: '0 24px clamp(64px, 9vw, 120px)' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div className="text-center mb-16">
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>How it works</p>
+            <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
+              Online in three steps.
+            </h2>
+          </div>
+          <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+            {steps.map((step, i) => (
+              <div key={step.n} style={{ background: '#000', padding: '40px 36px', position: 'relative' }}>
+                {i < steps.length - 1 && (
+                  <div className="step-divider" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 1, height: '40%', background: 'rgba(255,255,255,0.05)' }} />
+                )}
+                <div className="flex items-center justify-center mb-5"
+                  style={{
+                    width: 38, height: 38, borderRadius: 11,
+                    background: 'rgba(255,115,0,0.12)',
+                    border: '1px solid rgba(255,115,0,0.32)',
+                    color: '#ff9a3d',
+                    fontSize: 14, fontWeight: 700, letterSpacing: '0.02em',
+                    fontFamily: 'var(--font-mono)',
+                  }}>{step.n}</div>
+                <h3 className="text-[20px] font-semibold mb-3" style={{ color: 'white', letterSpacing: '-0.02em' }}>{step.title}</h3>
+                <p className="text-[14px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TERMINAL ──────────────────────────────────────────────────────────── */}
+      <section style={{ padding: '0 24px clamp(64px, 9vw, 120px)', overflowX: 'hidden' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+          <div className="text-center mb-10">
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>One command</p>
+            <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(32px, 4vw, 48px)', letterSpacing: '-0.03em', color: 'white' }}>
+              Join the mesh instantly.
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Generate a token from the dashboard. Paste one line. Done.</p>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: '-40px', background: 'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(61,220,132,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+            <TerminalBlock />
+          </div>
+        </div>
+      </section>
+
       {/* ── SOCIAL PROOF ──────────────────────────────────────────────────────── */}
       <SocialProof />
 
@@ -348,25 +292,7 @@ export default function LandingPage() {
       <WaitlistForm />
 
       {/* ── FOOTER ────────────────────────────────────────────────────────────── */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '40px 32px' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-[6px] flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.3)' }}>
-              <svg className="w-2.5 h-2.5" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
-              </svg>
-            </div>
-            <span className="text-[13px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>LavaMesh</span>
-            <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.2)' }}>· Headscale · WireGuard · Next.js · Vercel</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/login" className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Login</Link>
-            <a href="https://headscale.net" target="_blank" rel="noopener noreferrer" className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Headscale</a>
-            <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer" className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>GitHub</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

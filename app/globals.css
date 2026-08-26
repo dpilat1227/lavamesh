@@ -668,6 +668,66 @@ body {
   }
 }
 
+/* Landing-page dashboard mockup rows. The old version forced a 500px min-width
+   inside an overflow-x container, so the showcase screenshot sideways-scrolled
+   on a phone. Drop the two least important columns instead. */
+.mockup-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 90px 80px;
+}
+
+@media (max-width: 640px) {
+  .mockup-row {
+    grid-template-columns: 1fr 78px;
+  }
+  .mockup-col-drop {
+    display: none;
+  }
+}
+
+/* Hide the default disclosure triangle so the summary reads as a button. */
+.comparison-details > summary::-webkit-details-marker {
+  display: none;
+}
+.comparison-details > summary::marker {
+  content: '';
+}
+.comparison-details[open] > summary {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Feature cards: a 6-card grid stacks into a very long scroll on a phone.
+   Below 640px it becomes a horizontal snap carousel instead — cards are
+   sized under 100% so the next one peeks, which is what tells a thumb it
+   can swipe. Layout lives here (not inline) so these queries can win. */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .feature-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    /* bleed past the section's 24px gutter so cards run edge to edge */
+    margin-inline: -24px;
+    padding-inline: 24px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .feature-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .feature-grid > * {
+    flex: 0 0 80%;
+    scroll-snap-align: start;
+  }
+}
+
 /* ── Mobile dashboard ──────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .mobile-top-bar {

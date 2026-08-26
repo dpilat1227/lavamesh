@@ -33,7 +33,7 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    badge: 'Most Popular',
+    badge: 'Recommended',
     desc: 'For serious operators who want full control with premium tooling and support.',
     price: { monthly: '$19', lifetime: '$149' },
     sub: { monthly: '/month', lifetime: 'one-time' },
@@ -103,7 +103,7 @@ export default function PricingSection() {
   const [billing, setBilling] = useState<Billing>('lifetime');
 
   return (
-    <section id="pricing" style={{ padding: '120px 24px' }}>
+    <section id="pricing" style={{ padding: 'clamp(64px, 9vw, 120px) 24px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-12">
@@ -117,30 +117,38 @@ export default function PricingSection() {
           </p>
         </div>
 
-        {/* Billing toggle */}
+        {/* Billing toggle — segmented control, not a second orange CTA.
+            Selected state is a raised light pill so Monthly and Lifetime
+            get the same chrome; SAVE 35% uses the same ghost-orange chip
+            as BETA / Recommended. */}
         <div className="flex items-center justify-center gap-3 mb-10">
-          <div className="flex items-center p-1 rounded-[10px]" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            {(['monthly', 'lifetime'] as Billing[]).map(b => (
-              <button
-                key={b}
-                onClick={() => setBilling(b)}
-                className="relative px-5 py-2 rounded-[8px] text-[13px] font-medium transition-all"
-                style={{
-                  background: billing === b ? (b === 'lifetime' ? '#ff7300' : 'rgba(255,255,255,0.08)') : 'transparent',
-                  color: billing === b ? 'white' : 'rgba(255,255,255,0.4)',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {b === 'monthly' ? 'Monthly' : 'Lifetime'}
-                {b === 'lifetime' && (
-                  <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                    style={{ background: billing === 'lifetime' ? 'rgba(0,0,0,0.28)' : 'rgba(255,115,0,0.15)', color: billing === 'lifetime' ? 'white' : '#ff7300' }}>
-                    SAVE 35%
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="flex items-center p-[3px] rounded-[12px]"
+            style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)' }}>
+            {(['monthly', 'lifetime'] as Billing[]).map(b => {
+              const selected = billing === b;
+              return (
+                <button
+                  key={b}
+                  onClick={() => setBilling(b)}
+                  className="relative px-5 py-2 rounded-[9px] text-[13px] font-semibold transition-all"
+                  style={{
+                    background: selected ? 'rgba(255,255,255,0.10)' : 'transparent',
+                    color: selected ? '#fff' : 'rgba(255,255,255,0.42)',
+                    border: selected ? '1px solid rgba(255,255,255,0.16)' : '1px solid transparent',
+                    boxShadow: selected ? '0 1px 2px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)' : 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {b === 'monthly' ? 'Monthly' : 'Lifetime'}
+                  {b === 'lifetime' && (
+                    <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                      style={{ color: '#ff7300', background: 'rgba(255,115,0,0.15)', letterSpacing: '0.04em' }}>
+                      SAVE 35%
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -163,16 +171,18 @@ export default function PricingSection() {
                   boxShadow: plan.highlight ? '0 0 60px rgba(255,115,0,0.08), var(--shadow-md)' : 'none',
                 }}
               >
-                {/* Badge */}
+                {/* Badge — same ghost-orange chip as the nav BETA tag.
+                    Filled orange is reserved for the buy button. */}
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap"
                       style={{
-                        background: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.06)' : '#ff7300',
-                        color: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.5)' : 'white',
-                        border: plan.badge === 'Coming Soon' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                        background: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.06)' : 'rgba(255,115,0,0.15)',
+                        color: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.5)' : '#ff7300',
+                        border: plan.badge === 'Coming Soon' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,115,0,0.28)',
+                        letterSpacing: '0.06em',
                       }}>
-                      {plan.badge}
+                      {plan.badge.toUpperCase()}
                     </span>
                   </div>
                 )}
@@ -222,14 +232,21 @@ export default function PricingSection() {
                     rel={ctaInfo.external ? 'noopener noreferrer' : undefined}
                     className="btn text-center text-[14px] font-semibold w-full"
                     style={{
-                      padding: '12px 20px',
+                      padding: '13px 20px',
                       borderRadius: '12px',
-                      background: plan.highlight ? '#ff7300' : 'rgba(255,255,255,0.06)',
-                      color: 'white',
-                      border: plan.highlight ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                      background: plan.highlight
+                        ? 'linear-gradient(180deg, #ff8418 0%, #e65000 100%)'
+                        : 'rgba(255,255,255,0.06)',
+                      color: '#fff',
+                      border: plan.highlight
+                        ? '1px solid rgba(255,255,255,0.18)'
+                        : '1px solid rgba(255,255,255,0.1)',
                       display: 'block',
                       textDecoration: 'none',
-                      boxShadow: plan.highlight ? '0 0 30px rgba(255,115,0,0.25)' : 'none',
+                      boxShadow: plan.highlight
+                        ? 'inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 24px rgba(230,80,0,0.28)'
+                        : 'none',
+                      letterSpacing: '-0.01em',
                       opacity: ctaInfo.href ? 1 : 0.5,
                       cursor: ctaInfo.href ? 'pointer' : 'not-allowed',
                     }}
