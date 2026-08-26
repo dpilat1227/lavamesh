@@ -48,10 +48,28 @@
   --radius-sm:   6px;
   --radius-md:   8px;
   --radius-lg:   16px;
+  --radius-xl:   20px;
 
   /* Motion */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Chart / data-viz palette — distinct from the semantic status colors above,
+     for multi-series or categorical charts (node distribution, per-user breakdowns, etc). */
+  --chart-1: #34d399; /* teal-green */
+  --chart-2: #a78bfa; /* purple */
+  --chart-3: #60a5fa; /* blue */
+  --chart-4: #fbbf24; /* amber */
+  --chart-5: #f472b6; /* pink */
+  --chart-6: #FF6B1A; /* brand orange */
+
+  /* Elevation — soft, layered shadows for hover/lift states. Resting surfaces stay
+     flat (borders only, as today); these are reserved for interaction feedback so
+     the UI doesn't get heavier by default. */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.24), 0 1px 0 rgba(255,255,255,0.03) inset;
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.36), 0 1px 0 rgba(255,255,255,0.04) inset;
+  --shadow-lg: 0 16px 48px rgba(0,0,0,0.44), 0 1px 0 rgba(255,255,255,0.05) inset;
+  --shadow-xl: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
 }
 
 /* ── Base ──────────────────────────────────────────────────────────────────── */
@@ -222,6 +240,78 @@ body {
 .glow-green  { box-shadow: 0 0 12px rgba(52,211,153,0.4); }
 .glow-subtle { box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.05) inset; }
 
+/* ── Lift on hover ─────────────────────────────────────────────────────────── *
+ * Airbnb/Apple-style interaction feedback: interactive surfaces (rows, tiles,
+ * cards) rise slightly and pick up a soft shadow on hover, instead of a flat
+ * background swap. Resting state is untouched. */
+.lift-on-hover {
+  transition: transform 0.18s var(--ease-out), box-shadow 0.18s var(--ease-out), border-color 0.18s ease;
+  will-change: transform;
+}
+.lift-on-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.lift-on-hover:active {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lift-on-hover:hover { transform: none; }
+}
+
+/* Lighter variant for dense list/table rows — same lift language as `.lift-on-hover`
+   but subtler, and rounds corners on hover only so the shadow reads as a discrete
+   raised strip rather than clashing with the straight row-divider borders. */
+.lift-row-hover {
+  transition: transform 0.15s var(--ease-out), box-shadow 0.15s var(--ease-out), border-radius 0.15s ease;
+}
+.lift-row-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius-md);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lift-row-hover:hover { transform: none; }
+}
+
+/* ── Chart tooltip ─────────────────────────────────────────────────────────── *
+ * Shared Recharts tooltip treatment — a proper glass card with a color swatch,
+ * label and bold value, replacing ad-hoc inline contentStyle per chart. */
+.chart-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(18,18,20,0.92);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: var(--shadow-lg);
+}
+.chart-tooltip-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.chart-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.chart-tooltip-swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 /* ── Focus ring ────────────────────────────────────────────────────────────── */
 .focus-ring:focus-visible {
   outline: 2px solid var(--border-3);
@@ -381,6 +471,9 @@ body {
   color: var(--purple);
 }
 .badge-blue   { background: var(--blue-soft);   color: var(--blue);   border: 1px solid rgba(96,165,250,0.15); }
+/* Reserved for Pro/upgrade signaling specifically — see the Card accent-color
+   rule in globals: orange means "this is about upgrading," nothing else. */
+.badge-orange { background: var(--orange-soft); color: var(--orange); border: 1px solid rgba(255,107,26,0.2); }
 .badge-ghost {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.06);
@@ -541,9 +634,22 @@ body {
    triggered by a floating button, instead of squeezing the table. */
 .split-view {
   display: grid;
-  grid-template-columns: 1fr var(--split-pane-width, 300px);
-  gap: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
   position: relative;
+}
+.split-view[data-cols="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.split-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.split-view[data-cols="3"] .split-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .split-view[data-collapsed="true"] {
   grid-template-columns: 1fr;
@@ -551,25 +657,38 @@ body {
 .split-view[data-collapsed="true"] > .split-pane {
   display: none;
 }
+.split-view[data-collapsed="true"] > .split-main {
+  grid-column: 1 / -1;
+}
 .split-main {
+  grid-column: 1 / -2;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .split-pane {
+  grid-column: -2 / -1;
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-height: 0;
   overflow-y: auto;
-  padding-top: 0.75rem;
+  padding-top: 0;
   padding-bottom: 2rem;
-  padding-right: 0.5rem;
+  padding-right: 0.25rem;
+}
+/* overflow-y:auto above removes each child's "automatic minimum size" protection
+   as a flex item, letting long pane content (e.g. ContextSection copy) get
+   silently compressed/clipped instead of just scrolling. Pin children to their
+   natural content height so the pane scrolls instead of crushing text. */
+.split-pane > * {
+  flex-shrink: 0;
 }
 .split-pane-collapse-btn {
   position: absolute;
-  top: -30px;
+  top: 6px;
   right: 2px;
   width: 24px;
   height: 24px;
@@ -606,6 +725,17 @@ body {
     grid-template-columns: 1fr !important;
     padding-left: 20px !important;
     padding-right: 20px !important;
+  }
+  .split-stats {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .split-view[data-cols="3"] .split-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .split-main {
+    grid-column: 1 / -1 !important;
   }
   .split-view > .split-pane {
     display: flex !important;

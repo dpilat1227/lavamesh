@@ -1,5 +1,6 @@
 import { AuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 
@@ -17,6 +18,32 @@ export const authOptions: AuthOptions = {
       },
       from: "LavaMesh <onboarding@resend.dev>",
     }),
+    CredentialsProvider({
+      id: "password",
+      name: "Password",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email?.trim().toLowerCase();
+        const password = credentials?.password ?? "";
+        if (!email || !password) return null;
+
+        const expected = process.env.AUTH_PASSWORD;
+        const devOpen = process.env.NODE_ENV === "development" && !expected;
+        if (!expected && process.env.NODE_ENV === "production") return null;
+        if (!devOpen && password !== expected) return null;
+
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          user = await prisma.user.create({
+            data: { email, name: email.split("@")[0] },
+          });
+        }
+        return { id: user.id, email: user.email, name: user.name };
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
@@ -31,7 +58,7 @@ export const authOptions: AuthOptions = {
     },
   },
   pages: {
-    signIn: '/login',
+    signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

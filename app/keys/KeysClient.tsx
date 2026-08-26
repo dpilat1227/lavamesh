@@ -1,8 +1,8 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { expireKeyAction, generateKeyForUser } from '@/app/actions';
-import { Badge, Button, Modal, ModalHeader, PageHeader, StatCard, SplitView, ContextSection, UpsellCard, InsightCard } from '@/components/ui';
+import { Badge, Button, Modal, ModalHeader, PageHeader, SplitView, ContextSection, UpsellCard, InsightCard, HealthMeter } from '@/components/ui';
 
 interface PreAuthKey {
   id?: string;
@@ -39,10 +39,15 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
     });
   };
 
-  const formatDate = (d: string) => {
-    if (!d || d.startsWith('0001')) return '—';
-    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const expiryParts = (d: string) => {
+    if (!d || d.startsWith('0001')) return null;
+    const date = new Date(d);
+    return {
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      time: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    };
   };
+  const expiry = expiryParts(k.expiration);
   return (
     <div className="animate-fade-in grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-8 py-4 table-row-hover row-alt"
       style={{ borderBottom: '1px solid var(--border-1)' }}>
@@ -73,7 +78,14 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
         )}
       </div>
       <div>
-        <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>{formatDate(k.expiration)}</span>
+        {expiry ? (
+          <>
+            <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>{expiry.date}</p>
+            <p className="text-[10.5px]" style={{ color: 'var(--text-4)', opacity: 0.7 }}>{expiry.time}</p>
+          </>
+        ) : (
+          <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>—</span>
+        )}
       </div>
       <div className="flex justify-end">
         {isValid ? (
@@ -93,7 +105,7 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
   );
 }
 
-function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; users: string[]; onClose: () => void; onGenerated: (key: string) => void }) {
+function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; users: string[]; onClose: () => void; onGenerated: (entry: PreAuthKey) => void }) {
   const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState(users[0] || 'admin');
   const [reusable, setReusable] = useState(false);
@@ -101,11 +113,36 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
   const [expiryDays, setExpiryDays] = useState(30);
   const [newKey, setNewKey] = useState('');
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState('');
+
+  const reset = () => {
+    setNewKey('');
+    setCopied(false);
+    setError('');
+    setReusable(false);
+    setEphemeral(false);
+    setExpiryDays(30);
+  };
 
   const generate = () => {
+    setError('');
     startTransition(async () => {
-      const key = await generateKeyForUser(user, reusable, ephemeral, expiryDays);
-      setNewKey(key);
+      try {
+        const key = await generateKeyForUser(user, reusable, ephemeral, expiryDays);
+        if (!key) throw new Error('Headscale did not return a key');
+        setNewKey(key);
+        onGenerated({
+          key,
+          reusable,
+          ephemeral,
+          used: false,
+          expiration: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+          createdAt: new Date().toISOString(),
+          user: { name: user },
+        });
+      } catch (e: any) {
+        setError(e?.message || 'Failed to generate key');
+      }
     });
   };
 
@@ -115,13 +152,18 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
+
   return (
-    <Modal open={open} onClose={onClose} maxWidth={448} labelledBy="generate-key-title">
+    <Modal open={open} onClose={handleClose} maxWidth={448} labelledBy="generate-key-title">
       <ModalHeader
         id="generate-key-title"
         title={newKey ? 'Key Generated' : 'Generate Pre-Auth Key'}
         subtitle={newKey ? 'Copy this key — it will not be shown again in full.' : 'Configure a new provisioning key'}
-        onClose={onClose}
+        onClose={handleClose}
       />
 
       {newKey ? (
@@ -131,7 +173,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={copy} className="flex-1 justify-center text-[13px]">{copied ? '✓ Copied' : 'Copy Key'}</Button>
-            <Button variant="primary" onClick={() => { onGenerated(newKey); onClose(); }} className="flex-1 justify-center text-[13px]">Done</Button>
+            <Button variant="primary" onClick={handleClose} className="flex-1 justify-center text-[13px]">Done</Button>
           </div>
         </div>
       ) : (
@@ -179,6 +221,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
             </div>
           </div>
 
+          {error && <p className="text-[12px]" style={{ color: 'var(--red)' }}>{error}</p>}
           <Button variant="primary" onClick={generate} disabled={isPending} className="w-full justify-center">
             {isPending ? <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</> : 'Generate Key'}
           </Button>
@@ -189,8 +232,13 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
 }
 
 export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[]; users: string[]; isPro: boolean }) {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [localKeys, setLocalKeys] = useState(keys);
+
+  useEffect(() => {
+    setLocalKeys(keys);
+  }, [keys]);
 
   const active = localKeys.filter(k => !k.used && new Date(k.expiration) > new Date()).length;
   const now = Date.now();
@@ -199,27 +247,50 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
     const msLeft = new Date(k.expiration).getTime() - now;
     return msLeft > 0 && msLeft < 7 * 24 * 60 * 60 * 1000;
   }).sort((a, b) => new Date(a.expiration).getTime() - new Date(b.expiration).getTime());
+  const expiredN = localKeys.filter(k => k.expiration && new Date(k.expiration) < new Date()).length;
+  const usedN = localKeys.filter(k => k.used && !(k.expiration && new Date(k.expiration) < new Date())).length;
+  const healthyN = Math.max(0, active - expiringSoon.length);
 
   const table = (
     <div className="flex flex-col min-h-0 relative h-full">
-      <div className="flex-shrink-0 grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-8 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+      <div className="flex-shrink-0 pb-3">
+        <HealthMeter
+          segments={[
+            { label: 'active', count: healthyN, color: 'var(--green)' },
+            { label: 'expiring (7d)', count: expiringSoon.length, color: 'var(--amber)' },
+            { label: 'used', count: usedN, color: '#60a5fa' },
+            { label: 'expired', count: expiredN, color: 'var(--text-4)' },
+          ]}
+        />
+      </div>
+      <div className="flex-shrink-0 grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1.5fr_1fr] gap-4 items-center px-1 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Key</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>User</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Reusable</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Ephemeral</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Status</span>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Expires</span>
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-right" style={{ color: 'var(--text-3)' }}>Action</span>
+        <div className="flex justify-end">
+          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-3)' }}>Action</span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
         {localKeys.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ color: 'var(--text-4)' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
-            </svg>
-            <p className="text-[13px]">No keys yet</p>
-            <p className="text-[12px]">Generate a key to provision nodes onto the mesh</p>
+          <div
+            className="flex flex-col items-center justify-center text-center py-16 px-8 gap-4 my-4"
+            style={{ borderRadius: 'var(--radius-xl)', border: '1px dashed var(--border-2)', background: 'rgba(255,255,255,0.015)' }}
+          >
+            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'rgba(255,90,0,0.1)', border: '1px solid rgba(255,90,0,0.2)', color: 'var(--orange)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-[14px] font-medium" style={{ color: 'var(--text-1)' }}>No keys yet — this is how nodes join</p>
+              <p className="text-[12.5px] mt-1 max-w-[320px]" style={{ color: 'var(--text-4)' }}>Generate a one-time key, run the install command on a machine, and it appears on Nodes in under a minute.</p>
+            </div>
+            <Button variant="primary" onClick={() => setShowModal(true)} className="text-[12px]" style={{ padding: '9px 18px' }}>Generate your first key →</Button>
           </div>
         ) : (
           [...localKeys].sort((a, b) => {
@@ -264,7 +335,6 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
       />
       <ContextSection
         title="About Pre-Auth Keys"
-        accent="rgba(255,90,0,0.15)"
         collapsible
         items={[
           { title: 'What are they?', desc: 'Pre-auth keys let new devices join your mesh network without manual approval. Share a key, run the install command, and the node connects instantly.', icon: '🔑', color: '#FF5A00' },
@@ -275,7 +345,6 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
       {isPro ? (
         <UpsellCard
           eyebrow="Pro Feature"
-          eyebrowColor="var(--green)"
           title="Advanced ACLs"
           description="Build tag-based access rules visually, no HuJSON required — head to Settings → Access Control Policy."
           href="/settings"
@@ -289,7 +358,6 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
       ) : (
         <UpsellCard
           eyebrow="Pro Feature"
-          eyebrowColor="var(--orange)"
           title="Advanced ACLs"
           description="Lock down your mesh network with tag-based access control policies — build rules visually in Settings on LavaMesh Pro."
           icon={
@@ -308,7 +376,10 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
         open={showModal}
         users={users}
         onClose={() => setShowModal(false)}
-        onGenerated={() => { /* revalidation handles refresh */ }}
+        onGenerated={entry => {
+          setLocalKeys(prev => prev.some(k => k.key === entry.key) ? prev : [entry, ...prev]);
+          router.refresh();
+        }}
       />
 
       <PageHeader
@@ -320,12 +391,6 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
           }>
             Generate Key
           </Button>
-        }
-        stats={
-          <div className="grid grid-cols-2 gap-4">
-            <StatCard index={1} label="ACTIVE KEYS" value={active} color="var(--green)" />
-            <StatCard index={2} label="TOTAL KEYS" value={localKeys.length} />
-          </div>
         }
       />
 

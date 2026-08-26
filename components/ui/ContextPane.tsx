@@ -1,6 +1,7 @@
 'use client';
 import { ReactNode, useState } from 'react';
 import { Card } from './Card';
+import { Badge } from './Badge';
 
 export interface ContextItem {
   title: string;
@@ -25,38 +26,36 @@ export function ContextSection({ title, accent, items, collapsible = false, defa
 
   return (
     <Card accent={accent} padded={false}>
-      <div className="p-5">
-        <button
-          type="button"
-          onClick={() => collapsible && setOpen(o => !o)}
-          className="w-full flex items-center justify-between"
-          style={{ background: 'none', border: 'none', padding: 0, cursor: collapsible ? 'pointer' : 'default' }}
-          aria-expanded={collapsible ? open : undefined}
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>{title}</p>
-          {collapsible && (
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ color: 'var(--text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          )}
-        </button>
-        {open && (
-          <div className="flex flex-col gap-6 mt-4">
-            {items.map(item => (
-              <div key={item.title}>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[11px]" style={{ background: `${item.color}10`, border: `1px solid ${item.color}20` }}>
-                    {item.icon}
-                  </div>
-                  <p className="text-[13px] font-medium" style={{ color: 'var(--text-2)' }}>{item.title}</p>
-                </div>
-                <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-4)' }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
+      <button
+        type="button"
+        onClick={() => collapsible && setOpen(o => !o)}
+        className="w-full flex items-center justify-between p-5"
+        style={{ background: 'none', border: 'none', cursor: collapsible ? 'pointer' : 'default' }}
+        aria-expanded={collapsible ? open : undefined}
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>{title}</p>
+        {collapsible && (
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ color: 'var(--text-4)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         )}
-      </div>
+      </button>
+      {open && (
+        <div className="flex flex-col gap-6 px-5 pb-5">
+          {items.map(item => (
+            <div key={item.title}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-[6px] flex items-center justify-center text-[11px]" style={{ background: `${item.color}10`, border: `1px solid ${item.color}20` }}>
+                  {item.icon}
+                </div>
+                <p className="text-[13px] font-medium" style={{ color: 'var(--text-2)' }}>{item.title}</p>
+              </div>
+              <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-4)' }}>{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }
@@ -82,7 +81,7 @@ const TONE_COLOR: Record<NonNullable<InsightItem['tone']>, string> = {
  */
 export function InsightCard({ title, accent, items, emptyLabel }: { title: string; accent?: string; items: InsightItem[]; emptyLabel: string }) {
   return (
-    <Card accent={accent} padded={false}>
+    <Card accent={items.length > 0 ? accent : undefined} padded={false}>
       <div className="p-5">
         <p className="text-[10px] font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--text-4)', letterSpacing: '0.08em' }}>{title}</p>
         {items.length === 0 ? (
@@ -114,7 +113,6 @@ export function InsightCard({ title, accent, items, emptyLabel }: { title: strin
 
 interface UpsellCardProps {
   eyebrow: string;
-  eyebrowColor: string;
   title: string;
   description: string;
   icon: ReactNode;
@@ -122,15 +120,17 @@ interface UpsellCardProps {
   ctaLabel?: string;
 }
 
-/** The Pro/Cloud upsell card pattern — now an actual link instead of static, dead-end copy. */
-export function UpsellCard({ eyebrow, eyebrowColor, title, description, icon, href = '/#pricing', ctaLabel = 'Upgrade' }: UpsellCardProps) {
+/** The Pro/Cloud upsell card pattern — now an actual link instead of static, dead-end copy.
+ * Eyebrow is always the orange "Pro" pill (never a per-card color) — orange is reserved
+ * exclusively for Pro/upgrade signaling app-wide, so it reads the same everywhere. */
+export function UpsellCard({ eyebrow, title, description, icon, href = '/#pricing', ctaLabel = 'Upgrade' }: UpsellCardProps) {
   return (
     <div
       className="rounded-[12px] overflow-hidden p-5 flex flex-col gap-3 relative"
       style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%)', border: '1px solid rgba(255,255,255,0.06)' }}
     >
       <div className="absolute top-0 right-0 p-4 opacity-10">{icon}</div>
-      <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: eyebrowColor, letterSpacing: '0.08em' }}>{eyebrow}</p>
+      <Badge variant="orange" className="w-fit text-[10px] uppercase tracking-wider">{eyebrow}</Badge>
       <h3 className="text-[14px] font-medium" style={{ color: 'var(--text-1)' }}>{title}</h3>
       <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-4)' }}>{description}</p>
       <a href={href} className="text-[12px] font-medium mt-1 inline-flex items-center gap-1 w-fit" style={{ color: 'var(--orange)' }}>

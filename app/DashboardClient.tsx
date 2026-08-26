@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   generateKeyForUser,
   revokeNode,
+  expireNodeAction,
   renameMachineAction,
   getUsersAction,
   exportNodesCsvAction,
@@ -33,6 +34,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   const [generating, setGenerating] = useState(false);
   const [token, setToken] = useState('');
   const [copied, setCopied] = useState<'key' | 'cmd' | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!open) return;
@@ -44,15 +46,19 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
 
   const generate = async () => {
     setGenerating(true);
+    setError('');
     try {
       const key = await generateKeyForUser(selectedUser, false, ephemeral, expiryDays);
+      if (!key) throw new Error('Headscale did not return a key');
       setToken(key);
       setStep('result');
-    } catch {}
+    } catch (e: any) {
+      setError(e?.message || 'Failed to generate token');
+    }
     setGenerating(false);
   };
 
-  const cmd = `curl -fsSL "https://www.lavamesh.com/api/install.sh?token=${token}" | sudo sh`;
+  const cmd = `curl -fsSL "${typeof window !== 'undefined' ? window.location.origin : ''}/api/install.sh?token=${token}${ephemeral ? '&ephemeral=true' : ''}" | sudo sh`;
   const copy = async (text: string, which: 'key' | 'cmd') => {
     await navigator.clipboard.writeText(text);
     setCopied(which);
@@ -105,6 +111,9 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
             <span style={{ position: 'absolute', top: 4, left: ephemeral ? 22 : 4, width: 14, height: 14, background: 'white', borderRadius: '50%', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
           </button>
         </div>
+        {error && (
+          <p className="text-[12px]" style={{ color: 'var(--red)' }}>{error}</p>
+        )}
         <Button variant="primary" onClick={generate} disabled={generating} className="w-full justify-center" style={{ borderRadius: 12 }}>
           {generating ? <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</> : 'Generate Token →'}
         </Button>
@@ -156,7 +165,7 @@ function FleetSnapshot({ nodes }: { nodes: any[] }) {
   return (
     <InsightCard
       title="Needs Attention"
-      accent="rgba(248,113,113,0.15)"
+      accent="rgba(245,158,11,0.15)"
       emptyLabel="All nodes are online and reachable."
       items={offline.map(n => ({ label: n.givenName, value: relativeTime(n.lastSeen), tone: 'red' }))}
     />
@@ -164,8 +173,8 @@ function FleetSnapshot({ nodes }: { nodes: any[] }) {
 }
 
 /** Pane selected state: the node inspector — same content the old centered modal showed, now inline. */
-function NodeInspector({ node, tags = [], onClose, onRevoke, onRename, onTagsChange }: { node: any; tags?: string[]; onClose: () => void; onRevoke: () => void; onRename: (name: string) => void; onTagsChange: (tags: string[]) => void }) {
-  const [confirming, setConfirming] = useState(false);
+function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename, onTagsChange }: { node: any; tags?: string[]; onClose: () => void; onRevoke: () => void; onExpire: () => void; onRename: (name: string) => void; onTagsChange: (tags: string[]) => void }) {
+  const [confirming, setConfirming] = useState<'revoke' | 'expire' | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(node.givenName);
   const [renamePending, startRenameTransition] = useTransition();
@@ -262,19 +271,32 @@ function NodeInspector({ node, tags = [], onClose, onRevoke, onRename, onTagsCha
           </div>
         ))}
 
-        {confirming ? (
+        {confirming === 'revoke' ? (
           <div className="space-y-2">
             <p className="text-[12px] text-center" style={{ color: 'var(--text-3)' }}>Remove <span style={{ color: 'var(--text-1)' }}>{node.givenName}</span> from the mesh?</p>
             <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setConfirming(false)} className="flex-1 justify-center text-[12px]">Cancel</Button>
+              <Button variant="ghost" onClick={() => setConfirming(null)} className="flex-1 justify-center text-[12px]">Cancel</Button>
               <Button variant="danger" onClick={onRevoke} className="flex-1 justify-center text-[12px]">Remove</Button>
             </div>
           </div>
+        ) : confirming === 'expire' ? (
+          <div className="space-y-2">
+            <p className="text-[12px] text-center" style={{ color: 'var(--text-3)' }}>Expire <span style={{ color: 'var(--text-1)' }}>{node.givenName}</span>? It stays registered but must reauthenticate.</p>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => setConfirming(null)} className="flex-1 justify-center text-[12px]">Cancel</Button>
+              <Button variant="primary" onClick={() => { onExpire(); setConfirming(null); }} className="flex-1 justify-center text-[12px]">Expire</Button>
+            </div>
+          </div>
         ) : (
-          <Button variant="danger" onClick={() => setConfirming(true)} className="w-full justify-center">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-            Revoke Node
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => setConfirming('expire')} className="flex-1 justify-center text-[12px]">
+              Expire
+            </Button>
+            <Button variant="danger" onClick={() => setConfirming('revoke')} className="flex-1 justify-center text-[12px]">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              Revoke
+            </Button>
+          </div>
         )}
       </div>
     </div>
@@ -302,6 +324,15 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
   const offline = visibleNodes.length - online;
   // Derived from real uptime log samples, not a hardcoded number.
   const uptimePct = uptimeLogs.length > 0 ? (uptimeLogs.filter((l: any) => l.isOnline).length / uptimeLogs.length) * 100 : null;
+  // Trend: second half of the logged window vs. the first half — same "direction, not
+  // just a snapshot" idea as the uptime chart's headline callout.
+  const uptimeTrend = (() => {
+    if (uptimeLogs.length < 8) return undefined;
+    const mid = Math.floor(uptimeLogs.length / 2);
+    const pct = (arr: any[]) => (arr.filter(l => l.isOnline).length / arr.length) * 100;
+    const delta = pct(uptimeLogs.slice(mid)) - pct(uptimeLogs.slice(0, mid));
+    return Math.abs(delta) >= 0.1 ? { value: delta, label: 'vs. earlier today' } : undefined;
+  })();
 
   const handleExportCsv = useCallback(async () => {
     setExporting(true);
@@ -323,6 +354,10 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
     setSelectedNode(null);
     try { await revokeNode(id); } catch { setRemovedIds(prev => { const s = new Set(prev); s.delete(id); return s; }); }
   }, []);
+
+  const handleExpire = useCallback(async (id: string) => {
+    try { await expireNodeAction(id); router.refresh(); } catch {}
+  }, [router]);
 
   const formatDate = (d: string) => {
     if (!d || d.startsWith('0001')) return 'Never';
@@ -365,22 +400,27 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
             </Button>
           </>
         }
-        stats={
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-1">
-            <StatCard index={1} label="TOTAL NODES" value={visibleNodes.length} />
-            <StatCard index={2} label="ONLINE" value={online} color="var(--green)" />
-            <StatCard index={3} label="OFFLINE" value={offline} color={offline > 0 ? 'var(--red)' : 'rgba(255,255,255,0.3)'} />
-            <StatCard index={4} label="UPTIME" value={uptimePct !== null ? `${uptimePct.toFixed(1)}%` : '—'} color="var(--orange)" />
-          </div>
-        }
       />
 
+      {uptimeLogs.length > 0 && (
+        <div className="px-8 pt-1 flex-shrink-0">
+          <UptimeGraph logs={uptimeLogs} />
+        </div>
+      )}
+
       <SplitView
-        paneWidth={300}
+        columns={4}
         autoOpenSignal={selectedNode?.id ?? null}
+        stats={
+          <>
+            <StatCard label="TOTAL NODES" value={visibleNodes.length} />
+            <StatCard label="ONLINE" value={online} color="var(--green)" />
+            <StatCard label="OFFLINE" value={offline} color={offline > 0 ? 'var(--red)' : 'rgba(255,255,255,0.3)'} />
+            <StatCard label="UPTIME" value={uptimePct !== null ? `${uptimePct.toFixed(1)}%` : '—'} color={uptimePct !== null ? 'var(--green)' : 'var(--text-4)'} trend={uptimeTrend} sub={uptimePct === null ? 'No data yet' : undefined} />
+          </>
+        }
         main={
           <>
-            {uptimeLogs.length > 0 && <div className="pt-4"><UptimeGraph logs={uptimeLogs} /></div>}
             {/* Table header — no card wrapper */}
             <div className="flex-shrink-0 flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
               <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Node</span>
@@ -394,10 +434,21 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
             {/* Table rows — directly on page, no card */}
             <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
               {visibleNodes.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-3" style={{ color: 'var(--text-4)' }}>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                  <p className="text-[13px]">No nodes connected</p>
-                  <Button variant="primary" onClick={() => setShowInvite(true)} className="text-[12px]" style={{ padding: '8px 16px' }}>Add your first node →</Button>
+                <div
+                  className="animate-fade-in-up flex flex-col items-center justify-center text-center py-20 px-8 gap-4 my-4"
+                  style={{ borderRadius: 'var(--radius-xl)', border: '1px dashed var(--border-2)', background: 'rgba(255,255,255,0.015)' }}
+                >
+                  <div
+                    className="w-14 h-14 rounded-[16px] flex items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg, rgba(255,107,26,0.14), rgba(255,107,26,0.02))', border: '1px solid rgba(255,107,26,0.18)' }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-medium" style={{ color: 'var(--text-1)' }}>Your mesh is empty</p>
+                    <p className="text-[12.5px] mt-1 max-w-[280px]" style={{ color: 'var(--text-4)' }}>Add your first node to start building your network — it takes under a minute.</p>
+                  </div>
+                  <Button variant="primary" onClick={() => setShowInvite(true)} className="text-[12px]" style={{ padding: '9px 18px' }}>Add your first node →</Button>
                 </div>
               ) : (
                 <>
@@ -407,7 +458,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
                       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedNode(selectedNode?.id === node.id ? null : node); } }}
                       role="button"
                       tabIndex={0}
-                      className="animate-fade-in flex items-center justify-between py-3 cursor-pointer table-row-hover row-alt focus-ring"
+                      className="animate-fade-in flex items-center justify-between py-3 px-2 -mx-2 cursor-pointer table-row-hover row-alt focus-ring lift-row-hover"
                       style={{ borderBottom: '1px solid var(--border-1)', animationDelay: `${i * 30}ms`, background: selectedNode?.id === node.id ? 'rgba(255,90,0,0.04)' : undefined, borderLeft: selectedNode?.id === node.id ? '2px solid var(--orange)' : '2px solid transparent' }}>
 
                       {/* Left: Node Info */}
@@ -456,15 +507,13 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
                       no longer paired with a "Network Health" tile that just restated the
                       header stats and the uptime chart in a different shape. */}
                   <div className="py-6">
-                    <div className="rounded-[12px] overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.04)', maxHeight: 280 }}>
-                      <NetworkTopology nodes={visibleNodes.map(n => ({
-                        id: n.id,
-                        name: renamedNodes[n.id] || n.givenName,
-                        online: n.online,
-                        user: n.user?.name,
-                        ip: n.ipAddresses?.[1] || n.ipAddresses?.[0],
-                      }))} />
-                    </div>
+                    <NetworkTopology nodes={visibleNodes.map(n => ({
+                      id: n.id,
+                      name: renamedNodes[n.id] || n.givenName,
+                      online: n.online,
+                      user: n.user?.name,
+                      ip: n.ipAddresses?.[1] || n.ipAddresses?.[0],
+                    }))} />
                   </div>
                 </>
               )}
@@ -479,6 +528,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
               tags={nodeTags[selectedNode.id] || []}
               onClose={() => setSelectedNode(null)}
               onRevoke={() => handleRevoke(selectedNode.id)}
+              onExpire={() => handleExpire(selectedNode.id)}
               onRename={name => setRenamedNodes(prev => ({ ...prev, [selectedNode.id]: name }))}
               onTagsChange={tags => setNodeTags(prev => ({ ...prev, [selectedNode.id]: tags }))}
             />

@@ -205,7 +205,6 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
       />
       <ContextSection
         title="How Routing Works"
-        accent="rgba(139,92,246,0.15)"
         collapsible
         items={[
           { title: 'Exit Nodes', desc: 'Route all traffic through a node to use its IP address and location. Useful for accessing geo-restricted services.', icon: '🌐', color: '#FF5A00' },
@@ -216,7 +215,6 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
       />
       <UpsellCard
         eyebrow="Pro Feature"
-        eyebrowColor="var(--orange)"
         title="Failover Alerts"
         description="Get an email or webhook the moment a subnet route fails over to its backup node — configure it in Settings on Pro or Cloud."
         href="/settings"
@@ -235,15 +233,19 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
       <PageHeader
         title="Subnet Routing"
         subtitle={<>{approved} approved · {pending > 0 ? <span style={{ color: 'var(--amber)' }}>{pending} pending</span> : '0 pending'}</>}
-        stats={
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard index={1} label="EXIT NODES" value={`${exits.filter(r => r.enabled).length}/${exits.length}`} color="#a78bfa" glow />
-            <StatCard index={2} label="SUBNETS" value={`${subnets.filter(r => r.enabled).length}/${subnets.length}`} color="#34d399" glow />
-            <StatCard index={3} label="TOTAL ROUTES" value={String(routes.length)} />
-          </div>
-        }
       />
-      <SplitView main={table} pane={pane} />
+      <SplitView
+        columns={3}
+        stats={
+          <>
+            <StatCard label="EXIT NODES" value={`${exits.filter(r => r.enabled).length}/${exits.length}`} color={exits.some(r => r.enabled) ? 'var(--green)' : undefined} sub={exits.length ? 'advertised' : 'none advertised'} />
+            <StatCard label="SUBNETS" value={`${subnets.filter(r => r.enabled).length}/${subnets.length}`} color={subnets.some(r => r.enabled) ? 'var(--green)' : undefined} sub={subnets.length ? 'approved / advertised' : 'none advertised'} />
+            <StatCard label="TOTAL ROUTES" value={String(routes.length)} sub={pending ? `${pending} waiting on you` : 'all reviewed'} />
+          </>
+        }
+        main={table}
+        pane={pane}
+      />
     </div>
   );
 }

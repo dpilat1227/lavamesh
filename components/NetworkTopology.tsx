@@ -9,145 +9,126 @@ interface TopoNode {
   ip?: string;
 }
 
-export default function NetworkTopology({ nodes }: { nodes: TopoNode[] }) {
-  const layout = useMemo(() => {
-    if (nodes.length === 0) return [];
-    const cx = 200, cy = 100;
-    const radius = Math.min(75, 35 + nodes.length * 12);
-    return nodes.map((node, i) => {
-      const angle = (2 * Math.PI * i) / nodes.length - Math.PI / 2;
-      return {
-        ...node,
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle),
-      };
-    });
-  }, [nodes]);
+const W = 560;
+const H = 220;
+const CX = W / 2;
+const CY = H / 2 - 8;
 
+function layoutNodes(nodes: TopoNode[]) {
+  const n = nodes.length;
+  if (n === 0) return [];
+  // Two peers sit left/right so the link is a real horizontal line, not a
+  // collapsed vertical stroke (SVG gradients vanish on zero-width bboxes).
+  if (n === 1) {
+    return [{ ...nodes[0], x: CX, y: CY - 24 }];
+  }
+  if (n === 2) {
+    return [
+      { ...nodes[0], x: CX - 150, y: CY },
+      { ...nodes[1], x: CX + 150, y: CY },
+    ];
+  }
+  const radius = Math.min(88, 48 + n * 6);
+  return nodes.map((node, i) => {
+    const angle = (2 * Math.PI * i) / n - Math.PI / 2;
+    return { ...node, x: CX + radius * Math.cos(angle), y: CY + radius * Math.sin(angle) };
+  });
+}
+
+/**
+ * Peer mesh — Headscale is a coordination plane, not a traffic hub.
+ * Lines are node-to-node. The empty center is the overlay, not a router.
+ */
+export default function NetworkTopology({ nodes }: { nodes: TopoNode[] }) {
+  const layout = useMemo(() => layoutNodes(nodes), [nodes]);
   if (nodes.length === 0) return null;
 
-  // Generate connections between all nodes
-  const connections: { from: number; to: number }[] = [];
+  const links: { a: number; b: number }[] = [];
   for (let i = 0; i < layout.length; i++) {
-    for (let j = i + 1; j < layout.length; j++) {
-      connections.push({ from: i, to: j });
-    }
+    for (let j = i + 1; j < layout.length; j++) links.push({ a: i, b: j });
   }
 
+  const onlineCount = nodes.filter(n => n.online).length;
+
   return (
-    <div className="animate-fade-in" style={{ width: '100%' }}>
-      <div className="flex items-center justify-between px-4 pt-3 pb-1">
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em' }}>Network Topology</span>
-        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>{nodes.filter(n => n.online).length}/{nodes.length} online</span>
+    <div
+      className="animate-fade-in"
+      style={{ width: '100%', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-1)', background: 'rgba(255,255,255,0.02)', overflow: 'hidden' }}
+    >
+      <div className="flex items-center justify-between px-5 pt-4 pb-1">
+        <div>
+          <h3 className="text-[13px] font-medium" style={{ color: 'var(--text-2)' }}>Live mesh</h3>
+          <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-4)' }}>Peer links · traffic does not hairpin through LavaMesh</p>
+        </div>
+        <span
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold"
+          style={{ color: 'var(--green)', background: 'var(--green-soft)' }}
+        >
+          <span className="status-dot online" />
+          {onlineCount}/{nodes.length} online
+        </span>
       </div>
-      <div style={{ maxWidth: 500, margin: '0 auto' }}>
-        <svg
-          viewBox="0 0 400 200"
-          width="100%"
-          style={{ overflow: 'visible', display: 'block' }}
-      >
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
         <defs>
-          <filter id="glow-green" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
+          <filter id="glow-green" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
           </filter>
-          <filter id="glow-orange" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-          <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(255,90,0,0.3)" />
-            <stop offset="50%" stopColor="rgba(255,90,0,0.1)" />
-            <stop offset="100%" stopColor="rgba(255,90,0,0.3)" />
-          </linearGradient>
         </defs>
 
-        {/* Connection lines */}
-        {/* Hub-spoke lines — each node connects to center hub */}
-        {layout.map((node, i) => (
-          <line
-            key={`hub-${i}`}
-            x1={node.x} y1={node.y} x2={300} y2={120}
-            stroke={node.online ? 'url(#line-gradient)' : 'rgba(255,255,255,0.04)'}
-            strokeWidth={node.online ? 1.5 : 0.5}
-            strokeDasharray={node.online ? 'none' : '4 6'}
-          >
-            {node.online && (
-              <animate
-                attributeName="stroke-opacity"
-                values="0.9;0.4;0.9"
-                dur="3s"
-                repeatCount="indefinite"
-              />
-            )}
-          </line>
-        ))}
-
-        {/* Peer-to-peer connections (dimmer) */}
-        {connections.map(({ from, to }, i) => {
-          const a = layout[from], b = layout[to];
-          const bothOnline = a.online && b.online;
+        {links.map(({ a, b }, i) => {
+          const from = layout[a], to = layout[b];
+          const live = from.online && to.online;
           return (
             <line
-              key={`peer-${i}`}
-              x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-              stroke={bothOnline ? 'rgba(255,90,0,0.08)' : 'rgba(255,255,255,0.02)'}
-              strokeWidth={0.5}
-              strokeDasharray="3 6"
-            />
+              key={`l-${i}`}
+              x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+              stroke={live ? '#FF5A00' : 'rgba(255,255,255,0.12)'}
+              strokeWidth={live ? 2 : 1}
+              strokeOpacity={live ? 0.55 : 0.35}
+              strokeLinecap="round"
+            >
+              {live && (
+                <animate attributeName="stroke-opacity" values="0.35;0.75;0.35" dur="2.8s" repeatCount="indefinite" />
+              )}
+            </line>
           );
         })}
 
-        {/* Center mesh hub */}
-        <circle cx={300} cy={120} r={16} fill="rgba(255,90,0,0.04)" stroke="rgba(255,90,0,0.12)" strokeWidth={1}>
-          <animate attributeName="r" values="14;18;14" dur="5s" repeatCount="indefinite" />
-        </circle>
-        <circle cx={300} cy={120} r={4} fill="rgba(255,90,0,0.6)" filter="url(#glow-orange)">
-          <animate attributeName="r" values="3;5;3" dur="4s" repeatCount="indefinite" />
-        </circle>
-        <text x={300} y={148} textAnchor="middle" fill="rgba(255,90,0,0.4)" fontSize="9" fontWeight="600" fontFamily="Inter, system-ui, sans-serif" letterSpacing="0.12em">
-          MESH HUB
-        </text>
-
-        {/* Nodes */}
-        {layout.map((node) => (
+        {layout.map(node => (
           <g key={node.id}>
-            {/* Outer glow ring for online */}
             {node.online && (
-              <circle cx={node.x} cy={node.y} r={14} fill="none" stroke="rgba(52,211,153,0.15)" strokeWidth={1}>
-                <animate attributeName="r" values="12;18;12" dur="3s" repeatCount="indefinite" />
-                <animate attributeName="stroke-opacity" values="0.15;0.03;0.15" dur="3s" repeatCount="indefinite" />
+              <circle cx={node.x} cy={node.y} r={16} fill="none" stroke="rgba(52,211,153,0.25)" strokeWidth={1}>
+                <animate attributeName="r" values="12;18;12" dur="2.8s" repeatCount="indefinite" />
+                <animate attributeName="stroke-opacity" values="0.35;0.05;0.35" dur="2.8s" repeatCount="indefinite" />
               </circle>
             )}
-            {/* Node circle */}
             <circle
               cx={node.x} cy={node.y} r={8}
-              fill={node.online ? '#34d399' : 'rgba(255,255,255,0.1)'}
-              stroke={node.online ? 'rgba(52,211,153,0.3)' : 'rgba(255,255,255,0.06)'}
+              fill={node.online ? '#34d399' : 'rgba(255,255,255,0.12)'}
+              stroke={node.online ? 'rgba(52,211,153,0.5)' : 'rgba(255,255,255,0.15)'}
               strokeWidth={2}
               filter={node.online ? 'url(#glow-green)' : undefined}
             />
-            {/* Hostname label */}
             <text
               x={node.x}
               y={node.y + 24}
               textAnchor="middle"
-              fill={node.online ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)'}
-              fontSize="10"
+              fill={node.online ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.35)'}
+              fontSize="11"
               fontFamily="Inter, system-ui, sans-serif"
               fontWeight="500"
             >
-              {node.name.length > 20 ? node.name.slice(0, 18) + '…' : node.name}
+              {node.name.length > 18 ? node.name.slice(0, 16) + '…' : node.name}
             </text>
-            {/* IP label */}
             {node.ip && (
               <text
                 x={node.x}
                 y={node.y + 36}
                 textAnchor="middle"
-                fill="rgba(255,255,255,0.25)"
+                fill="rgba(255,255,255,0.32)"
                 fontSize="9"
-                fontFamily="JetBrains Mono, monospace"
+                fontFamily="JetBrains Mono, ui-monospace, monospace"
               >
                 {node.ip}
               </text>
@@ -155,7 +136,6 @@ export default function NetworkTopology({ nodes }: { nodes: TopoNode[] }) {
           </g>
         ))}
       </svg>
-      </div>
     </div>
   );
 }

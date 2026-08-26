@@ -4,21 +4,29 @@ import { ReactNode, useEffect, useState } from 'react';
 interface SplitViewProps {
   main: ReactNode;
   pane: ReactNode;
+  /** Stat tiles that share the same column grid as the table + pane so edges line up. */
+  stats?: ReactNode;
+  /** 4 = dashboard (table spans 3, pane is the 4th column). 3 = routes (table spans 2). */
+  columns?: 3 | 4;
   paneWidth?: number;
-  /** className applied to the .split-main wrapper (e.g. for scroll/overflow tweaks). */
   mainClassName?: string;
-  /** When this changes to a non-nullish value (e.g. a newly selected row's id), the mobile
-   * drawer auto-opens so selecting something on a narrow viewport actually shows its detail. */
   autoOpenSignal?: string | number | null;
 }
 
 /**
- * The 70/30 layout: primary content on the left, a context/inspector pane on the right.
- * >=1280px: real side-by-side grid with a collapse toggle to reclaim full width.
- * <1280px: pane becomes a slide-over drawer opened via a floating trigger button,
- * so the table never gets squeezed on laptop/tablet widths.
+ * Shared fleet layout: stats, table, and inspector sit on one CSS grid so
+ * Needs Attention lines up with the last stat tile (Uptime / Total Routes).
+ * <1280px the pane becomes a slide-over drawer.
  */
-export function SplitView({ main, pane, paneWidth = 300, mainClassName = '', autoOpenSignal }: SplitViewProps) {
+export function SplitView({
+  main,
+  pane,
+  stats,
+  columns = 4,
+  paneWidth = 300,
+  mainClassName = '',
+  autoOpenSignal,
+}: SplitViewProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -33,8 +41,11 @@ export function SplitView({ main, pane, paneWidth = 300, mainClassName = '', aut
       className="split-view flex-1 overflow-hidden px-8"
       data-collapsed={collapsed}
       data-pane-open={mobileOpen}
+      data-cols={columns}
       style={{ minHeight: 0, ['--split-pane-width' as string]: `${paneWidth}px` }}
     >
+      {stats && <div className="split-stats">{stats}</div>}
+
       <div className={`split-main ${mainClassName}`}>{main}</div>
 
       {mobileOpen && <div className="split-pane-backdrop" onClick={() => setMobileOpen(false)} />}
