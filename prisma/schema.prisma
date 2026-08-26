@@ -133,3 +133,22 @@ model Waitlist {
   createdAt DateTime @default(now())
 }
 
+// Issued automatically by the Stripe webhook the moment a Pro Payment Link
+// purchase completes (see app/api/webhooks/stripe/route.ts) — the customer
+// gets their key by email within seconds instead of waiting on a human to
+// notice the payment and reply manually. Kept here purely as a record for
+// support/resend lookups; activation itself still checks the pasted key's
+// presence in KV per lib/billing.ts, not against this table.
+model LicenseKey {
+  id               String   @id @default(cuid())
+  key              String   @unique
+  email            String
+  plan             String // 'monthly' | 'lifetime'
+  stripeSessionId  String   @unique
+  stripeCustomerId String?
+  emailedAt        DateTime?
+  createdAt        DateTime @default(now())
+
+  @@index([email])
+}
+

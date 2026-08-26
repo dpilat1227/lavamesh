@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/react';
 import MainLayout from '@/components/MainLayout';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -48,6 +49,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Structured data for search engines — helps LavaMesh show up correctly
+            for "Tailscale alternative" / "Headscale UI" style queries. */}
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              name: 'LavaMesh',
+              applicationCategory: 'SecurityApplication',
+              operatingSystem: 'Linux, macOS, Windows, Docker',
+              description:
+                'Self-hosted mesh networking dashboard powered by Headscale. Own your network, zero per-seat fees, flat-rate pricing.',
+              url: 'https://www.lavamesh.com',
+              offers: [
+                { '@type': 'Offer', name: 'Community', price: '0', priceCurrency: 'USD' },
+                { '@type': 'Offer', name: 'Pro', price: '19', priceCurrency: 'USD' },
+              ],
+            }),
+          }}
+        />
+      </head>
       <body
         className="antialiased"
         style={{
@@ -59,6 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div style={{ position: 'relative', zIndex: 1 }}>
           <MainLayout planTier={plan?.tier ?? 'community'} isPro={plan?.isPro ?? false} controlHost={controlHost}>{children}</MainLayout>
         </div>
+        <Analytics />
       </body>
     </html>
   );

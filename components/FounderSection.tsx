@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function FounderSection() {
   return (
-    <section style={{ padding: '0 24px 120px' }}>
+    <section style={{ padding: '0 24px clamp(64px, 9vw, 120px)' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div className="card p-8 sm:p-12 relative overflow-hidden lift-on-hover" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '24px' }}>
           

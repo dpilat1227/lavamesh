@@ -1,3 +1,6 @@
+'use client';
+import { useEffect, useState } from 'react';
+
 // LavaMesh is early — we don't have named customer testimonials yet, and we'd
 // rather say that plainly than fabricate quotes from people who don't exist.
 // These are the concrete, verifiable reasons people choose this stack instead.
@@ -33,8 +36,17 @@ const stats = [
 ];
 
 export default function SocialProof() {
+  const [stars, setStars] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch('/api/github-stats')
+      .then(r => r.json())
+      .then(d => setStars(typeof d.stars === 'number' ? d.stars : null))
+      .catch(() => setStars(null));
+  }, []);
+
   return (
-    <section style={{ padding: '0 24px 80px' }}>
+    <section style={{ padding: '0 24px clamp(48px, 7vw, 80px)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-16">
@@ -74,12 +86,25 @@ export default function SocialProof() {
         </div>
 
         {/* Honest framing instead of fabricated reviews — this is genuinely early software */}
-        <div className="mt-6 flex items-center justify-center gap-2 text-center">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-center">
           <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
             LavaMesh is in public beta — no case studies yet, just a working product and an open repo.
           </span>
           <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium" style={{ color: '#ff7300', textDecoration: 'none' }}>
             See for yourself →
+          </a>
+        </div>
+
+        {/* Live, verifiable GitHub signal instead of a static claim — updates
+            itself as the repo actually earns stars, no copy edits needed. */}
+        <div className="mt-8 flex items-center justify-center">
+          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2.5 px-5 py-2.5 rounded-full lift-on-hover"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', textDecoration: 'none' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.94c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.54-3.88-1.54-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.2-3.1-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.2 1.18a11 11 0 0 1 5.82 0c2.22-1.5 3.2-1.18 3.2-1.18.63 1.59.23 2.77.11 3.06.75.81 1.2 1.84 1.2 3.1 0 4.43-2.7 5.4-5.27 5.69.42.36.78 1.08.78 2.17v3.22c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            <span className="text-[13px] font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              {stars !== null && stars > 0 ? `${stars.toLocaleString()} stars on GitHub` : 'Star LavaMesh on GitHub'}
+            </span>
           </a>
         </div>
       </div>

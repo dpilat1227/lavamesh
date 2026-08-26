@@ -1,9 +1,12 @@
+// `key: true` marks the rows that carry the actual argument. On a phone those
+// show up front and the rest collapse behind an expander — ten stacked cards
+// buries the punchline under a scroll.
 const rows = [
-  { feature: 'Pricing',        lava: '$19/mo flat / $149 lifetime', tail: '$6–18 per user/mo',  head: 'Free (DIY)' },
-  { feature: '50-device fleet',lava: '$19/mo',                   tail: '$300–900/mo',         head: 'CLI grind', tailBad: true, headBad: true },
+  { feature: 'Pricing',        lava: '$19/mo flat / $149 lifetime', tail: '$6–18 per user/mo',  head: 'Free (DIY)', key: true },
+  { feature: '50-device fleet',lava: '$19/mo',                   tail: '$300–900/mo',         head: 'CLI grind', tailBad: true, headBad: true, key: true },
   { feature: 'Per-seat fees',  lava: 'Never',                    tail: 'Always',              head: 'Never',    tailBad: true },
-  { feature: 'Web UI',         lava: 'Beautiful dashboard',      tail: 'Basic',               head: 'None',     headBad: true },
-  { feature: 'Self-hosted',    lava: 'Full control',             tail: 'Cloud only',          head: 'Full control', tailBad: true },
+  { feature: 'Web UI',         lava: 'Beautiful dashboard',      tail: 'Basic',               head: 'None',     headBad: true, key: true },
+  { feature: 'Self-hosted',    lava: 'Full control',             tail: 'Cloud only',          head: 'Full control', tailBad: true, key: true },
   { feature: 'Key management', lava: 'Dashboard',                tail: 'Dashboard',           head: 'CLI only', headBad: true },
   { feature: 'ACL editor',     lava: 'Visual + HuJSON',          tail: 'Visual',              head: 'File edit only', headBad: true },
   { feature: 'Audit log',      lava: 'Pro tier',                 tail: 'Teams+ only',         head: 'None',     headBad: true },
@@ -29,7 +32,7 @@ function Cross() {
 
 export default function ComparisonSection() {
   return (
-    <section style={{ padding: '0 24px 120px' }}>
+    <section style={{ padding: '0 24px clamp(64px, 9vw, 120px)' }}>
       <div style={{ maxWidth: 960, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-16">
@@ -112,33 +115,56 @@ export default function ComparisonSection() {
           </div>
         </div>
 
-        {/* Mobile: stacked cards — one per feature, no horizontal scroll needed */}
+        {/* Mobile: lead with the rows that make the argument, collapse the rest.
+            <details> keeps this a server component — no state, and it's
+            keyboard-accessible for free. */}
         <div className="comparison-mobile" style={{ display: 'none', flexDirection: 'column', gap: 10 }}>
-          {rows.map((row) => (
-            <div key={row.feature} style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: '#080808', overflow: 'hidden' }}>
-              <div style={{ padding: '11px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <span className="text-[12px] font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>{row.feature}</span>
-              </div>
-              <div style={{ padding: '10px 14px', background: 'rgba(255,115,0,0.04)', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span className="text-[11px] font-bold w-[92px] flex-shrink-0" style={{ color: '#ff7300' }}>LavaMesh</span>
-                <Check />
-                <span className="text-[12.5px] font-medium" style={{ color: 'white' }}>{row.lava}</span>
-              </div>
-              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                <span className="text-[11px] font-semibold w-[92px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>Tailscale</span>
-                {row.tailBad ? <Cross /> : <Check />}
-                <span className="text-[12.5px]" style={{ color: row.tailBad ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)' }}>{row.tail}</span>
-              </div>
-              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="text-[11px] font-semibold w-[92px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>Headscale</span>
-                {row.headBad ? <Cross /> : <Check />}
-                <span className="text-[12.5px]" style={{ color: row.headBad ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)' }}>{row.head}</span>
-              </div>
+          {rows.filter(r => r.key).map(row => <MobileRow key={row.feature} row={row} />)}
+
+          <details className="comparison-details">
+            <summary
+              className="text-[13px] font-semibold"
+              style={{
+                listStyle: 'none', cursor: 'pointer', textAlign: 'center',
+                padding: '13px 14px', borderRadius: 12,
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.03)',
+                color: 'rgba(255,255,255,0.72)',
+              }}>
+              See full comparison
+            </summary>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 10 }}>
+              {rows.filter(r => !r.key).map(row => <MobileRow key={row.feature} row={row} />)}
             </div>
-          ))}
+          </details>
         </div>
 
       </div>
     </section>
+  );
+}
+
+function MobileRow({ row }: { row: (typeof rows)[number] }) {
+  return (
+    <div style={{ borderRadius: 14, border: '1px solid rgba(255,255,255,0.07)', background: '#080808', overflow: 'hidden' }}>
+      <div style={{ padding: '11px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <span className="text-[12px] font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>{row.feature}</span>
+      </div>
+      <div style={{ padding: '10px 14px', background: 'rgba(255,115,0,0.04)', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <span className="text-[11px] font-bold w-[92px] flex-shrink-0" style={{ color: '#ff7300' }}>LavaMesh</span>
+        <Check />
+        <span className="text-[12.5px] font-medium" style={{ color: 'white' }}>{row.lava}</span>
+      </div>
+      <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <span className="text-[11px] font-semibold w-[92px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>Tailscale</span>
+        {row.tailBad ? <Cross /> : <Check />}
+        <span className="text-[12.5px]" style={{ color: row.tailBad ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)' }}>{row.tail}</span>
+      </div>
+      <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span className="text-[11px] font-semibold w-[92px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>Headscale</span>
+        {row.headBad ? <Cross /> : <Check />}
+        <span className="text-[12.5px]" style={{ color: row.headBad ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.55)' }}>{row.head}</span>
+      </div>
+    </div>
   );
 }

@@ -67,7 +67,7 @@ const features = [
 
 export default function FeatureGrid() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+    <div className="feature-grid">
       {features.map((f, i) => (
         <div
           key={f.title}
