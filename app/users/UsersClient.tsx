@@ -1,7 +1,14 @@
 'use client';
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { createUserAction, deleteUserAction, renameUserAction } from '@/app/actions';
-import { Badge, Button, Modal, ModalHeader, PageHeader, SplitView, ContextSection, InsightCard, HealthMeter } from '@/components/ui';
+import { Badge, Button, ConfirmDialog, Modal, ModalHeader, PageHeader, SplitView, ContextSection, InsightCard, HealthMeter } from '@/components/ui';
+
+interface NodeSummary {
+  id: string;
+  givenName: string;
+  online: boolean;
+  lastSeen: string;
+}
 
 interface User {
   name: string;
@@ -9,68 +16,34 @@ interface User {
   nodeCount?: number;
 }
 
-function UserRow({ user, onDelete, onRename, highlighted, totalNodes }: { user: User; onDelete: () => void; onRename: (newName: string) => void; highlighted?: boolean; totalNodes: number }) {
-  const [isPending, startTransition] = useTransition();
-  const [mode, setMode] = useState<'idle' | 'rename' | 'delete'>('idle');
-  const [newName, setNewName] = useState(user.name);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+function formatDate(d?: string) {
+  if (!d || d.startsWith('0001')) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, [menuOpen]);
-
-  const formatDate = (d?: string) => {
-    if (!d || d.startsWith('0001')) return '—';
-    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  const doRename = () => {
-    if (!newName.trim() || newName === user.name) return setMode('idle');
-    startTransition(async () => {
-      await renameUserAction(user.name, newName.trim());
-      onRename(newName.trim());
-      setMode('idle');
-    });
-  };
-
-  const doDelete = () => {
-    startTransition(async () => {
-      await deleteUserAction(user.name);
-      onDelete();
-    });
-  };
-
+function UserRow({ user, selected, highlighted, onSelect }: { user: User; selected: boolean; highlighted?: boolean; onSelect: () => void }) {
   return (
-    <div id={`user-row-${user.name}`} className="animate-fade-in flex items-center justify-between px-8 py-4 table-row-hover row-alt"
-      style={{ borderBottom: '1px solid var(--border-1)', position: 'relative', zIndex: menuOpen ? 20 : 1, background: highlighted ? 'rgba(255,107,26,0.08)' : undefined, transition: 'background 0.8s ease' }}>
-
+    <div
+      id={`user-row-${user.name}`}
+      onClick={onSelect}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } }}
+      role="button"
+      tabIndex={0}
+      className="animate-fade-in flex items-center justify-between px-8 py-4 cursor-pointer table-row-hover row-alt focus-ring lift-row-hover"
+      style={{
+        borderBottom: '1px solid var(--border-1)',
+        borderLeft: selected ? '2px solid var(--orange)' : '2px solid transparent',
+        background: highlighted ? 'rgba(255,115,0,0.08)' : selected ? 'rgba(255,115,0,0.04)' : undefined,
+        transition: 'background 0.8s ease',
+      }}
+    >
       {/* Left: Name */}
       <div className="flex items-center gap-3 min-w-0 flex-1 pr-4">
         <div className="w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0 font-semibold text-[13px]"
-          style={{ background: 'rgba(255,90,0,0.08)', border: '1px solid rgba(255,90,0,0.15)', color: 'var(--orange)' }}>
+          style={{ background: 'rgba(255,115,0,0.08)', border: '1px solid rgba(255,115,0,0.15)', color: 'var(--orange)' }}>
           {user.name[0]?.toUpperCase()}
         </div>
-        {mode === 'rename' ? (
-          <div className="flex items-center gap-2 flex-1">
-            <input
-              className="input text-[13px] py-1.5"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') doRename(); if (e.key === 'Escape') setMode('idle'); }}
-              autoFocus
-            />
-            <Button variant="primary" onClick={doRename} disabled={isPending} className="text-[12px] px-3 py-1.5">{isPending ? '…' : 'Save'}</Button>
-            <Button variant="ghost" onClick={() => setMode('idle')} className="text-[12px] px-2.5 py-1.5">Cancel</Button>
-          </div>
-        ) : (
-          <p className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{user.name}</p>
-        )}
+        <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-1)' }}>{user.name}</p>
       </div>
 
       {/* Right: Packed Metadata */}
@@ -80,72 +53,134 @@ function UserRow({ user, onDelete, onRename, highlighted, totalNodes }: { user: 
         </div>
         <div className="w-[100px]">
           {typeof user.nodeCount === 'number' ? (
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-3)' }}>{user.nodeCount} node{user.nodeCount !== 1 ? 's' : ''}</span>
-              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)', maxWidth: 72 }}>
-                <div style={{
-                  width: `${Math.min(100, (user.nodeCount / Math.max(totalNodes, 1)) * 100)}%`,
-                  height: '100%',
-                  background: user.nodeCount > 0 ? 'var(--green)' : 'transparent',
-                }} />
-              </div>
-            </div>
+            user.nodeCount > 0 ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold tabular-nums"
+                style={{ color: 'var(--text-accent)', background: 'color-mix(in srgb, var(--text-accent) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--text-accent) 28%, transparent)' }}
+              >
+                {user.nodeCount} node{user.nodeCount !== 1 ? 's' : ''}
+              </span>
+            ) : (
+              <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>0 nodes</span>
+            )
           ) : (
             <span className="text-[12px]" style={{ color: 'var(--text-4)' }}>—</span>
           )}
         </div>
-
-        {/* Actions */}
-        <div ref={menuRef} className="flex justify-end relative">
-          {mode === 'delete' ? (
-            <>
-              <Button variant="ghost" onClick={() => setMode('idle')} className="text-[11px] px-2.5 py-1.5">Cancel</Button>
-              <Button variant="danger" onClick={doDelete} disabled={isPending} className="text-[11px] px-2.5 py-1.5">{isPending ? '…' : 'Confirm Delete'}</Button>
-            </>
-          ) : mode === 'idle' ? (
-            <>
-              <button
-                onClick={(e) => { e.stopPropagation(); setMenuOpen(o => !o); }}
-                className="btn btn-ghost px-2 py-1.5"
-                style={{ minWidth: 'unset' }}
-                aria-label={`Actions for ${user.name}`}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" />
-                </svg>
-              </button>
-              {menuOpen && (
-                <div className="animate-scale-in glass-menu" style={{
-                  position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 50,
-                  padding: '4px 0', minWidth: 140,
-                }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMode('rename'); }}
-                    className="w-full text-left px-3 py-2 text-[12px] font-medium"
-                    style={{ color: 'var(--text-2)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  >
-                    Rename
-                  </button>
-                  <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setMenuOpen(false); setMode('delete'); }}
-                    className="w-full text-left px-3 py-2 text-[12px] font-medium"
-                    style={{ color: 'var(--red)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.06)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  >
-                    Delete User
-                  </button>
-                </div>
-              )}
-            </>
-          ) : null}
+        <div className="w-[24px] flex justify-end">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--text-4)', transform: selected ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s ease' }}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Pane selected state, mirroring the Nodes tab's inspector pattern: name +
+ *  rename affordance up top, key facts, this namespace's nodes, then the one
+ *  destructive action — all in one place instead of splitting Rename into a
+ *  row-level menu and Delete into another. */
+function UserInspector({ user, nodes, onClose, onRename, onDelete }: { user: User; nodes: NodeSummary[]; onClose: () => void; onRename: (name: string) => void; onDelete: () => void }) {
+  const [renaming, setRenaming] = useState(false);
+  const [newName, setNewName] = useState(user.name);
+  const [renamePending, startRenameTransition] = useTransition();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [renameError, setRenameError] = useState('');
+
+  const doRename = () => {
+    const trimmed = newName.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    if (!trimmed || trimmed === user.name) return setRenaming(false);
+    setRenameError('');
+    startRenameTransition(async () => {
+      try {
+        await renameUserAction(user.name, trimmed);
+        onRename(trimmed);
+        setRenaming(false);
+      } catch (e: any) {
+        setRenameError(e?.message || 'Failed to rename');
+      }
+    });
+  };
+
+  const doDelete = async () => {
+    await deleteUserAction(user.name);
+    onDelete();
+  };
+
+  const onlineCount = nodes.filter(n => n.online).length;
+
+  return (
+    <div className="rounded-[12px] overflow-hidden flex flex-col" style={{ background: 'var(--surface-card)', border: '1px solid rgba(255,115,0,0.15)' }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
+        {renaming ? (
+          <div className="flex items-center gap-2 flex-1 mr-2">
+            <input className="input text-[13px] py-1" value={newName} onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') doRename(); if (e.key === 'Escape') setRenaming(false); }} autoFocus />
+            <button onClick={doRename} disabled={renamePending} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--green)', fontSize: 11, flexShrink: 0 }}>{renamePending ? '…' : 'Save'}</button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-1)' }}>{user.name}</h3>
+            <button onClick={() => { setNewName(user.name); setRenaming(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 2, flexShrink: 0 }} aria-label="Rename user">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+            </button>
+          </div>
+        )}
+        <button onClick={onClose} style={{ color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: 4, flexShrink: 0 }} aria-label="Deselect user" title="Deselect">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+        </button>
+      </div>
+
+      <div className="p-4 space-y-5">
+        {renameError && <p className="text-[11px]" style={{ color: 'var(--red)' }}>{renameError}</p>}
+
+        <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-4)' }}>Created</p>
+            <p className="text-[13px]" style={{ color: 'var(--text-2)' }}>{formatDate(user.createdAt)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-4)' }}>Nodes</p>
+            <p className="text-[13px]" style={{ color: 'var(--text-2)' }}>{nodes.length === 0 ? 'None yet' : `${onlineCount}/${nodes.length} online`}</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>Devices in this namespace</p>
+          {nodes.length === 0 ? (
+            <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>No nodes yet — generate a key for this user on the Keys tab.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {nodes.map(n => (
+                <div key={n.id} className="flex items-center gap-2 px-2.5 py-2 rounded-[8px]" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
+                  <span className={`status-dot ${n.online ? 'online' : 'offline'}`} />
+                  <span className="text-[12.5px] truncate flex-1" style={{ color: 'var(--text-2)' }}>{n.givenName}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Button variant="danger" onClick={() => setConfirmingDelete(true)} className="w-full justify-center text-[12px]">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" /></svg>
+          Delete User
+        </Button>
+      </div>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Delete user"
+        description={
+          nodes.length > 0
+            ? <>Delete <strong style={{ color: 'var(--text-1)' }}>{user.name}</strong>? It still owns {nodes.length} node{nodes.length !== 1 ? 's' : ''} — deleting the namespace won&apos;t remove them from the mesh, but they&apos;ll lose their owner.</>
+            : <>Delete <strong style={{ color: 'var(--text-1)' }}>{user.name}</strong>? This can&apos;t be undone.</>
+        }
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={doDelete}
+        onClose={() => setConfirmingDelete(false)}
+      />
     </div>
   );
 }
@@ -195,12 +230,16 @@ function AddUserModal({ open, onClose, onAdded }: { open: boolean; onClose: () =
   );
 }
 
-export default function UsersClient({ users, nodeCounts }: { users: User[]; nodeCounts: Record<string, number> }) {
+export default function UsersClient({ users, nodeCounts, nodesByUser = {} }: { users: User[]; nodeCounts: Record<string, number>; nodesByUser?: Record<string, NodeSummary[]> }) {
   const [localUsers, setLocalUsers] = useState(users.map(u => ({ ...u, nodeCount: nodeCounts[u.name] ?? 0 })));
   const [showAdd, setShowAdd] = useState(false);
   const [highlightedUser, setHighlightedUser] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
+
+  useEffect(() => { setLocalUsers(users.map(u => ({ ...u, nodeCount: nodeCounts[u.name] ?? 0 }))); }, [users, nodeCounts]);
 
   const totalNodes = Object.values(nodeCounts).reduce((a, b) => a + b, 0);
+  const selectedUser = localUsers.find(u => u.name === selectedUserName) || null;
 
   const focusUser = (name: string) => {
     document.getElementById(`user-row-${name}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -209,12 +248,16 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
   };
 
   const table = (
-    <div className="flex flex-col min-h-0 relative h-full">
+    <div className="flex flex-col min-h-0 relative">
       <div className="flex-shrink-0 pb-3 px-8">
         <HealthMeter
           segments={[
-            { label: 'with nodes', count: localUsers.filter(u => (u.nodeCount ?? 0) > 0).length, color: 'var(--green)' },
-            { label: 'empty', count: localUsers.filter(u => (u.nodeCount ?? 0) === 0).length, color: 'var(--amber)' },
+            /* "Empty" (no nodes yet) isn't a warning — it's a neutral, expected
+               state for a brand-new invite — so it gets the same deepened blue
+               as the Keys bar instead of amber, which reads as "something's
+               wrong" and clashed sitting next to green anyway. */
+            { label: 'with nodes', count: localUsers.filter(u => (u.nodeCount ?? 0) > 0).length, color: '#22d98a' },
+            { label: 'empty', count: localUsers.filter(u => (u.nodeCount ?? 0) === 0).length, color: '#3b82f6' },
           ]}
         />
       </div>
@@ -223,10 +266,10 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
         <div className="flex items-center flex-shrink-0">
           <span className="text-[11px] font-semibold uppercase tracking-wider w-[140px]" style={{ color: 'var(--text-3)' }}>Created</span>
           <span className="text-[11px] font-semibold uppercase tracking-wider w-[100px]" style={{ color: 'var(--text-3)' }}>Nodes</span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider w-[50px] text-right" style={{ color: 'var(--text-3)' }}>Action</span>
+          <span className="w-[24px]"></span>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
+      <div className="pt-1">
         {localUsers.length === 0 ? (
           <div
             className="flex flex-col items-center justify-center text-center py-16 px-8 gap-4 my-4"
@@ -241,10 +284,9 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
             <UserRow
               key={u.name}
               user={u}
-              totalNodes={totalNodes}
+              selected={selectedUserName === u.name}
               highlighted={highlightedUser === u.name}
-              onDelete={() => setLocalUsers(prev => prev.filter(x => x.name !== u.name))}
-              onRename={newName => setLocalUsers(prev => prev.map(x => x.name === u.name ? { ...x, name: newName } : x))}
+              onSelect={() => setSelectedUserName(prev => prev === u.name ? null : u.name)}
             />
           ))
         )}
@@ -254,7 +296,7 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
 
   const emptyNamespaces = localUsers.filter(u => (u.nodeCount ?? 0) === 0);
 
-  const pane = (
+  const defaultPane = (
     <>
       <InsightCard
         title="Needs Attention"
@@ -270,16 +312,16 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
         title="About Users &amp; Namespaces"
         collapsible
         items={[
-          { title: 'Namespaces', desc: 'Each user is a namespace that owns nodes and keys. Use namespaces to organize devices by team, environment, or purpose.', icon: '📁', color: '#FF5A00' },
+          { title: 'Namespaces', desc: 'Each user is a namespace that owns nodes and keys. Use namespaces to organize devices by team, environment, or purpose.', icon: '📁', color: '#ff7300' },
           { title: 'Access Control', desc: 'Nodes within the same namespace can communicate freely. Cross-namespace access is managed through ACL policies (Pro).', icon: '🔒', color: '#8B5CF6' },
-          { title: 'Node Ownership', desc: 'When a node joins using a key tied to a specific user, it belongs to that namespace. Reassignment requires re-registration.', icon: '🖥️', color: '#34D399' },
+          { title: 'Node Ownership', desc: 'When a node joins using a key tied to a specific user, it belongs to that namespace. Reassignment requires re-registration.', icon: '🖥️', color: '#3ddc84' },
         ]}
       />
     </>
   );
 
   return (
-    <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
+    <div className="flex flex-col h-full relative overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
       <AddUserModal
         open={showAdd}
         onClose={() => setShowAdd(false)}
@@ -298,7 +340,29 @@ export default function UsersClient({ users, nodeCounts }: { users: User[]; node
         }
       />
 
-      <SplitView main={table} pane={pane} />
+      <SplitView
+        scroll="page"
+        autoOpenSignal={selectedUserName}
+        main={table}
+        pane={
+          selectedUser ? (
+            <UserInspector
+              key={selectedUser.name}
+              user={selectedUser}
+              nodes={nodesByUser[selectedUser.name] || []}
+              onClose={() => setSelectedUserName(null)}
+              onRename={newName => {
+                setLocalUsers(prev => prev.map(x => x.name === selectedUser.name ? { ...x, name: newName } : x));
+                setSelectedUserName(newName);
+              }}
+              onDelete={() => {
+                setLocalUsers(prev => prev.filter(x => x.name !== selectedUser.name));
+                setSelectedUserName(null);
+              }}
+            />
+          ) : defaultPane
+        }
+      />
     </div>
   );
 }

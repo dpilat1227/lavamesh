@@ -19,24 +19,62 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-export default function UptimeGraph({ logs }: { logs: Log[] }) {
-  // Aggregate data by hour to create a clean trend line
-  const aggregatedData = logs.reduce((acc: any, log: Log) => {
-    const hour = new Date(log.createdAt).setMinutes(0, 0, 0); // round to hour
-    if (!acc[hour]) {
-      acc[hour] = { time: hour, total: 0, online: 0 };
-    }
+function aggregateUptime(logs: Log[]) {
+  const aggregated = logs.reduce((acc: any, log: Log) => {
+    const hour = new Date(log.createdAt).setMinutes(0, 0, 0);
+    if (!acc[hour]) acc[hour] = { time: hour, total: 0, online: 0 };
     acc[hour].total += 1;
     if (log.isOnline) acc[hour].online += 1;
     return acc;
   }, {});
-
-  const data = Object.values(aggregatedData)
+  return Object.values(aggregated)
     .sort((a: any, b: any) => a.time - b.time)
     .map((d: any) => ({
       time: new Date(d.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       uptime: (d.online / d.total) * 100,
     }));
+}
+
+/**
+ * Chart-body-only variant, no header/callout/card wrapper — for embedding directly
+ * into the StatsHero panel's trailing space instead of a second stacked box below it.
+ * Renders nothing if there isn't enough data for a meaningful line, so the hero
+ * panel's layout doesn't need to reserve space defensively.
+ */
+export function UptimeSparkline({ logs, height = 64 }: { logs: Log[]; height?: number }) {
+  const data = aggregateUptime(logs) as { time: string; uptime: number }[];
+  if (data.length < 2) return null;
+
+  return (
+    <div className="flex-1 min-w-[120px]" style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 4, right: 2, left: 2, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorUptimeSpark" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.25} />
+              <stop offset="65%" stopColor="var(--chart-1)" stopOpacity={0.04} />
+              <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'var(--border-2)', strokeWidth: 1 }} />
+          <Area
+            type="monotone"
+            dataKey="uptime"
+            stroke="var(--chart-1)"
+            strokeWidth={1.75}
+            fillOpacity={1}
+            fill="url(#colorUptimeSpark)"
+            animationDuration={900}
+            animationEasing="ease-out"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export default function UptimeGraph({ logs }: { logs: Log[] }) {
+  const data = aggregateUptime(logs) as { time: string; uptime: number }[];
 
   // Trend: second half of the window vs. first half, so the headline number
   // isn't just "current" but reflects direction — Copilot Money's cash-flow-delta pattern.
@@ -51,7 +89,7 @@ export default function UptimeGraph({ logs }: { logs: Log[] }) {
     return (
       <div
         className="w-full h-[160px] flex items-center justify-center mb-6 lift-on-hover"
-        style={{ borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-1)', background: 'rgba(255,255,255,0.02)' }}
+        style={{ borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-1)', background: 'var(--surface-card)' }}
       >
         <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>Waiting for uptime data…</p>
       </div>
@@ -61,7 +99,7 @@ export default function UptimeGraph({ logs }: { logs: Log[] }) {
   return (
     <div
       className="w-full h-[160px] mb-6 p-5 relative overflow-hidden lift-on-hover"
-      style={{ borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-1)', background: 'rgba(255,255,255,0.02)' }}
+      style={{ borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-1)', background: 'var(--surface-card)' }}
     >
       <div className="flex items-start justify-between relative z-10">
         <div>

@@ -45,9 +45,9 @@ export default function HeroAnimation() {
         </filter>
         {/* Animated gradient line */}
         <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="rgba(255,90,0,0)" />
-          <stop offset="50%" stopColor="rgba(255,90,0,0.6)" />
-          <stop offset="100%" stopColor="rgba(255,90,0,0)" />
+          <stop offset="0%" stopColor="rgba(255,115,0,0)" />
+          <stop offset="50%" stopColor="rgba(255,115,0,0.6)" />
+          <stop offset="100%" stopColor="rgba(255,115,0,0)" />
         </linearGradient>
         {/* Packet animation */}
         <style>{`
@@ -86,8 +86,8 @@ export default function HeroAnimation() {
       </defs>
 
       {/* Background radial glow behind exit node */}
-      <circle cx="400" cy="230" r="120" fill="rgba(255,90,0,0.04)" className="svg-enter" style={{ animationDelay: '0.5s' }} />
-      <circle cx="400" cy="230" r="70" fill="rgba(255,90,0,0.06)" className="svg-enter" style={{ animationDelay: '0.7s' }} />
+      <circle cx="400" cy="230" r="120" fill="rgba(255,115,0,0.04)" className="svg-enter" style={{ animationDelay: '0.5s' }} />
+      <circle cx="400" cy="230" r="70" fill="rgba(255,115,0,0.06)" className="svg-enter" style={{ animationDelay: '0.7s' }} />
 
       {/* Edges */}
       {EDGES.map(([aId, bId], i) => {
@@ -100,13 +100,13 @@ export default function HeroAnimation() {
             {/* Base line */}
             <line
               x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-              stroke={isExitEdge ? 'rgba(255,90,0,0.12)' : 'rgba(255,255,255,0.05)'}
+              stroke={isExitEdge ? 'rgba(255,115,0,0.12)' : 'rgba(255,255,255,0.05)'}
               strokeWidth={isExitEdge ? 1.5 : 1}
             />
             {/* Animated dashed overlay */}
             <line
               x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-              stroke={isExitEdge ? 'rgba(255,90,0,0.35)' : 'rgba(255,255,255,0.12)'}
+              stroke={isExitEdge ? 'rgba(255,115,0,0.35)' : 'rgba(255,255,255,0.12)'}
               strokeWidth={isExitEdge ? 1.5 : 1}
               strokeDasharray="20 180"
               style={{
@@ -123,7 +123,7 @@ export default function HeroAnimation() {
         const isExit = node.type === 'exit';
         const floatAnim = ['float-a','float-b','float-c'][i % 3];
         const r = isExit ? 10 : 6;
-        const color = !node.online ? 'rgba(255,255,255,0.2)' : isExit ? '#FF5A00' : '#34d399';
+        const color = !node.online ? 'rgba(255,255,255,0.2)' : isExit ? '#ff7300' : '#3ddc84';
         const glowId = isExit ? 'glow-orange' : 'glow-green';
 
         return (
@@ -141,7 +141,7 @@ export default function HeroAnimation() {
               <circle
                 cx={node.x} cy={node.y}
                 fill="none"
-                stroke={isExit ? 'rgba(255,90,0,0.2)' : 'rgba(52,211,153,0.2)'}
+                stroke={isExit ? 'rgba(255,115,0,0.2)' : 'rgba(61,220,132,0.2)'}
                 strokeWidth="1"
                 style={{
                   animation: `node-pulse ${2 + (i % 2)}s ease-in-out ${i * 0.4}s infinite`,
@@ -152,7 +152,7 @@ export default function HeroAnimation() {
             {/* Node circle */}
             <circle
               cx={node.x} cy={node.y} r={r}
-              fill={isExit ? '#FF5A00' : node.online ? 'rgba(52,211,153,0.9)' : 'rgba(255,255,255,0.15)'}
+              fill={isExit ? '#ff7300' : node.online ? 'rgba(61,220,132,0.9)' : 'rgba(255,255,255,0.15)'}
               filter={node.online ? `url(#${glowId})` : undefined}
             />
             {/* Inner dot */}
@@ -178,7 +178,7 @@ export default function HeroAnimation() {
                 x={node.x}
                 y={node.y - r - 8}
                 textAnchor="middle"
-                fill="rgba(255,90,0,0.7)"
+                fill="rgba(255,115,0,0.7)"
                 fontSize="8"
                 fontFamily="'Inter', sans-serif"
                 fontWeight="600"

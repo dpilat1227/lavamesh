@@ -87,7 +87,7 @@ function emailShell(heading: string, accentColor: string, bodyHtml: string): str
       </div>
       <h2 style="color: ${accentColor}; font-size: 20px; margin: 0 0 12px;">${heading}</h2>
       ${bodyHtml}
-      <a href="https://www.lavamesh.com/dashboard" style="display: inline-block; margin-top: 16px; padding: 10px 20px; background: #FF5A00; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Open Dashboard →</a>
+      <a href="https://www.lavamesh.com/dashboard" style="display: inline-block; margin-top: 16px; padding: 10px 20px; background: #ff7300; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">Open Dashboard →</a>
     </div>
   `;
 }
@@ -149,7 +149,7 @@ export async function sendTestAlert(): Promise<{ email: boolean; webhook: boolea
           'LavaMesh test alert',
           emailShell(
             'Test Alert',
-            '#FF5A00',
+            '#ff7300',
             '<p style="color: #a3a3a3; margin: 0 0 12px;">If you can read this, email alerts are working.</p>'
           ),
           config

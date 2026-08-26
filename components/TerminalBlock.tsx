@@ -53,12 +53,12 @@ export default function TerminalBlock() {
       <div className="px-5 py-5">
         {/* Prompt line */}
         <div className="flex items-center gap-2 mb-3">
-          <span style={{ color: 'rgba(52,211,153,0.8)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>drew@lavamesh</span>
+          <span style={{ color: 'rgba(61,220,132,0.8)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>drew@lavamesh</span>
           <span style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>~</span>
           <span style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>$</span>
           <span style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>
             {displayed}
-            <span style={{ opacity: cursor ? 1 : 0, color: '#FF5A00' }}>▌</span>
+            <span style={{ opacity: cursor ? 1 : 0, color: '#ff7300' }}>▌</span>
           </span>
         </div>
 
@@ -66,11 +66,11 @@ export default function TerminalBlock() {
         {done && (
           <div className="space-y-1 mt-2 animate-fade-in">
             <p style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>Downloading LavaMesh installer...</p>
-            <p style={{ color: 'rgba(52,211,153,0.7)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>✓ Tailscale installed</p>
-            <p style={{ color: 'rgba(52,211,153,0.7)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>✓ Joining mesh network...</p>
-            <p style={{ color: '#FF5A00', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500 }}>✓ Connected · 100.64.0.5 assigned</p>
+            <p style={{ color: 'rgba(61,220,132,0.7)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>✓ Tailscale installed</p>
+            <p style={{ color: 'rgba(61,220,132,0.7)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>✓ Joining mesh network...</p>
+            <p style={{ color: '#ff7300', fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 500 }}>✓ Connected · 100.64.0.5 assigned</p>
             <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <span style={{ color: 'rgba(52,211,153,0.8)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>drew@lavamesh</span>
+              <span style={{ color: 'rgba(61,220,132,0.8)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>drew@lavamesh</span>
               <span style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', fontSize: 13 }}> ~ </span>
               <span style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono)', fontSize: 13 }}>$</span>
               <span style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)', fontSize: 13 }}> _</span>

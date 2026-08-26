@@ -45,10 +45,10 @@ export default function AclEditor({ initialPolicy, policyAvailable }: { initialP
           className="w-full px-4 py-3 rounded-[12px] text-[12px] leading-relaxed resize-none focus:outline-none transition-all"
           style={{
             background: 'rgba(0,0,0,0.5)',
-            border: `1px solid ${isDirty ? 'rgba(255,90,0,0.3)' : 'var(--border-2)'}`,
+            border: `1px solid ${isDirty ? 'rgba(255,115,0,0.3)' : 'var(--border-2)'}`,
             color: 'var(--text-2)',
             fontFamily: 'var(--font-mono)',
-            boxShadow: isDirty ? '0 0 0 3px rgba(255,90,0,0.06)' : 'none',
+            boxShadow: isDirty ? '0 0 0 3px rgba(255,115,0,0.06)' : 'none',
           }}
           spellCheck={false}
         />

@@ -15,7 +15,7 @@ export function Card({ children, accent, className = '', style, padded = true }:
   return (
     <div
       className={`rounded-[12px] overflow-hidden ${className}`}
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', ...style }}
+      style={{ background: 'var(--surface-card)', border: '1px solid var(--border-1)', ...style }}
     >
       {accent && (
         <div style={{ height: 2, background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />

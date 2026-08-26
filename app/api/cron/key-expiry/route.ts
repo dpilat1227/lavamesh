@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   try {
     const users: any[] = await getUsers().catch(() => []);
     const userNames = users.map((u: any) => u.name).filter(Boolean);
-    if (!userNames.includes('admin')) userNames.unshift('admin');
+    if (userNames.length === 0) userNames.push('admin');
 
     const nested = await Promise.all(
       userNames.map((name: string) => listPreAuthKeys(name).catch(() => []))
@@ -53,7 +53,8 @@ export async function GET(req: NextRequest) {
     if (expiringSoon.length > 0) {
       await sendKeyExpiringAlert(
         expiringSoon.map((k: any) => ({
-          user: k.user?.name || 'admin',
+          // Headscale returns `user` as a plain username string, not {name}.
+          user: k.user || 'admin',
           keyPrefix: k.key.slice(0, 8),
           expiresAt: k.expiration,
         }))

@@ -44,8 +44,8 @@ export default function LoginForm({
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: '#000' }}>
       <div className="absolute inset-0 pointer-events-none">
-        <div className="animate-mesh absolute" style={{ top: '-20%', left: '-20%', width: '70%', height: '70%', background: 'radial-gradient(circle, rgba(255,90,0,0.12) 0%, transparent 70%)', borderRadius: '50%' }} />
-        <div className="animate-mesh absolute" style={{ bottom: '-20%', right: '-20%', width: '60%', height: '60%', background: 'radial-gradient(circle, rgba(255,90,0,0.07) 0%, transparent 70%)', borderRadius: '50%', animationDelay: '-10s' }} />
+        <div className="animate-mesh absolute" style={{ top: '-20%', left: '-20%', width: '70%', height: '70%', background: 'radial-gradient(circle, rgba(255,115,0,0.12) 0%, transparent 70%)', borderRadius: '50%' }} />
+        <div className="animate-mesh absolute" style={{ bottom: '-20%', right: '-20%', width: '60%', height: '60%', background: 'radial-gradient(circle, rgba(255,115,0,0.07) 0%, transparent 70%)', borderRadius: '50%', animationDelay: '-10s' }} />
         <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
@@ -57,14 +57,14 @@ export default function LoginForm({
       </div>
 
       <div className="animate-scale-in w-full max-w-[380px] mx-4 relative z-10">
-        <div className="glass-strong rounded-[20px] p-8" style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06), 0 0 80px rgba(255,90,0,0.06)' }}>
+        <div className="glass-strong rounded-[20px] p-8" style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06), 0 0 80px rgba(255,115,0,0.06)' }}>
           <div className="flex flex-col items-center mb-8">
             <div className="animate-float mb-5">
               <div
                 className="w-14 h-14 rounded-[16px] flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #1a0802 0%, #3a1405 100%)', border: '1px solid rgba(255,90,0,0.35)', boxShadow: '0 0 30px rgba(255,90,0,0.25), 0 0 0 6px rgba(255,90,0,0.05)' }}
+                style={{ background: 'linear-gradient(135deg, #1a0802 0%, #3a1405 100%)', border: '1px solid rgba(255,115,0,0.35)', boxShadow: '0 0 30px rgba(255,115,0,0.25), 0 0 0 6px rgba(255,115,0,0.05)' }}
               >
-                <svg className="w-7 h-7" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-7 h-7" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
                 </svg>
               </div>
@@ -116,7 +116,7 @@ export default function LoginForm({
                 type="submit"
                 disabled={loading || !email || (mode === 'password' && !password)}
                 className="btn btn-primary w-full justify-center"
-                style={{ padding: '11px 16px', fontSize: '14px', borderRadius: '12px', opacity: (!email || loading || (mode === 'password' && !password)) ? 0.6 : 1 }}
+                style={{ padding: '11px 16px', fontSize: '14px', borderRadius: '12px' }}
               >
                 {loading ? (
                   <>
@@ -128,6 +128,12 @@ export default function LoginForm({
                   </>
                 ) : mode === 'password' ? 'Sign in' : 'Continue with Email'}
               </button>
+
+              {mode === 'magic' && (
+                <p className="text-center text-[11px]" style={{ color: 'var(--text-4)' }}>
+                  New here? Just enter your email — we&apos;ll create your account automatically.
+                </p>
+              )}
 
               {allowPassword && (
                 <button
@@ -142,7 +148,7 @@ export default function LoginForm({
             </form>
           ) : (
             <div className="text-center animate-fade-in">
-              <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399' }}>
+              <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(61,220,132,0.1)', color: '#3ddc84' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>

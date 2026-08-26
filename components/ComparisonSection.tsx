@@ -13,7 +13,7 @@ const rows = [
 
 function Check() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3ddc84" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -39,7 +39,7 @@ export default function ComparisonSection() {
           {/* Price callout — lead with the punchline */}
           <p className="mb-5" style={{ fontSize: 'clamp(16px, 2.5vw, 20px)', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
             50 devices on Tailscale Business = <span style={{ color: '#f87171', fontWeight: 700 }}>$450/month</span>
-            {' '}→ LavaMesh Pro = <span style={{ color: '#34d399', fontWeight: 700 }}>$19/month flat</span>
+            {' '}→ LavaMesh Pro = <span style={{ color: '#3ddc84', fontWeight: 700 }}>$19/month flat</span>
           </p>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, maxWidth: 520, margin: '0 auto', lineHeight: 1.6 }}>
             Tailscale's per-seat model scales against you. Raw Headscale is free — but you become the IT department. LavaMesh is the third option.
@@ -54,15 +54,15 @@ export default function ComparisonSection() {
               <div className="comparison-grid" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1.4fr 1.2fr 1.2fr', padding: '0 0 0 0', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                 <div style={{ padding: '20px 24px', position: 'sticky', left: 0, background: '#080808', zIndex: 10, borderRight: '1px solid rgba(255,255,255,0.04)' }} />
                 {/* LavaMesh header — highlighted */}
-            <div style={{ padding: '20px 20px', background: 'rgba(255,90,0,0.04)', borderLeft: '1px solid rgba(255,90,0,0.15)', borderRight: '1px solid rgba(255,90,0,0.15)' }}>
+            <div style={{ padding: '20px 20px', background: 'rgba(255,115,0,0.04)', borderLeft: '1px solid rgba(255,115,0,0.15)', borderRight: '1px solid rgba(255,115,0,0.15)' }}>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-5 h-5 rounded-[5px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.3)' }}>
-                  <svg className="w-2.5 h-2.5" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <div className="w-5 h-5 rounded-[5px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.3)' }}>
+                  <svg className="w-2.5 h-2.5" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
                   </svg>
                 </div>
-                <span className="text-[13px] font-bold" style={{ color: '#FF5A00' }}>LavaMesh</span>
-                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,90,0,0.15)', color: '#FF5A00' }}>PRO</span>
+                <span className="text-[13px] font-bold" style={{ color: '#ff7300' }}>LavaMesh</span>
+                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,115,0,0.15)', color: '#ff7300' }}>PRO</span>
               </div>
             </div>
             <div style={{ padding: '20px 20px' }}>
@@ -90,7 +90,7 @@ export default function ComparisonSection() {
               </div>
 
               {/* LavaMesh value */}
-              <div style={{ padding: '16px 20px', background: 'rgba(255,90,0,0.02)', borderLeft: '1px solid rgba(255,90,0,0.12)', borderRight: '1px solid rgba(255,90,0,0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ padding: '16px 20px', background: 'rgba(255,115,0,0.02)', borderLeft: '1px solid rgba(255,115,0,0.12)', borderRight: '1px solid rgba(255,115,0,0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Check />
                 <span className="text-[13px] font-medium" style={{ color: 'white' }}>{row.lava}</span>
               </div>

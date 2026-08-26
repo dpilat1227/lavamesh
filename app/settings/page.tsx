@@ -21,8 +21,8 @@ import { Badge, Card, PageHeader, StatCard, ProShowcase } from '@/components/ui'
 export const dynamic = 'force-dynamic';
 
 async function fetchSettingsData() {
-  const [routes, dns, ns, policy, apiKey, notifications, backups] = await Promise.allSettled([
-    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey(), getNotificationConfig(), listBackups()
+  const [routes, dns, ns, policy, apiKey, notifications, backups, loginServer] = await Promise.allSettled([
+    getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey(), getNotificationConfig(), listBackups(), headscaleLoginServer()
   ]);
   return {
     routes: routes.status === 'fulfilled' ? routes.value : [],
@@ -32,6 +32,7 @@ async function fetchSettingsData() {
     apiKey: apiKey.status === 'fulfilled' ? apiKey.value : null,
     notifications: notifications.status === 'fulfilled' ? notifications.value : { emailEnabled: true, email: '', webhookEnabled: false, webhookUrl: '', failoverAlertsEnabled: false },
     backups: backups.status === 'fulfilled' ? backups.value : [],
+    loginServer: loginServer.status === 'fulfilled' ? loginServer.value : 'https://mesh.lavamesh.com',
   };
 }
 
@@ -44,8 +45,20 @@ function InfoRow({ label, value, mono = false }: { label: string; value: string;
   );
 }
 
+/** Groups Settings' ~9 previously-flat cards into named sections so the page
+ *  reads as "Network, then Security, then Operations, then Team" instead of
+ *  one long undifferentiated stack where every card competes for attention. */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 pt-2 first:pt-0">
+      <p className="text-[10px] font-semibold uppercase tracking-wider flex-shrink-0" style={{ color: 'var(--text-4)', letterSpacing: '0.09em' }}>{children}</p>
+      <div className="flex-1 h-px" style={{ background: 'var(--border-1)' }} />
+    </div>
+  );
+}
+
 export default async function SettingsPage() {
-  const { routes, dns, ns, policy, apiKey, notifications, backups } = await fetchSettingsData();
+  const { routes, dns, ns, policy, apiKey, notifications, backups, loginServer } = await fetchSettingsData();
 
   let members: any[] = [];
   let cloudInstance: { url: string; status: string; region: string | null; errorMessage: string | null; provisionedAt: Date | null } | null = null;
@@ -127,10 +140,11 @@ export default async function SettingsPage() {
         <div style={plan.isPro ? { maxWidth: 860 } : { display: 'grid', gridTemplateColumns: 'minmax(0, 860px) 300px', gap: '2rem', alignItems: 'start' }}>
         <div className="space-y-5">
 
+          <SectionLabel>Account</SectionLabel>
           {cloudInstance && <CloudInstanceCard instance={cloudInstance} />}
-
           <LicenseCard isPro={plan.isPro} source={plan.source} />
 
+          <SectionLabel>Network</SectionLabel>
           {/* Exit Node */}
           <Card accent={exitAccent} padded={false} className="animate-fade-in-up">
             <div className="p-6">
@@ -151,7 +165,7 @@ export default async function SettingsPage() {
                     const ip = r.machine?.ipAddresses?.[0] || r.node?.ipAddresses?.[0] || '';
                     return (
                       <div key={r.id} className="flex items-center justify-between px-4 py-3 rounded-[12px]"
-                        style={{ background: r.enabled ? 'rgba(52,211,153,0.04)' : 'var(--surface-3)', border: `1px solid ${r.enabled ? 'rgba(52,211,153,0.12)' : 'var(--border-2)'}` }}>
+                        style={{ background: r.enabled ? 'rgba(61,220,132,0.04)' : 'var(--surface-3)', border: `1px solid ${r.enabled ? 'rgba(61,220,132,0.12)' : 'var(--border-2)'}` }}>
                         <div>
                           <p className="text-[13px] font-medium" style={{ color: 'var(--text-1)' }}>{name}</p>
                           <p className="text-[11px] font-mono" style={{ color: 'var(--text-4)' }}>{ip} · {r.prefix}</p>
@@ -188,6 +202,7 @@ export default async function SettingsPage() {
             </div>
           </Card>
 
+          <SectionLabel>Security &amp; Access</SectionLabel>
           {/* Developer API Key */}
           <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} isPro={plan.isPro} />
 
@@ -200,12 +215,13 @@ export default async function SettingsPage() {
             </div>
           </Card>
 
+          <SectionLabel>Operations</SectionLabel>
           {/* API Config */}
           <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '180ms' }}>
             <div className="p-6">
               <h2 className="text-[14px] font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Control Plane Connection</h2>
               <InfoRow label="Control Server" value={process.env.HEADSCALE_API_URL || 'https://api.lavamesh.com'} mono />
-              <InfoRow label="Login Server" value={headscaleLoginServer()} mono />
+              <InfoRow label="Login Server" value={loginServer} mono />
               <div className="flex items-center justify-between py-3">
                 <span className="text-[13px]" style={{ color: 'var(--text-3)' }}>Admin API Key</span>
                 <Badge variant={headscaleKeyConfigured ? 'green' : 'red'}>{headscaleKeyConfigured ? 'Configured' : 'Not set'}</Badge>
@@ -220,7 +236,7 @@ export default async function SettingsPage() {
           {/* Alerts & Notifications */}
           <NotificationSettings config={notifications} isPro={plan.isPro} hasResend={!!process.env.RESEND_API_KEY} />
 
-          {/* Team Settings */}
+          <SectionLabel>Team</SectionLabel>
           <TeamSettings members={members} isPro={plan.isPro} seatLimit={COMMUNITY_SEAT_LIMIT} />
 
         </div>

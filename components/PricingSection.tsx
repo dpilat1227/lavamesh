@@ -1,13 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-
-const MONTHLY_LINK =
-  process.env.NEXT_PUBLIC_STRIPE_MONTHLY_LINK ||
-  'https://buy.stripe.com/fZu3cv6UEe6y3iAfgJ5Vu00';
-const LIFETIME_LINK =
-  process.env.NEXT_PUBLIC_STRIPE_LIFETIME_LINK ||
-  'https://buy.stripe.com/dRm3cv6UE9QibP64C55Vu01';
+import { STRIPE_MONTHLY_LINK as MONTHLY_LINK, STRIPE_LIFETIME_LINK as LIFETIME_LINK } from '@/lib/pricing';
 
 type Billing = 'monthly' | 'lifetime';
 
@@ -94,7 +88,7 @@ const plans = [
 ];
 
 const CheckIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#34d399', flexShrink: 0 }}>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#3ddc84', flexShrink: 0 }}>
     <polyline points="20 6 9 17 4 12"/>
   </svg>
 );
@@ -113,7 +107,7 @@ export default function PricingSection() {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         {/* Header */}
         <div className="text-center mb-12">
-          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>Pricing</p>
+          <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>Pricing</p>
           <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
             Simple, flat-rate pricing.<br />
             <span style={{ color: 'rgba(255,255,255,0.7)' }}>Zero per-user fees.</span>
@@ -132,7 +126,7 @@ export default function PricingSection() {
                 onClick={() => setBilling(b)}
                 className="relative px-5 py-2 rounded-[8px] text-[13px] font-medium transition-all"
                 style={{
-                  background: billing === b ? (b === 'lifetime' ? '#FF5A00' : 'rgba(255,255,255,0.08)') : 'transparent',
+                  background: billing === b ? (b === 'lifetime' ? '#ff7300' : 'rgba(255,255,255,0.08)') : 'transparent',
                   color: billing === b ? 'white' : 'rgba(255,255,255,0.4)',
                   border: 'none',
                   cursor: 'pointer',
@@ -141,7 +135,7 @@ export default function PricingSection() {
                 {b === 'monthly' ? 'Monthly' : 'Lifetime'}
                 {b === 'lifetime' && (
                   <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                    style={{ background: billing === 'lifetime' ? 'rgba(0,0,0,0.28)' : 'rgba(255,90,0,0.15)', color: billing === 'lifetime' ? 'white' : '#FF5A00' }}>
+                    style={{ background: billing === 'lifetime' ? 'rgba(0,0,0,0.28)' : 'rgba(255,115,0,0.15)', color: billing === 'lifetime' ? 'white' : '#ff7300' }}>
                     SAVE 35%
                   </span>
                 )}
@@ -162,11 +156,11 @@ export default function PricingSection() {
                 key={plan.id}
                 className="relative flex flex-col lift-on-hover"
                 style={{
-                  background: plan.highlight ? 'linear-gradient(180deg, rgba(255,90,0,0.06) 0%, rgba(255,90,0,0.02) 100%)' : 'rgba(255,255,255,0.02)',
-                  border: plan.highlight ? '1px solid rgba(255,90,0,0.28)' : '1px solid rgba(255,255,255,0.06)',
+                  background: plan.highlight ? 'linear-gradient(180deg, rgba(255,115,0,0.06) 0%, rgba(255,115,0,0.02) 100%)' : 'rgba(255,255,255,0.02)',
+                  border: plan.highlight ? '1px solid rgba(255,115,0,0.28)' : '1px solid rgba(255,255,255,0.06)',
                   borderRadius: 'var(--radius-xl)',
                   padding: '32px 28px',
-                  boxShadow: plan.highlight ? '0 0 60px rgba(255,90,0,0.08), var(--shadow-md)' : 'none',
+                  boxShadow: plan.highlight ? '0 0 60px rgba(255,115,0,0.08), var(--shadow-md)' : 'none',
                 }}
               >
                 {/* Badge */}
@@ -174,7 +168,7 @@ export default function PricingSection() {
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="px-3 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap"
                       style={{
-                        background: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.06)' : '#FF5A00',
+                        background: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.06)' : '#ff7300',
                         color: plan.badge === 'Coming Soon' ? 'rgba(255,255,255,0.5)' : 'white',
                         border: plan.badge === 'Coming Soon' ? '1px solid rgba(255,255,255,0.1)' : 'none',
                       }}>
@@ -200,7 +194,7 @@ export default function PricingSection() {
                     <span className="text-[16px]" style={{ color: 'rgba(255,255,255,0.3)' }}>See monthly →</span>
                   )}
                   {billing === 'lifetime' && plan.savings && (
-                    <div className="mt-2 text-[12px] font-medium" style={{ color: '#34d399' }}>✓ {plan.savings}</div>
+                    <div className="mt-2 text-[12px] font-medium" style={{ color: '#3ddc84' }}>✓ {plan.savings}</div>
                   )}
                 </div>
 
@@ -230,12 +224,12 @@ export default function PricingSection() {
                     style={{
                       padding: '12px 20px',
                       borderRadius: '12px',
-                      background: plan.highlight ? '#FF5A00' : 'rgba(255,255,255,0.06)',
+                      background: plan.highlight ? '#ff7300' : 'rgba(255,255,255,0.06)',
                       color: 'white',
                       border: plan.highlight ? 'none' : '1px solid rgba(255,255,255,0.1)',
                       display: 'block',
                       textDecoration: 'none',
-                      boxShadow: plan.highlight ? '0 0 30px rgba(255,90,0,0.25)' : 'none',
+                      boxShadow: plan.highlight ? '0 0 30px rgba(255,115,0,0.25)' : 'none',
                       opacity: ctaInfo.href ? 1 : 0.5,
                       cursor: ctaInfo.href ? 'pointer' : 'not-allowed',
                     }}
@@ -267,7 +261,7 @@ export default function PricingSection() {
         {/* Enterprise callout */}
         <div className="mt-8 flex items-center justify-center gap-3 text-center flex-wrap">
           <span className="text-[14px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Need multi-instance management or a custom contract?</span>
-          <a href="#waitlist" className="text-[14px] font-medium" style={{ color: '#FF5A00', textDecoration: 'none' }}>Talk to us →</a>
+          <a href="#waitlist" className="text-[14px] font-medium" style={{ color: '#ff7300', textDecoration: 'none' }}>Talk to us →</a>
         </div>
       </div>
     </section>

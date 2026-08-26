@@ -67,7 +67,7 @@ export default function CommandPalette({ open, onClose }: Props) {
                 onClick={() => go(item.path)}
                 onMouseEnter={() => setActiveIndex(i)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[8px] text-left transition-colors"
-                style={{ background: i === activeIndex ? 'rgba(255,90,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer' }}
+                style={{ background: i === activeIndex ? 'rgba(255,115,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer' }}
               >
                 <span style={{ color: i === activeIndex ? 'var(--orange)' : 'var(--text-4)', flexShrink: 0 }}>{item.icon}</span>
                 <span className="text-[13px] font-medium flex-1" style={{ color: 'var(--text-1)' }}>{item.name}</span>

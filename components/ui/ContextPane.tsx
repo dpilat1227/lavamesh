@@ -94,13 +94,18 @@ export function InsightCard({ title, accent, items, emptyLabel }: { title: strin
                 <Tag
                   key={i}
                   onClick={item.onClick}
-                  className="flex items-center justify-between gap-3 py-1.5 text-left"
+                  className={`flex items-center justify-between gap-3 py-1.5 text-left rounded-[7px] transition-colors ${item.onClick ? 'insight-row-btn -mx-2 px-2' : ''}`}
                   style={{ background: 'none', border: 'none', cursor: item.onClick ? 'pointer' : 'default', width: '100%' }}
                 >
                   <span className="text-[12px] truncate" style={{ color: 'var(--text-3)' }}>{item.label}</span>
-                  {item.value && (
-                    <span className="text-[11px] font-medium flex-shrink-0" style={{ color: TONE_COLOR[item.tone ?? 'default'] }}>{item.value}</span>
-                  )}
+                  <span className="flex items-center gap-1.5 flex-shrink-0">
+                    {item.value && (
+                      <span className="text-[11px] font-medium" style={{ color: TONE_COLOR[item.tone ?? 'default'] }}>{item.value}</span>
+                    )}
+                    {item.onClick && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-4)' }}><polyline points="9 18 15 12 9 6" /></svg>
+                    )}
+                  </span>
                 </Tag>
               );
             })}
@@ -124,6 +129,9 @@ interface UpsellCardProps {
  * Eyebrow is always the orange "Pro" pill (never a per-card color) — orange is reserved
  * exclusively for Pro/upgrade signaling app-wide, so it reads the same everywhere. */
 export function UpsellCard({ eyebrow, title, description, icon, href = '/#pricing', ctaLabel = 'Upgrade' }: UpsellCardProps) {
+  // Only the marketing-site anchor leaves the dashboard, so only that case
+  // opens in a new tab — an internal link like "/settings" should stay put.
+  const external = href.startsWith('/#');
   return (
     <div
       className="rounded-[12px] overflow-hidden p-5 flex flex-col gap-3 relative"
@@ -133,7 +141,7 @@ export function UpsellCard({ eyebrow, title, description, icon, href = '/#pricin
       <Badge variant="orange" className="w-fit text-[10px] uppercase tracking-wider">{eyebrow}</Badge>
       <h3 className="text-[14px] font-medium" style={{ color: 'var(--text-1)' }}>{title}</h3>
       <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-4)' }}>{description}</p>
-      <a href={href} className="text-[12px] font-medium mt-1 inline-flex items-center gap-1 w-fit" style={{ color: 'var(--orange)' }}>
+      <a href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} className="text-[12px] font-medium mt-1 inline-flex items-center gap-1 w-fit" style={{ color: 'var(--orange)' }}>
         {ctaLabel}
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
       </a>

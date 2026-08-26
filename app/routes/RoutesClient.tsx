@@ -1,7 +1,7 @@
 'use client';
 import { useTransition, useOptimistic } from 'react';
 import { enableRoute, disableRoute } from '@/app/actions';
-import { Badge, PageHeader, StatCard, SplitView, ContextSection, UpsellCard, InsightCard } from '@/components/ui';
+import { Badge, PageHeader, StatsHero, SplitView, ContextSection, UpsellCard, InsightCard } from '@/components/ui';
 
 interface Route {
   id: string;
@@ -90,7 +90,7 @@ function RouteRow({ route, index, haRole }: { route: Route; index: number; haRol
             style={{
               background: optimisticEnabled ? 'var(--red-soft)' : 'var(--green-soft)',
               color: optimisticEnabled ? 'var(--red)' : 'var(--green)',
-              border: `1px solid ${optimisticEnabled ? 'rgba(248,113,113,0.2)' : 'rgba(52,211,153,0.2)'}`,
+              border: `1px solid ${optimisticEnabled ? 'rgba(248,113,113,0.2)' : 'rgba(61,220,132,0.2)'}`,
               opacity: isPending ? 0.6 : 1,
               borderRadius: '8px',
             }}
@@ -125,7 +125,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
   const haGroupCount = subnetGroups.filter(g => g.isHA).length;
 
   const table = (
-    <div className="flex flex-col min-h-0 relative space-y-5 overflow-y-auto pr-4 custom-scrollbar pb-8">
+    <div className="flex-1 flex flex-col min-h-0 relative space-y-5 overflow-y-auto pr-4 custom-scrollbar pb-8">
       {routes.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[60%] gap-4" style={{ color: 'var(--text-4)' }}>
           <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
@@ -156,7 +156,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
           )}
 
           {subnets.length > 0 && (
-            <section className="mt-6">
+            <section className={exits.length > 0 ? 'mt-6' : ''}>
               <div className="flex items-center gap-2 px-1 mb-2">
                 <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>Subnet Routes</p>
                 {haGroupCount > 0 && (
@@ -173,7 +173,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
               </div>
               {subnetGroups.map(group =>
                 group.isHA ? (
-                  <div key={group.prefix} className="mt-2 rounded-[10px] px-1 py-1" style={{ background: 'rgba(52,211,153,0.03)', border: '1px solid rgba(52,211,153,0.14)' }}>
+                  <div key={group.prefix} className="mt-2 rounded-[10px] px-1 py-1" style={{ background: 'rgba(61,220,132,0.03)', border: '1px solid rgba(61,220,132,0.14)' }}>
                     <div className="flex items-center gap-2 px-2 pt-1.5 pb-0.5">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
                       <span className="text-[11px] font-medium" style={{ color: 'var(--green)' }}>Automatic failover — {group.routes.length} nodes advertising this subnet</span>
@@ -207,10 +207,10 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
         title="How Routing Works"
         collapsible
         items={[
-          { title: 'Exit Nodes', desc: 'Route all traffic through a node to use its IP address and location. Useful for accessing geo-restricted services.', icon: '🌐', color: '#FF5A00' },
+          { title: 'Exit Nodes', desc: 'Route all traffic through a node to use its IP address and location. Useful for accessing geo-restricted services.', icon: '🌐', color: '#ff7300' },
           { title: 'Subnet Routes', desc: 'Expose an entire subnet (like 192.168.1.0/24) to your mesh. Other nodes can access devices on that LAN.', icon: '🔗', color: '#8B5CF6' },
-          { title: 'Advertising a Route', desc: 'Run tailscale up --advertise-routes=192.168.1.0/24 on any node, then approve it here.', icon: '📡', color: '#34D399' },
-          { title: 'High Availability, free', desc: 'Advertise the same subnet from a second node and approve both — Headscale automatically marks one Primary and fails over to the other if it drops. No extra config, any plan.', icon: '🔁', color: '#34D399' },
+          { title: 'Advertising a Route', desc: 'Run tailscale up --advertise-routes=192.168.1.0/24 on any node, then approve it here.', icon: '📡', color: '#3ddc84' },
+          { title: 'High Availability, free', desc: 'Advertise the same subnet from a second node and approve both — Headscale automatically marks one Primary and fails over to the other if it drops. No extra config, any plan.', icon: '🔁', color: '#3ddc84' },
         ]}
       />
       <UpsellCard
@@ -234,15 +234,22 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
         title="Subnet Routing"
         subtitle={<>{approved} approved · {pending > 0 ? <span style={{ color: 'var(--amber)' }}>{pending} pending</span> : '0 pending'}</>}
       />
+
+      {/* Same main-stat panel pattern as Dashboard: the ring owns the one true
+          ratio (approved/total) so it isn't repeated as text elsewhere on the page. */}
+      <div className="px-8 pt-1 pb-4 flex-shrink-0">
+        <StatsHero
+          ring={{ value: approved, total: routes.length, label: 'approved' }}
+          metrics={[
+            { label: 'Exit nodes', value: `${exits.filter(r => r.enabled).length}/${exits.length}` },
+            { label: 'Subnets', value: `${subnets.filter(r => r.enabled).length}/${subnets.length}` },
+            { label: 'Total routes', value: routes.length },
+          ]}
+        />
+      </div>
+
       <SplitView
         columns={3}
-        stats={
-          <>
-            <StatCard label="EXIT NODES" value={`${exits.filter(r => r.enabled).length}/${exits.length}`} color={exits.some(r => r.enabled) ? 'var(--green)' : undefined} sub={exits.length ? 'advertised' : 'none advertised'} />
-            <StatCard label="SUBNETS" value={`${subnets.filter(r => r.enabled).length}/${subnets.length}`} color={subnets.some(r => r.enabled) ? 'var(--green)' : undefined} sub={subnets.length ? 'approved / advertised' : 'none advertised'} />
-            <StatCard label="TOTAL ROUTES" value={String(routes.length)} sub={pending ? `${pending} waiting on you` : 'all reviewed'} />
-          </>
-        }
         main={table}
         pane={pane}
       />

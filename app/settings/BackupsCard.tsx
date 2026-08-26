@@ -75,7 +75,7 @@ export default function BackupsCard({ initialBackups, isPro, kvReady }: { initia
             <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
               Daily snapshots of your ACL policy and node roster, with one-click policy restore.
             </p>
-            <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+            <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
           </div>
         ) : (
           <div className="space-y-3">

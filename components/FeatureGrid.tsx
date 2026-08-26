@@ -7,7 +7,7 @@ const features = [
         <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
       </svg>
     ),
-    color: '#FF5A00',
+    color: '#ff7300',
     title: 'Zero-Trust Mesh',
     desc: 'Every connection is encrypted end-to-end using WireGuard. No central relay, no cleartext — ever.',
   },
@@ -28,7 +28,7 @@ const features = [
         <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
       </svg>
     ),
-    color: '#34d399',
+    color: '#3ddc84',
     title: 'One-Line Deploy',
     desc: 'Generate a token, run one curl command. Any Linux machine joins your private mesh in under 30 seconds.',
   },

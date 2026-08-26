@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         subject: `🔥 New Cloud waitlist signup: ${email}`,
         html: `
           <div style="font-family:sans-serif;max-width:480px;padding:32px;">
-            <h2 style="color:#FF5A00;margin:0 0 8px;">New waitlist signup</h2>
+            <h2 style="color:#ff7300;margin:0 0 8px;">New waitlist signup</h2>
             <p style="color:#666;margin:0 0 24px;">Someone just joined the LavaMesh Cloud waitlist.</p>
             <div style="background:#f5f5f5;border-radius:8px;padding:16px 20px;">
               <strong>Email:</strong> ${email}
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
           subject: "You're on the LavaMesh Cloud waitlist 🔥",
           html: `
             <div style="font-family:sans-serif;max-width:480px;padding:32px;">
-              <h2 style="color:#FF5A00;margin:0 0 8px;">You're on the list.</h2>
+              <h2 style="color:#ff7300;margin:0 0 8px;">You're on the list.</h2>
               <p style="color:#444;line-height:1.6;margin:0 0 16px;">
                 Thanks for joining the <strong>LavaMesh Cloud</strong> waitlist. 
                 We're building a fully managed option — you bring your devices, 
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
                 We'll reach out personally when Cloud is ready for early access. 
                 You'll be first in line.
               </p>
-              <a href="https://lavamesh.com" style="display:inline-block;background:#FF5A00;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
+              <a href="https://lavamesh.com" style="display:inline-block;background:#ff7300;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
                 View LavaMesh →
               </a>
               <p style="color:#999;font-size:12px;margin-top:32px;">

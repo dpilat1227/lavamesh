@@ -28,22 +28,24 @@ function Nav() {
         style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)' }}>
         <Link href="/" className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
           <div className="w-8 h-8 rounded-[9px] flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.35)', boxShadow: '0 0 16px rgba(255,90,0,0.25)' }}>
-            <svg className="w-4 h-4" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.35)', boxShadow: '0 0 16px rgba(255,115,0,0.25)' }}>
+            <svg className="w-4 h-4" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
               <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
             </svg>
           </div>
           <span className="font-semibold text-[17px] tracking-tight" style={{ color: 'white', letterSpacing: '-0.02em', fontFamily: 'var(--font-display)' }}>LavaMesh</span>
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-            style={{ color: '#FF5A00', background: 'rgba(255,90,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
+            style={{ color: '#ff7300', background: 'rgba(255,115,0,0.15)', letterSpacing: '0.05em' }}>BETA</span>
         </Link>
         {/* Desktop links */}
-        <div className="nav-desktop-links items-center gap-3">
-          <a href="#features" className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>Features</a>
-          <a href="#pricing" className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>Pricing</a>
-          <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
-            className="text-[13px] font-medium nav-gh-link transition-colors" style={{ color: 'rgba(255,255,255,0.4)' }}>GitHub</a>
-          <Link href="/dashboard" className="btn btn-primary" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: 13 }}>Dashboard →</Link>
+        <div className="nav-desktop-links items-center">
+          <div className="flex items-center gap-8">
+            <a href="#features" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Features</a>
+            <a href="#pricing" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Pricing</a>
+            <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
+              className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>GitHub</a>
+          </div>
+          <Link href="/dashboard" className="btn btn-primary ml-7" style={{ padding: '8px 18px', borderRadius: '10px', fontSize: 13 }}>Dashboard →</Link>
         </div>
         {/* Mobile hamburger */}
         <button className="nav-mobile-btn items-center justify-center w-9 h-9 rounded-[8px]"
@@ -68,7 +70,7 @@ function Nav() {
           <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
             className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>GitHub ↗</a>
           <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}
-            className="px-4 py-3 rounded-[10px] text-[14px] font-bold text-center" style={{ background: '#FF5A00', color: 'white' }}>Open Dashboard →</Link>
+            className="px-4 py-3 rounded-[10px] text-[14px] font-bold text-center" style={{ background: 'var(--orange-cta)', color: 'white' }}>Open Dashboard →</Link>
         </div>
       )}
     </>
@@ -91,14 +93,14 @@ function DashboardMockup() {
           <div className="text-[14px] font-semibold" style={{ color: 'white' }}>Node Fleet</div>
           <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>Updated just now · auto-refreshes every 30s</div>
         </div>
-        <div className="px-3 py-1.5 rounded-[8px] text-[11px] font-medium" style={{ background: '#FF5A00', color: 'white' }}>+ New Provision Token</div>
+        <div className="px-3 py-1.5 rounded-[8px] text-[11px] font-medium" style={{ background: 'var(--orange-cta)', color: 'white' }}>+ New Provision Token</div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-4">
         {[
           { label: 'TOTAL NODES', val: '4', color: 'white' },
-          { label: 'ONLINE', val: '3', color: '#34d399' },
+          { label: 'ONLINE', val: '3', color: '#3ddc84' },
           { label: 'OFFLINE', val: '1', color: 'rgba(255,255,255,0.3)' },
-          { label: 'UPTIME', val: '99.9%', color: '#FF5A00' },
+          { label: 'UPTIME', val: '99.9%', color: '#ff7300' },
         ].map(s => (
           <div key={s.label} className="px-4 py-3 rounded-[10px]" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
             <div className="text-[9px] font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em' }}>{s.label}</div>
@@ -127,8 +129,8 @@ function DashboardMockup() {
               <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>{node.ip}</span>
               <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Just now</span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium w-fit"
-                style={{ background: node.online ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.04)', color: node.online ? '#34d399' : 'rgba(255,255,255,0.3)', border: `1px solid ${node.online ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.06)'}` }}>
-                <span className="w-1 h-1 rounded-full" style={{ background: node.online ? '#34d399' : 'rgba(255,255,255,0.2)' }}></span>
+                style={{ background: node.online ? 'rgba(61,220,132,0.1)' : 'rgba(255,255,255,0.04)', color: node.online ? '#3ddc84' : 'rgba(255,255,255,0.3)', border: `1px solid ${node.online ? 'rgba(61,220,132,0.15)' : 'rgba(255,255,255,0.06)'}` }}>
+                <span className="w-1 h-1 rounded-full" style={{ background: node.online ? '#3ddc84' : 'rgba(255,255,255,0.2)' }}></span>
                 {node.online ? 'Online' : 'Offline'}
               </span>
             </div>
@@ -203,23 +205,23 @@ export default function LandingPage() {
             <rect width="100%" height="100%" fill="url(#hero-grid)" />
           </svg>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 90% 70% at 30% 50%, transparent 0%, #000 100%)' }} />
-          <div style={{ position: 'absolute', top: '0%', right: '-8%', width: 750, height: 650, background: 'radial-gradient(circle, rgba(255,90,0,0.10) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)' }} />
+          <div style={{ position: 'absolute', top: '0%', right: '-8%', width: 750, height: 650, background: 'radial-gradient(circle, rgba(255,115,0,0.10) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)' }} />
         </div>
 
         {/* Left — pitch */}
         <div className="relative z-10 flex flex-col justify-center px-6 md:pl-16 lg:pl-20 md:pr-10" style={{ paddingTop: 96, paddingBottom: 64 }}>
           {/* Eyebrow pill */}
           <div className="animate-fade-in inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8 self-start"
-            style={{ background: 'rgba(255,90,0,0.08)', border: '1px solid rgba(255,90,0,0.2)' }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse-orange" style={{ background: '#FF5A00' }}></span>
-            <span className="text-[12px] font-medium" style={{ color: '#FF5A00' }}>Self-hosted WireGuard mesh — zero per-seat fees</span>
+            style={{ background: 'rgba(255,115,0,0.08)', border: '1px solid rgba(255,115,0,0.2)' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse-orange" style={{ background: '#ff7300' }}></span>
+            <span className="text-[12px] font-medium" style={{ color: '#ff7300' }}>Self-hosted WireGuard mesh — zero per-seat fees</span>
           </div>
 
           {/* Headline */}
           <h1 className="animate-fade-in-up font-bold mb-6"
             style={{ fontSize: 'clamp(42px, 4.8vw, 74px)', letterSpacing: '-0.035em', lineHeight: 1.03, animationDelay: '80ms' }}>
             <span style={{ color: 'white' }}>Private networking.</span><br />
-            <span style={{ background: 'linear-gradient(135deg, #FF5A00 0%, #FF8A00 60%, rgba(255,180,50,0.9) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No compromise.</span>
+            <span style={{ background: 'linear-gradient(135deg, #ff7300 0%, #FF8A00 60%, rgba(255,180,50,0.9) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No compromise.</span>
           </h1>
 
           {/* Sub */}
@@ -232,7 +234,7 @@ export default function LandingPage() {
           <div className="animate-fade-in-up flex flex-col gap-4" style={{ animationDelay: '240ms' }}>
             <div className="flex flex-wrap items-center gap-3">
               <a href="#pricing" className="btn btn-primary"
-                style={{ padding: '13px 28px', borderRadius: '12px', fontSize: 15, boxShadow: '0 0 30px rgba(255,90,0,0.3)' }}>
+                style={{ padding: '13px 28px', borderRadius: '12px', fontSize: 15, boxShadow: '0 0 30px rgba(255,115,0,0.3)' }}>
                 Deploy Free →
               </a>
               <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
@@ -262,7 +264,7 @@ export default function LandingPage() {
       <section id="features" style={{ padding: '120px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div className="text-center mb-16">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>Built for control</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>Built for control</p>
             <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
               Everything you need.<br />
               <span style={{ color: 'rgba(255,255,255,0.3)' }}>Nothing you don&apos;t.</span>
@@ -276,7 +278,7 @@ export default function LandingPage() {
       <section style={{ padding: '0 24px 120px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div className="text-center mb-16">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>How it works</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>How it works</p>
             <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(36px, 5vw, 54px)', letterSpacing: '-0.03em', color: 'white' }}>
               Online in three steps.
             </h2>
@@ -287,7 +289,7 @@ export default function LandingPage() {
                 {i < steps.length - 1 && (
                   <div className="step-divider" style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 1, height: '40%', background: 'rgba(255,255,255,0.05)' }} />
                 )}
-                <div className="text-[11px] font-semibold mb-4" style={{ color: 'rgba(255,90,0,0.5)', letterSpacing: '0.08em' }}>{step.n}</div>
+                <div className="text-[11px] font-semibold mb-4" style={{ color: 'rgba(255,115,0,0.5)', letterSpacing: '0.08em' }}>{step.n}</div>
                 <h3 className="text-[20px] font-semibold mb-3" style={{ color: 'white', letterSpacing: '-0.02em' }}>{step.title}</h3>
                 <p className="text-[14px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>{step.desc}</p>
               </div>
@@ -300,14 +302,14 @@ export default function LandingPage() {
       <section style={{ padding: '0 24px 120px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div className="text-center mb-10">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>One command</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>One command</p>
             <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(32px, 4vw, 48px)', letterSpacing: '-0.03em', color: 'white' }}>
               Join the mesh instantly.
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Generate a token from the dashboard. Paste one line. Done.</p>
           </div>
           <div style={{ position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: '-40px', background: 'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(52,211,153,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: '-40px', background: 'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(61,220,132,0.06) 0%, transparent 70%)', filter: 'blur(30px)', pointerEvents: 'none' }} />
             <TerminalBlock />
           </div>
         </div>
@@ -317,7 +319,7 @@ export default function LandingPage() {
       <section style={{ padding: '0 24px 120px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div className="text-center mb-12">
-            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,90,0,0.8)' }}>The dashboard</p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,115,0,0.8)' }}>The dashboard</p>
             <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: 'clamp(32px, 4vw, 48px)', letterSpacing: '-0.03em', color: 'white' }}>
               Beautiful by default.
             </h2>
@@ -327,7 +329,7 @@ export default function LandingPage() {
           </div>
           <div style={{ position: 'relative' }}>
             {/* Ambient glow behind mockup */}
-            <div style={{ position: 'absolute', inset: '-60px', background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,90,0,0.12) 0%, rgba(255,90,0,0.04) 40%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: '-60px', background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,115,0,0.12) 0%, rgba(255,115,0,0.04) 40%, transparent 70%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
             <DashboardMockup />
           </div>
         </div>
@@ -350,8 +352,8 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-[6px] flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,90,0,0.3)' }}>
-              <svg className="w-2.5 h-2.5" style={{ color: '#FF5A00' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              style={{ background: 'linear-gradient(135deg, #1a0802, #3a1405)', border: '1px solid rgba(255,115,0,0.3)' }}>
+              <svg className="w-2.5 h-2.5" style={{ color: '#ff7300' }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                 <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
               </svg>
             </div>

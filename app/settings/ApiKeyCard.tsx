@@ -78,7 +78,7 @@ export default function ApiKeyCard({
           <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
             Generate API keys for programmatic access to <code style={{ fontFamily: 'var(--font-mono)' }}>/api/v1/*</code> on the Pro or Cloud plan.
           </p>
-          <a href="/#pricing" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
+          <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
         </div>
       ) : currentKey ? (
         <div className="space-y-3">
