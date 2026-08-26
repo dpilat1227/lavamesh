@@ -31,7 +31,7 @@ export const authOptions: AuthOptions = {
         const password = credentials?.password ?? "";
         if (!email || !password) return null;
 
-        const expected = process.env.AUTH_PASSWORD;
+        const expected = process.env.AUTH_PASSWORD || process.env.ADMIN_PASSWORD;
         const devOpen = process.env.NODE_ENV === "development" && !expected;
         if (!expected && process.env.NODE_ENV === "production") return null;
         if (!devOpen && password !== expected) return null;
