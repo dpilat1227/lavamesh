@@ -183,7 +183,12 @@ export default function LandingPage() {
 
         {/* Right — proof: the live mesh, right next to the claim */}
         <div className="hero-visual relative z-10 flex items-center justify-center px-6 md:pr-16 lg:pr-20" style={{ paddingTop: 96, paddingBottom: 64 }}>
-          <div className="animate-fade-in w-full" style={{ maxWidth: 560, height: 480, animationDelay: '400ms', position: 'relative' }}>
+          {/* aspectRatio (matches HeroAnimation's 780x480 viewBox) instead of a fixed
+              height — a fixed 480px box stayed 480px tall even once the mobile media
+              query shrank this to a ~320px-wide column, so the SVG (which correctly
+              preserves its own aspect ratio) shrank to fit the width and left huge
+              empty space above/below inside the now way-too-tall box. */}
+          <div className="animate-fade-in w-full" style={{ maxWidth: 560, aspectRatio: '780 / 480', animationDelay: '400ms', position: 'relative' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 55%, #000 100%)', zIndex: 2, pointerEvents: 'none' }} />
             <HeroAnimation />
           </div>
