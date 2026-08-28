@@ -172,9 +172,10 @@ headscale preauthkeys create --user yourname --expiration 24h`}</Pre>
         This setup is solid once it's running — I've had mine up for months without touching the
         config. The part that gets old is everything after "it's running": remembering node IDs to revoke a lost
         device, hand-editing a HuJSON file for ACLs, piping <Code>headscale nodes list</Code> through{' '}
-        <Code>grep</Code> to find one machine. That gap is the whole reason LavaMesh exists — same Headscale
-        instance you just set up, with an actual dashboard sitting in front of it instead of a wall of monospace
-        text.
+        <Code>grep</Code> to find one machine. If you'd rather grab a free dashboard for that (headscale-ui,
+        headscale-admin, Headplane) and stop here, that's a completely reasonable place to end this guide. LavaMesh
+        is what I built when I wanted the same thing plus an audit log, backups, and something actively maintained
+        — same Headscale instance you just set up, no migration, no lock-in either way.
       </P>
     </BlogPostLayout>
   );

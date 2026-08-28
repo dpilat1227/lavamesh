@@ -16,17 +16,16 @@ export default function Page() {
   return (
     <BlogPostLayout post={post}>
       <Lead>
-        I didn't set out to build a company. I set out to stop paying $6/user/month for something I could run on
-        a box that already costs me less than that, total, for every device I own.
+        I didn't set out to build a company. I set out to stop paying $6 a month per person for something I could
+        run, total, for less than that on a box I already owned.
       </Lead>
 
       <P>
         I'd been on Tailscale for a couple of years — laptop, phone, a couple of home servers, an exit node for
-        travel. It's a great product, and I'm not here to talk anyone out of it. But it bills per user,
-        and at some point I added my parents' router so I could fix their internet remotely without a four-call
-        phone tree, and then a friend's NAS because I was the only one who knew how to maintain it, and I looked
-        at the invoice one month and did the thing you're not supposed to do: I actually worked out the annual
-        number.
+        travel. It's a great product, and I'm not here to talk anyone out of it. But it bills per user. At some
+        point I added my parents' router so I could fix their internet remotely without a four-call phone tree,
+        then a friend's NAS because I was the only one who knew how to maintain it, and I looked at the invoice
+        one month and did the thing you're not supposed to do: worked out the annual number.
       </P>
 
       <P>
@@ -38,17 +37,26 @@ export default function Page() {
       <H2>The weekend I went looking for a way out</H2>
 
       <P>
-        I already knew Headscale existed — it comes up constantly in self-hosting circles as "the free Tailscale."
-        Same protocol, same client apps, same WireGuard mesh underneath, except the coordination server is a
-        binary you run yourself instead of a service you pay for. I'd avoided it for a while because "run your own
-        control plane" sounded like a chore I didn't have a free weekend for.
+        I'd known Headscale existed for over a year and always found a reason to put it off. It comes up
+        constantly in self-hosting circles as "the free Tailscale" — same protocol, same client apps, same
+        WireGuard mesh underneath, just a binary you run yourself instead of a service you pay for. "Run your own
+        control plane" sounded like a chore. I already had a control plane. I was just renting it.
+      </P>
+
+      <P>
+        What changed wasn't the math — I'd known the math for a year. What changed is I'd started a CS master's
+        at UChicago a few months earlier: a later-in-life pivot for me, not the usual path into this stuff.
+        About a year into it now, and the program moves fast enough that most weeks feel like drinking from a
+        fire hose. I liked it more than I expected to, mostly because I've always wanted to understand how
+        something works underneath instead of just using it, and grad school turns out to be an efficient way to
+        get handed exactly that. So instead of putting Headscale off another month, I opened the docs.
       </P>
 
       <P>
         Turned out to be less of a chore than I'd built it up to be. A VPS, a config file, a systemd unit, an
-        afternoon — not a weekend, really, closer to a long lunch break. By that evening I had my laptop and phone
-        talking to each other through a server I controlled, for the cost of a $6/month VPS that would've cost me
-        that much regardless of how many devices I put on it.
+        afternoon — not a weekend, really, closer to a long lunch break. By that evening my laptop and phone were
+        talking to each other through a server I controlled, for the cost of a $6/month VPS that would've cost
+        me that much regardless of how many devices I put on it.
       </P>
 
       <Callout label="What changed and what didn't">
@@ -60,11 +68,17 @@ export default function Page() {
       <H2>The part nobody mentions until you hit it</H2>
 
       <P>
-        Here's the trade nobody spells out when they tell you to "just self-host it": you get the same
-        network for free, and in exchange you get a command line and nothing else. No dashboard. No node list you
-        can glance at. Every single thing — checking who's online, revoking a lost phone, writing an access policy
-        — goes through hand-typed commands like <Code>headscale nodes list</Code> and a YAML file you edit with
-        no safety net.
+        Here's the trade nobody spells out when they tell you to "just self-host it": you get the same network
+        for free, and in exchange you get a command line and nothing else.
+      </P>
+
+      <P>
+        To be fair, there are free dashboards for exactly this — headscale-ui, headscale-admin, Headplane, a
+        handful of others floating around GitHub. If you're reading this wondering whether you can just grab one
+        of those instead of anything below: yes, probably, try one first. I did. Some are fine for basic node
+        listing. None of them handled the specific stuff that started mattering to me once this stopped being
+        one person's homelab — an audit trail, a policy editor that caught my mistakes before I broke my own
+        network, backups I actually trusted. A couple hadn't been touched in a year.
       </P>
 
       <P>
@@ -80,37 +94,28 @@ export default function Page() {
         <LI>There was no way to look at the whole mesh at once — just a scrollable wall of monospace text</LI>
       </UL>
 
-      <P>
-        I checked whether someone had already solved this before building anything myself — there are a few
-        community dashboards for Headscale, and I tried them. Some were fine for basic node listing. None of them
-        handled the stuff that mattered to me once it stopped being one person's homelab: an audit trail,
-        a policy editor that caught my mistakes before I broke my own network, backups I trusted. A couple hadn't
-        been touched in a year.
-      </P>
-
       <Quote>
         I didn't want to save money by trading a bill for a part-time terminal job. The whole point was that this
         should be less work than paying for it, not a different flavor of work.
       </Quote>
-
-      <P>
-        There's a less noble reason I had the time for this at all: I was in the middle of a CS master's
-        at UChicago, up to my neck in distributed systems and parallel programming coursework, and building
-        something that talks to a real API and doesn't fall over when a hundred nodes report in at once was
-        exactly the kind of problem I was already spending my evenings on anyway. It stopped being "fix my own
-        annoyance" and turned into the assignment nobody gave me — the kind you keep doing because you want to
-        see it work, not because it's due. That's most of the reason a weekend fix turned into a thing I kept
-        building on.
-      </P>
 
       <H2>So I built the dashboard I wanted</H2>
 
       <P>
         Not a Headscale fork — a layer that sits in front of a Headscale instance and talks to its existing API,
         so upgrading Headscale itself never becomes a problem I created for myself. Node status, key generation,
-        ACL editing with something checking my work, an actual log of who did what. The stuff any admin panel for
-        any piece of infrastructure has, that Headscale was never trying to ship because Headscale's job is
-        correctly running the control server, not looking pretty doing it.
+        ACL editing with something checking my work, a real log of who did what. The stuff any admin panel for
+        any piece of infrastructure has, that Headscale never shipped because Headscale's job is running the
+        control server correctly, not looking good doing it.
+      </P>
+
+      <P>
+        The other thing shaping this, more than any single feature: I have close to zero patience for software
+        that makes me feel stupid. Being confused by an interface is close to my least favorite feeling on earth,
+        and I'd rather spend three extra hours making something simple than ship the version where the user has
+        to stop and think. Apple gets a lot of credit for this, and deserves most of it — not because their
+        products do more, but because using them asks less of you. That was the bar for LavaMesh: the
+        infrastructure disappears, and you're just looking at your network.
       </P>
 
       <P>
@@ -123,8 +128,8 @@ export default function Page() {
 
       <P>
         If you're sitting where I was — tired of the invoice, not sure self-hosting is worth the terminal tax —
-        that's the trade I'm trying to remove. Same network, same devices, just without either the
-        per-seat math or the part where you have to enjoy living in a shell to run it.
+        that's the trade I'm trying to remove. Same network, same devices, just without either the per-seat math
+        or the part where you have to enjoy living in a shell to run it.
       </P>
     </BlogPostLayout>
   );

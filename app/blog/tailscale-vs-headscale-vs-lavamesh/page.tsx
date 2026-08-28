@@ -57,7 +57,7 @@ export default function Page() {
         rows={[
           ['Pricing model', 'Per seat', 'Free (self-hosted)', 'Flat rate'],
           ['50-device fleet', '$300–900/mo', '$0 + your VPS', '$19/mo flat'],
-          ['Web dashboard', 'Yes', 'None (CLI only)', 'Yes'],
+          ['Web dashboard', 'Yes', 'CLI only (free UIs exist)', 'Yes'],
           ['Self-hosted', 'No', 'Yes', 'Yes'],
           ['Open source', 'No', 'Yes', 'Core is open'],
           ['Who runs the server', 'Tailscale Inc.', 'You', 'You'],
@@ -73,12 +73,13 @@ export default function Page() {
         someone else to be on-call for it. That's a completely reasonable trade at a certain team size and budget.
       </P>
 
-      <H3>Raw Headscale — when you want it free and don't mind the terminal</H3>
+      <H3>Raw Headscale (or a free community UI) — when you want it free and don't mind the upkeep</H3>
       <P>
         If you're comfortable in a terminal, don't mind hand-editing a HuJSON ACL file, and don't need
-        much more than "list my nodes and revoke one occasionally," raw Headscale with no dashboard at all is a
-        perfectly fine way to run a small personal mesh. It's what I did for months before this became a problem
-        worth solving.
+        much more than "list my nodes and revoke one occasionally," raw Headscale is a perfectly fine way to run a
+        small personal mesh. There are also free dashboards for it — headscale-ui, headscale-admin, Headplane —
+        if the CLI-only default bothers you enough to go looking. It's what I did for months before this became a
+        problem worth solving.
       </P>
 
       <H3>LavaMesh — when you want Headscale's economics with a real interface</H3>
