@@ -60,9 +60,9 @@ export default function Page() {
       </P>
 
       <P>
-        None of this is a knock on Headscale itself — the networking underneath is rock solid, and I mean that. It's
-        the operational layer around it that's missing. You're not just running a VPN anymore; you're running
-        infrastructure with zero visibility into its own state unless you're comfortable living in a terminal.
+        This isn't a knock on Headscale itself. The networking underneath is rock solid. What's missing is the
+        operational layer around it — you're not just running a VPN anymore, you're running infrastructure with
+        zero visibility into its own state unless you're comfortable living in a terminal.
       </P>
 
       <H2>The community UI projects (and why I still went and built my own)</H2>
@@ -99,9 +99,9 @@ export default function Page() {
       </UL>
 
       <P>
-        None of that is exotic. It's the stuff any admin panel for any piece of infrastructure would have. Headscale
-        just doesn't ship it, because Headscale's job is to be a correct, minimal control server — and it does that
-        job well. The dashboard was always going to be someone else's problem.
+        Nothing on that list is exotic — it's the stuff any admin panel for any piece of infrastructure has. Headscale
+        doesn't ship it because Headscale's job is being a correct, minimal control server, and it does that job
+        well. The dashboard was always going to be someone else's problem.
       </P>
 
       <Quote>
