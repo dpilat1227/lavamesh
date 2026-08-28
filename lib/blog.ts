@@ -23,7 +23,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: 'headscale-has-no-ui-heres-what-i-use',
     title: "Headscale Doesn't Ship With a UI. Here's What I Use Instead.",
     description:
-      "Headscale is a fantastic self-hosted Tailscale control server — and it hands you a CLI and nothing else. Here's what running it actually feels like, and what I built to fix it.",
+      "Headscale is a fantastic self-hosted Tailscale control server — but it hands you a CLI and nothing else. Here's what running it actually feels like, and what I built to fix it.",
     date: '2026-08-05',
     readTime: '7 min read',
     tags: ['Headscale', 'Self-hosted'],
@@ -43,17 +43,17 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: 'why-i-stopped-paying-for-a-mesh-vpn',
     title: 'Why I Stopped Paying for a Mesh VPN and Built My Own',
     description:
-      "The math that made me quit a per-seat VPN, the weekend I spent standing up Headscale instead, and the dumb little dashboard problem that turned into LavaMesh.",
-    date: '2026-08-16',
+      "The math that made me quit a per-seat VPN, the weekend I spent standing up Headscale instead, and the dashboard problem that turned into LavaMesh.",
+    date: '2026-08-28',
     readTime: '8 min read',
     tags: ['Story', 'Self-hosted'],
-    published: false,
+    published: true,
   },
   {
     slug: 'real-cost-of-per-seat-vpn-pricing',
     title: 'The Real Cost of Per-Seat VPN Pricing (A Homelab Breakdown)',
     description:
-      "Per-seat pricing feels cheap at 3 devices and insane at 30. Here's the actual math on where that line is, and why flat-rate self-hosting wins the moment you cross it.",
+      "Per-seat pricing feels cheap at 3 devices and insane at 30. Here's the math on where that line is, and why flat-rate self-hosting wins the moment you cross it.",
     date: '2026-08-20',
     readTime: '6 min read',
     tags: ['Pricing', 'Homelab'],
@@ -64,10 +64,10 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'How to Self-Host Headscale Without Losing Your Weekend',
     description:
       "A no-nonsense walkthrough of standing up Headscale on your own VPS or homelab box — the parts the docs gloss over, and the mistakes I made so you don't have to.",
-    date: '2026-08-24',
+    date: '2026-08-28',
     readTime: '11 min read',
     tags: ['Guide', 'Headscale'],
-    published: false,
+    published: true,
   },
 ];
 
