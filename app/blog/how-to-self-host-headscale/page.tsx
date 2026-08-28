@@ -16,7 +16,7 @@ export default function Page() {
   return (
     <BlogPostLayout post={post}>
       <Lead>
-        This is the setup I actually run, written the way I wish the docs had been laid out the first time — one
+        This is the setup I run, written the way I wish the docs had been laid out the first time — one
         path, start to finish, with the parts that aren't obvious called out instead of buried in a GitHub issue
         from two years ago.
       </Lead>
@@ -65,7 +65,7 @@ sudo chmod +x /usr/local/bin/headscale`}</Pre>
 
       <P>
         Headscale ships a full example config with every option documented inline — grab it and trim it down. The
-        handful of values that actually matter for a basic setup:
+        handful of values that matter for a basic setup:
       </P>
 
       <Pre label="config.yaml">{`server_url: https://hs.yourdomain.com
@@ -84,7 +84,7 @@ dns:
       <P>
         <Code>server_url</Code> is the one people get wrong most often — it has to be the actual public HTTPS URL
         your devices will reach, not <Code>localhost</Code> and not the bare IP. If this is wrong, clients will
-        register and then silently fail to stay connected, which is a genuinely annoying thing to debug at
+        register and then silently fail to stay connected, which is an annoying thing to debug at
         midnight.
       </P>
 
@@ -169,7 +169,7 @@ headscale preauthkeys create --user yourname --expiration 24h`}</Pre>
       <H2>What comes next</H2>
 
       <P>
-        This setup is genuinely solid once it's running — I've had mine up for months without touching the
+        This setup is solid once it's running — I've had mine up for months without touching the
         config. The part that gets old is everything after "it's running": remembering node IDs to revoke a lost
         device, hand-editing a HuJSON file for ACLs, piping <Code>headscale nodes list</Code> through{' '}
         <Code>grep</Code> to find one machine. That gap is the whole reason LavaMesh exists — same Headscale
