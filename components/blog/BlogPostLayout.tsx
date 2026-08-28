@@ -15,6 +15,26 @@ export default function BlogPostLayout({ post, children }: { post: BlogPost; chi
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      {/* Article structured data — same idea as the SoftwareApplication schema in
+          app/layout.tsx, scoped to posts: gives Google an author, a date, and a
+          headline to build a proper article rich result from instead of guessing. */}
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: post.title,
+            description: post.description,
+            datePublished: post.date,
+            dateModified: post.date,
+            author: { '@type': 'Person', name: 'Drew Pilat', url: 'https://www.lavamesh.com/blog' },
+            publisher: { '@type': 'Organization', name: 'LavaMesh', url: 'https://www.lavamesh.com' },
+            mainEntityOfPage: `https://www.lavamesh.com/blog/${post.slug}`,
+          }),
+        }}
+      />
       <SiteNav />
 
       <article style={{ paddingTop: 128, paddingBottom: 100 }}>
