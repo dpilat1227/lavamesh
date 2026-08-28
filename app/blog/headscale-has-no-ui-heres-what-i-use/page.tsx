@@ -34,20 +34,20 @@ export default function Page() {
         ACL rule — goes through commands like this:
       </P>
 
-      <H2>What running Headscale actually feels like, day to day</H2>
+      <H2>What running Headscale feels like, day to day</H2>
 
       <P>
-        The first week is fine, honestly. You follow the docs, you get a server up, you connect your laptop and
+        The first week is fine. You follow the docs, you get a server up, you connect your laptop and
         your phone, you feel like a wizard. Then a friend asks to join your tailnet, and you're SSH'd into your
         VPS at 11pm typing:
       </P>
 
-      <Callout label="What this actually looks like">
+      <Callout label="What this looks like in practice">
         <Code>headscale users create alex</Code>
         <br />
         <Code>headscale preauthkeys create --user alex --expiration 24h</Code>
         <br />
-        <Code>headscale nodes list</Code> to make sure it actually connected, because there's no other way to check
+        <Code>headscale nodes list</Code> to make sure it connected, because there's no other way to check
       </Callout>
 
       <P>
@@ -60,7 +60,7 @@ export default function Page() {
       </P>
 
       <P>
-        None of this is a knock on Headscale itself — the actual networking is rock solid, and I mean that. It's
+        None of this is a knock on Headscale itself — the networking underneath is rock solid, and I mean that. It's
         the operational layer around it that's missing. You're not just running a VPN anymore; you're running
         infrastructure with zero visibility into its own state unless you're comfortable living in a terminal.
       </P>
@@ -70,7 +70,7 @@ export default function Page() {
       <P>
         To be fair to the ecosystem, you're not the first person to hit this wall — there are a handful of
         community-built UIs floating around for Headscale, and it's worth trying one before you build or buy
-        anything. Some are genuinely useful for basic node listing. What I kept running into, across the ones I
+        anything. Some are fine for basic node listing. What I kept running into, across the ones I
         tried, was the same short list of gaps: no real handling for multi-tenant setups, no audit trail of who
         did what, ACL editing that's really just a fancier textarea over the same HuJSON file, and — more than
         once — a project that hadn't been touched in a year and quietly broke against a newer Headscale release.
@@ -78,15 +78,15 @@ export default function Page() {
 
       <P>
         That's not a criticism of the maintainers; it's just the reality of unpaid side projects. I ran into the
-        same problem from the other direction, honestly — I wanted this to be a proper tool, actively maintained,
+        same problem from the other direction — I wanted this to be a proper tool, actively maintained,
         that I'd trust to run my own network.
       </P>
 
-      <H2>What I actually wanted from a Headscale dashboard</H2>
+      <H2>What I wanted from a Headscale dashboard</H2>
 
       <P>
         After enough late nights with <Code>headscale nodes list</Code> piped through <Code>grep</Code>, I sat down
-        and wrote out what I actually needed, not what would be cool to have:
+        and wrote out what I needed, not what would be cool to have:
       </P>
 
       <UL>
@@ -121,11 +121,11 @@ export default function Page() {
       <P>
         The Community tier is free and self-hosted, same as Headscale itself — I built this because I needed it,
         not because I wanted to paywall the basic act of seeing your own node list. If you're already running
-        Headscale and just want eyes on it, that's genuinely the point.
+        Headscale and just want eyes on it, that's the point.
       </P>
 
       <P>
-        The part I'm still actually figuring out is what changes once it's not just you — a couple of coworkers
+        The part I'm still figuring out is what changes once it's not just you — a couple of coworkers
         on the same tailnet, or a handful of client networks instead of one homelab. That's a different set of
         problems (who did what, who still has access, proving it to someone who isn't you), and I'd rather hear
         it from someone dealing with it than guess. If that's your situation, email me at{' '}

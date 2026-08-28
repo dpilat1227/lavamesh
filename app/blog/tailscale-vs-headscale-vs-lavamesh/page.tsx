@@ -17,12 +17,12 @@ export default function Page() {
     <BlogPostLayout post={post}>
       <Lead>
         People ask me this in roughly the same three sentences every time: "isn't Headscale just free Tailscale?
-        And isn't LavaMesh just... Headscale with a coat of paint?" Kind of, and no, in that order. Here's the
-        actual breakdown.
+        And isn't LavaMesh just... Headscale with a coat of paint?" Kind of, and no, in that order. Here's the real
+        breakdown.
       </Lead>
 
       <P>
-        All three of these move your traffic the same way — WireGuard tunnels, direct peer-to-peer connections
+        All three of these move your traffic the same way: WireGuard tunnels, direct peer-to-peer connections
         when NAT allows it, relay servers when it doesn't. If you're picking based on "which one has better
         encryption" or "which one is faster," stop — they're functionally the same pipe. The differences are
         entirely about who runs the control plane, what it costs, and how much of the operational work lands on
@@ -45,7 +45,7 @@ export default function Page() {
       <H2>Where the money goes</H2>
 
       <P>
-        This is the part people actually care about, so let's not bury it. Tailscale bills per user, per month,
+        This is the part people care about most, so let's not bury it. Tailscale bills per user, per month,
         and that number climbs with every seat regardless of how many devices that person adds. Headscale is free
         because you're running the server — your VPS bill is the only cost, and that doesn't move whether you
         have 3 devices or 300. LavaMesh's Community tier is also free; the Pro tier is a flat $19/month (or $149
@@ -64,7 +64,7 @@ export default function Page() {
         ]}
       />
 
-      <H2>Where each one actually makes sense</H2>
+      <H2>Where each one makes sense</H2>
 
       <H3>Tailscale — when convenience is worth paying for</H3>
       <P>
@@ -75,7 +75,7 @@ export default function Page() {
 
       <H3>Raw Headscale — when you want it free and don't mind the terminal</H3>
       <P>
-        If you're comfortable in a terminal, don't mind hand-editing a HuJSON ACL file, and genuinely don't need
+        If you're comfortable in a terminal, don't mind hand-editing a HuJSON ACL file, and don't need
         much more than "list my nodes and revoke one occasionally," raw Headscale with no dashboard at all is a
         perfectly fine way to run a small personal mesh. It's what I did for months before this became a problem
         worth solving.
@@ -105,7 +105,7 @@ export default function Page() {
 
       <P>
         That last point matters more than people think. Switching your control plane later isn't a rebuild — it's
-        a re-auth. So the actual decision here is lower-stakes than it feels: pick based on who should be paying
+        a re-auth. So the real decision here is lower-stakes than it feels: pick based on who should be paying
         for your VPN and who should be maintaining it, not because you're locking yourself into anything permanent.
       </P>
     </BlogPostLayout>
