@@ -8,7 +8,12 @@ import type { PlanTier } from '@/lib/planTier';
 
 export default function MainLayout({ children, planTier = 'community', isPro = false, controlHost }: { children: React.ReactNode; planTier?: PlanTier; isPro?: boolean; controlHost?: string }) {
   const pathname = usePathname();
-  const isPublic = pathname === '/login' || pathname === '/' || pathname.startsWith('/draft');
+  // Marketing pages render their own nav/footer (SiteNav, SiteFooter) and are
+  // plain-document-flow layouts, not the app shell — without this, /blog fell
+  // through to the dashboard chrome below: Sidebar rendered for anonymous
+  // visitors, and the article got trapped inside the shell's height:100vh /
+  // overflow:hidden container with no scroll mechanism of its own.
+  const isPublic = pathname === '/login' || pathname === '/' || pathname.startsWith('/draft') || pathname.startsWith('/blog');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 

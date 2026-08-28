@@ -4,7 +4,7 @@
  * Team seats, Cloud instances, and uptime logs all hang off Tenant.
  * Checkout creates one, but self-hosted Community/Pro users never go through
  * Stripe — without this, Team Settings never renders and the advertised
- * 2-seat free limit is unreachable.
+ * 5-seat free limit is unreachable.
  */
 
 import { prisma } from './prisma';

@@ -40,12 +40,13 @@ const COMMUNITY: PlanStatus = { tier: 'community', isPro: false, source: 'none' 
  * is the one limit that's meaningfully enforceable regardless of hosting
  * model, since it lives in this app's own database rather than Headscale).
  *
- * Set to 1: a single dashboard login (the owner), unlimited devices. That's the
- * true-hobbyist/homelab shape — the moment a *second person* needs access it's a
- * team, which is exactly the collaboration line worth charging for. Pro and Cloud
- * have unlimited seats.
+ * Set to 5: generous enough that a small team or household can collaborate
+ * without hitting a wall, while still leaving "unlimited seats" as a real
+ * reason to upgrade once a team outgrows it. Pro and Cloud have unlimited
+ * seats. (Was 1 — raised to look, and be, less stingy while validating what
+ * small teams actually need.)
  */
-export const COMMUNITY_SEAT_LIMIT = 1;
+export const COMMUNITY_SEAT_LIMIT = 5;
 
 const LICENSE_KV_KEY = 'license:key';
 
