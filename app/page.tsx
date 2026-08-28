@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import HeroAnimation from '@/components/HeroAnimation';
+import HeroMobileProof from '@/components/HeroMobileProof';
 import TerminalBlock from '@/components/TerminalBlock';
 import FeatureGrid from '@/components/FeatureGrid';
 import PricingSection from '@/components/PricingSection';
@@ -122,9 +123,12 @@ export default function LandingPage() {
       {/* ── HERO — split layout: pitch and proof side by side ────────────────── */}
       <style>{`
         .hero-split { display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; }
+        .hero-visual-mobile { display: none; }
         @media (max-width: 940px) {
           .hero-split { grid-template-columns: 1fr; }
-          .hero-visual { min-height: 320px; padding-top: 0 !important; }
+          .hero-visual { min-height: 0; padding-top: 0 !important; }
+          .hero-visual-desktop { display: none; }
+          .hero-visual-mobile { display: block; }
         }
       `}</style>
       <section className="hero-split" style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden' }}>
@@ -181,16 +185,19 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Right — proof: the live mesh, right next to the claim */}
+        {/* Right — proof: the live mesh, right next to the claim.
+            Desktop gets the animated force-mesh graph (wide canvas, room for
+            8 nodes + crossing lines to read cleanly). Mobile swaps to a
+            device-list mockup instead of a shrunk version of the same
+            graph — dots and crossing lines just turn into noise once
+            they're squeezed under ~380px, no matter how they're resized. */}
         <div className="hero-visual relative z-10 flex items-center justify-center px-6 md:pr-16 lg:pr-20" style={{ paddingTop: 96, paddingBottom: 64 }}>
-          {/* aspectRatio (matches HeroAnimation's 780x480 viewBox) instead of a fixed
-              height — a fixed 480px box stayed 480px tall even once the mobile media
-              query shrank this to a ~320px-wide column, so the SVG (which correctly
-              preserves its own aspect ratio) shrank to fit the width and left huge
-              empty space above/below inside the now way-too-tall box. */}
-          <div className="animate-fade-in w-full" style={{ maxWidth: 560, aspectRatio: '780 / 480', animationDelay: '400ms', position: 'relative' }}>
+          <div className="hero-visual-desktop animate-fade-in w-full" style={{ maxWidth: 560, aspectRatio: '780 / 480', animationDelay: '400ms', position: 'relative' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 55%, #000 100%)', zIndex: 2, pointerEvents: 'none' }} />
             <HeroAnimation />
+          </div>
+          <div className="hero-visual-mobile animate-fade-in w-full" style={{ maxWidth: 400, animationDelay: '400ms' }}>
+            <HeroMobileProof />
           </div>
         </div>
       </section>
