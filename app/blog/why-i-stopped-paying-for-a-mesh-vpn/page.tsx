@@ -93,6 +93,16 @@ export default function Page() {
         should be less work than paying for it, not a different flavor of work.
       </Quote>
 
+      <P>
+        There's a less noble reason I had the time for this at all: I was in the middle of a CS master's
+        at UChicago, up to my neck in distributed systems and parallel programming coursework, and building
+        something that talks to a real API and doesn't fall over when a hundred nodes report in at once was
+        exactly the kind of problem I was already spending my evenings on anyway. It stopped being "fix my own
+        annoyance" and turned into the assignment nobody gave me — the kind you keep doing because you want to
+        see it work, not because it's due. That's most of the reason a weekend fix turned into a thing I kept
+        building on.
+      </P>
+
       <H2>So I built the dashboard I wanted</H2>
 
       <P>
