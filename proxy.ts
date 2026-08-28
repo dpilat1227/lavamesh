@@ -11,9 +11,16 @@ export function proxy(req: NextRequest) {
 
   const isPublic =
     PUBLIC_PATHS.includes(pathname) ||
+    // Marketing content — was previously falling through to the default
+    // "redirect to /login" case, which made the blog (a real SEO/backlink
+    // asset) and its supporting API calls completely invisible to anyone
+    // who wasn't already signed in.
+    pathname.startsWith("/blog") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/install") ||
     pathname.startsWith("/api/waitlist") ||
+    pathname.startsWith("/api/pro-access") ||
+    pathname.startsWith("/api/github-stats") ||
     pathname.startsWith("/api/checkout") ||
     pathname.startsWith("/api/webhooks/") ||
     pathname.startsWith("/api/provision") ||

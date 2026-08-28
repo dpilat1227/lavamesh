@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { STRIPE_MONTHLY_LINK as MONTHLY_LINK, STRIPE_LIFETIME_LINK as LIFETIME_LINK } from '@/lib/pricing';
+import ProAccessOffer from '@/components/ProAccessOffer';
 
 type Billing = 'monthly' | 'lifetime';
 
@@ -18,7 +19,7 @@ const plans = [
       'Self-hosted on your own server',
       'ACL policy editor + extra DNS records',
       'Expire or revoke nodes from the dashboard',
-      'Up to 2 team members',
+      'Up to 5 team members',
       'Open source on GitHub',
       'Community support (Discord)',
     ],
@@ -55,6 +56,10 @@ const plans = [
       href: billing === 'monthly' ? MONTHLY_LINK : LIFETIME_LINK,
       external: true,
     }),
+    // Honest, not hidden: still a real price, but says out loud that it's not
+    // fixed in stone yet. Softens the "money grab" read for cold visitors
+    // without pretending a live Stripe link doesn't exist.
+    note: 'Early pricing while I figure out what teams actually need — reply below if $19 feels off.',
     highlight: true,
   },
   {
@@ -270,10 +275,21 @@ export default function PricingSection() {
                     {ctaInfo.label}
                   </a>
                 )}
+
+                {/* Honest early-pricing note — only Pro carries this today */}
+                {plan.note && (
+                  <p className="mt-3 text-[11.5px] leading-relaxed text-center" style={{ color: 'rgba(255,255,255,0.32)' }}>
+                    {plan.note}
+                  </p>
+                )}
               </div>
             );
           })}
         </div>
+
+        {/* Free Pro for feedback — separate from the paid CTAs on purpose,
+            so it reads as "trying to learn," not "upsell in disguise." */}
+        <ProAccessOffer />
 
         {/* Enterprise callout */}
         <div className="mt-8 flex items-center justify-center gap-3 text-center flex-wrap">

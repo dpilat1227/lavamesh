@@ -123,6 +123,15 @@ export default function Page() {
         not because I wanted to paywall the basic act of seeing your own node list. If you're already running
         Headscale and just want eyes on it, that's genuinely the point.
       </P>
+
+      <P>
+        The part I'm still actually figuring out is what changes once it's not just you — a couple of coworkers
+        on the same tailnet, or a handful of client networks instead of one homelab. That's a different set of
+        problems (who did what, who still has access, proving it to someone who isn't you), and I'd rather hear
+        it from someone dealing with it than guess. If that's your situation, email me at{' '}
+        <a href="mailto:drew@lavamesh.com" style={{ color: 'inherit', textDecoration: 'underline' }}>drew@lavamesh.com</a>{' '}
+        — I'll set you up with Pro free in exchange for telling me honestly what's missing.
+      </P>
     </BlogPostLayout>
   );
 }
