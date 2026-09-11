@@ -20,6 +20,16 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: 'who-lavamesh-is-for',
+    title: "You Don't Have to Be a Developer to Need This",
+    description:
+      "Your devices talk like they're on the same Wi-Fi. You see them on a website. The bill doesn't grow when you add your dad. That's LavaMesh.",
+    date: '2026-09-11',
+    readTime: '4 min read',
+    tags: ['Story', 'Getting started'],
+    published: true,
+  },
+  {
     slug: 'headscale-has-no-ui-heres-what-i-use',
     title: "Headscale Doesn't Ship With a UI. Here's What I Use Instead.",
     description:
