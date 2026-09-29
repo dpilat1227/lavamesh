@@ -28,9 +28,9 @@ export default function CloudInstanceCard({
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-1)' }}>Cloud Instance</h2>
+            <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-1)' }}>Headscale server</h2>
             <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>
-              Dedicated Headscale, hosted by LavaMesh
+              The Headscale instance this dashboard is connected to
             </p>
           </div>
           <Badge variant={badge.variant} dot={instance.status !== 'error'} pulse={instance.status === 'provisioning'}>

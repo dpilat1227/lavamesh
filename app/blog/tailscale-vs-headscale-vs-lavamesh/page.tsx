@@ -48,15 +48,15 @@ export default function Page() {
         This is the part people care about most, so let's not bury it. Tailscale bills per user, per month,
         and that number climbs with every seat regardless of how many devices that person adds. Headscale is free
         because you're running the server — your VPS bill is the only cost, and that doesn't move whether you
-        have 3 devices or 300. LavaMesh's Community tier is also free; the Pro tier is a flat $19/month (or $149
-        once, forever) no matter how large your mesh gets.
+        have 3 devices or 300. LavaMesh is free too — it's a dashboard on the Headscale server you already run,
+        with no paid tier.
       </P>
 
       <Table
-        headers={['', 'Tailscale', 'Headscale', 'LavaMesh Pro']}
+        headers={['', 'Tailscale', 'Headscale', 'LavaMesh']}
         rows={[
-          ['Pricing model', 'Per seat', 'Free (self-hosted)', 'Flat rate'],
-          ['50-device fleet', '$300–900/mo', '$0 + your VPS', '$19/mo flat'],
+          ['What you pay', 'Per seat', 'Free (self-hosted)', 'Free'],
+          ['50-device fleet', '$300–900/mo', '$0 + your VPS', 'Free + your server'],
           ['Web dashboard', 'Yes', 'CLI only (free UIs exist)', 'Yes'],
           ['Self-hosted', 'No', 'Yes', 'Yes'],
           ['Open source', 'No', 'Yes', 'Core is open'],
@@ -84,7 +84,7 @@ export default function Page() {
 
       <H3>LavaMesh — when you want Headscale's economics with a real interface</H3>
       <P>
-        This is the gap I built LavaMesh for: you want to own your infrastructure and pay flat instead of per-seat,
+        This is the gap I built LavaMesh for: you want to own your infrastructure,
         but you don't want to run <Code>headscale nodes list</Code> every time you need to know if your parents'
         router is still online. It's Headscale's cost structure with an actual dashboard on top — node status,
         key management, ACL editing, users, all clickable.

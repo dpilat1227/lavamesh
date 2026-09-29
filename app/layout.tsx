@@ -4,13 +4,12 @@ import { Analytics } from '@vercel/analytics/react';
 import MainLayout from '@/components/MainLayout';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getPlanStatus } from '@/lib/billing';
 import { ensureTenantForUser } from '@/lib/tenant';
 import { headscaleLoginServer } from '@/lib/headscale';
 
 export const metadata: Metadata = {
   title: 'LavaMesh · Private Mesh Networking',
-  description: 'Self-hosted mesh networking dashboard powered by Headscale. Own your network. Zero per-seat fees. Flat-rate pricing.',
+  description: 'Free, self-hosted dashboard for Headscale. Nodes, keys, routes, and ACLs for the mesh you already run.',
   metadataBase: new URL('https://www.lavamesh.com'),
   applicationName: 'LavaMesh',
   icons: {
@@ -19,7 +18,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'LavaMesh · Private Mesh Networking',
-    description: 'Self-hosted mesh networking dashboard powered by Headscale. Own your network. Zero per-seat fees.',
+    description: 'Free, self-hosted dashboard for Headscale. Nodes, keys, routes, and ACLs for the mesh you already run.',
     url: 'https://www.lavamesh.com',
     siteName: 'LavaMesh',
     type: 'website',
@@ -27,7 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'LavaMesh · Private Mesh Networking',
-    description: 'Self-hosted mesh networking dashboard powered by Headscale. Own your network. Zero per-seat fees.',
+    description: 'Free, self-hosted dashboard for Headscale. Nodes, keys, routes, and ACLs for the mesh you already run.',
   },
 };
 
@@ -40,7 +39,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (userId) {
     await ensureTenantForUser(userId, { email: session?.user?.email, name: session?.user?.name }).catch(() => null);
   }
-  const plan = userId ? await getPlanStatus(userId).catch(() => null) : null;
   // Only worth resolving (and worth a DB round-trip) once a user is actually
   // signed in — anonymous marketing-site requests skip it entirely.
   const controlHost = userId
@@ -63,12 +61,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               applicationCategory: 'SecurityApplication',
               operatingSystem: 'Linux, macOS, Windows, Docker',
               description:
-                'Self-hosted mesh networking dashboard powered by Headscale. Own your network, zero per-seat fees, flat-rate pricing.',
+                'Free, self-hosted dashboard for Headscale. Nodes, keys, routes, and ACLs for the mesh you already run.',
               url: 'https://www.lavamesh.com',
-              offers: [
-                { '@type': 'Offer', name: 'Community', price: '0', priceCurrency: 'USD' },
-                { '@type': 'Offer', name: 'Pro', price: '19', priceCurrency: 'USD' },
-              ],
+              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
             }),
           }}
         />
@@ -82,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         }}
       >
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <MainLayout planTier={plan?.tier ?? 'community'} isPro={plan?.isPro ?? false} controlHost={controlHost}>{children}</MainLayout>
+          <MainLayout controlHost={controlHost}>{children}</MainLayout>
         </div>
         <Analytics />
       </body>

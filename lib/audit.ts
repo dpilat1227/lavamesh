@@ -49,7 +49,7 @@ export async function logEvent(action: AuditAction, meta: Record<string, string>
 }
 
 export async function getAuditLog(limit = 100): Promise<AuditEvent[]> {
-  const raw = await kvLrange<string>(KEY, 0, limit - 1);
+  const raw = await kvLrange(KEY, 0, limit - 1);
   return raw.map(r => {
     try { return JSON.parse(r) as AuditEvent; }
     catch { return null; }

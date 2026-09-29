@@ -2,42 +2,52 @@
 import { useState, useTransition, useEffect } from 'react';
 import { generateApiKeyAction, revokeApiKeyAction } from '@/app/actions';
 import type { ApiKeyRecord } from '@/lib/apikeys';
-import { Badge, Button, Card } from '@/components/ui';
+import { Button, Card, ConfirmDialog } from '@/components/ui';
 
 export default function ApiKeyCard({
   apiKey,
   kvReady,
-  isPro,
 }: {
   apiKey: ApiKeyRecord | null;
   kvReady: boolean;
-  isPro: boolean;
 }) {
   const [currentKey, setCurrentKey] = useState<ApiKeyRecord | null>(apiKey);
   const [revealed, setRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generating, startGenerate] = useTransition();
-  const [revoking, startRevoke] = useTransition();
   const [origin, setOrigin] = useState('https://www.lavamesh.com');
+  // Regenerating and revoking both instantly break every script and CI job
+  // holding the old token — they can't be one-click, unconfirmed actions.
+  const [confirming, setConfirming] = useState<'regenerate' | 'revoke' | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
 
   const generate = () => {
+    setError('');
     startGenerate(async () => {
-      const record = await generateApiKeyAction();
-      setCurrentKey(record);
-      setRevealed(true);
+      try {
+        const record = await generateApiKeyAction();
+        setCurrentKey(record);
+        setRevealed(true);
+      } catch (e: any) {
+        setError(e?.message || 'Could not generate a key. Please try again.');
+      }
     });
   };
 
-  const revoke = () => {
-    startRevoke(async () => {
-      await revokeApiKeyAction();
-      setCurrentKey(null);
-      setRevealed(false);
-    });
+  const regenerate = async () => {
+    const record = await generateApiKeyAction();
+    setCurrentKey(record);
+    setRevealed(true);
+  };
+
+  const revoke = async () => {
+    await revokeApiKeyAction();
+    setCurrentKey(null);
+    setRevealed(false);
   };
 
   const copy = async () => {
@@ -54,7 +64,7 @@ export default function ApiKeyCard({
     : null;
 
   return (
-    <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }} accent={isPro ? 'var(--orange)' : undefined}>
+    <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
       <div className="p-6">
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -63,24 +73,16 @@ export default function ApiKeyCard({
             Use with <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>Authorization: Bearer lm_…</code> to access <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-3)' }}>/api/v1/*</code>
           </p>
         </div>
-        <Badge variant="orange" className="text-[10px] uppercase tracking-wider">Pro</Badge>
       </div>
 
-      {!kvReady && isPro && (
+      {!kvReady && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] mb-4" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#fbbf24', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <p className="text-[11px]" style={{ color: '#fbbf24' }}>Requires Vercel KV — create one in Vercel → Storage</p>
         </div>
       )}
 
-      {!isPro ? (
-        <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
-          <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
-            Generate API keys for programmatic access to <code style={{ fontFamily: 'var(--font-mono)' }}>/api/v1/*</code> on the Pro or Cloud plan.
-          </p>
-          <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
-        </div>
-      ) : currentKey ? (
+      {currentKey ? (
         <div className="space-y-3">
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <code className="flex-1 text-[12px] truncate" style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)' }}>{maskedToken}</code>
@@ -97,17 +99,18 @@ export default function ApiKeyCard({
             </p>
           )}
           <div className="flex gap-2 mt-3">
-            <Button variant="ghost" onClick={generate} disabled={generating || !kvReady} className="text-[12px]">
-              {generating ? 'Regenerating…' : 'Regenerate'}
+            <Button variant="ghost" onClick={() => setConfirming('regenerate')} disabled={!kvReady} className="text-[12px]">
+              Regenerate
             </Button>
-            <Button variant="danger" onClick={revoke} disabled={revoking || !kvReady} className="text-[12px]">
-              {revoking ? 'Revoking…' : 'Revoke'}
+            <Button variant="danger" onClick={() => setConfirming('revoke')} disabled={!kvReady} className="text-[12px]">
+              Revoke
             </Button>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
           <p className="text-[13px]" style={{ color: 'var(--text-4)' }}>No API key generated yet.</p>
+          {error && <p className="text-[12px]" style={{ color: 'var(--red)' }} role="alert">{error}</p>}
           <Button variant="primary" onClick={generate} disabled={generating || !kvReady} className="text-[13px]">
             {generating ? (
               <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</>
@@ -116,9 +119,7 @@ export default function ApiKeyCard({
         </div>
       )}
 
-      {/* Usage examples */}
-      {isPro && (
-        <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-1)' }}>
+      <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-1)' }}>
           <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-4)' }}>Examples</p>
           <p className="text-[11px] mb-2" style={{ color: 'var(--text-4)' }}>
             Headscale 0.23+ uses <code style={{ fontFamily: 'var(--font-mono)' }}>/node</code>. The proxy also accepts <code style={{ fontFamily: 'var(--font-mono)' }}>/machine</code> and retries automatically.
@@ -137,9 +138,26 @@ curl "$ORIGIN/api/v1/machine" -H "Authorization: Bearer $KEY"
 curl "$ORIGIN/api/v1/user" -H "Authorization: Bearer $KEY"
 curl "$ORIGIN/api/v1/policy" -H "Authorization: Bearer $KEY"`}
           </pre>
-        </div>
-      )}
       </div>
+      </div>
+
+      <ConfirmDialog
+        open={confirming === 'regenerate'}
+        title="Regenerate API key?"
+        description="Your current key stops working immediately. Any script, CI job, or integration using it will start getting 401s until you paste in the new one."
+        confirmLabel="Regenerate key"
+        tone="primary"
+        onConfirm={regenerate}
+        onClose={() => setConfirming(null)}
+      />
+      <ConfirmDialog
+        open={confirming === 'revoke'}
+        title="Revoke API key?"
+        description="This deletes the key with no replacement — every integration using it loses access to /api/v1 right away. You can generate a new one afterwards."
+        confirmLabel="Revoke key"
+        onConfirm={revoke}
+        onClose={() => setConfirming(null)}
+      />
     </Card>
   );
 }

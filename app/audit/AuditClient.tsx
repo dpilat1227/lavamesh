@@ -80,7 +80,7 @@ export default function AuditClient({ events }: { events: AuditEventView[] }) {
       </p>
 
       <Card key="events-table" padded={false}>
-        <div className="grid px-5 py-3" style={{ gridTemplateColumns: '160px 180px 1fr', borderBottom: '1px solid var(--border-1)' }}>
+        <div className="audit-grid audit-grid-head px-5 py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
           {['Time', 'Action', 'Details'].map(h => (
             <span key={h} className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>{h}</span>
           ))}
@@ -90,22 +90,22 @@ export default function AuditClient({ events }: { events: AuditEventView[] }) {
         ) : (
           filtered.map((event, i) => (
             <div key={event.id}
-              className="grid items-center px-5 py-3 row-alt table-row-hover"
-              style={{ gridTemplateColumns: '160px 180px 1fr', borderBottom: i < filtered.length - 1 ? '1px solid var(--border-1)' : 'none' }}
+              className="audit-grid px-5 py-3 row-alt table-row-hover"
+              style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border-1)' : 'none' }}
             >
-              <div>
+              <div className="audit-cell-time">
                 <p className="text-[12px]" style={{ color: 'var(--text-3)' }}>{timeAgo(event.ts)}</p>
                 <p className="text-[10px] font-mono" style={{ color: 'var(--text-4)' }}>
                   {new Date(event.ts).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="audit-cell-action flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: ACTION_COLORS[event.action] ?? 'var(--text-4)' }} />
                 <span className="text-[12px] font-medium" style={{ color: ACTION_COLORS[event.action] ?? 'var(--text-2)' }}>
                   {ACTION_LABELS[event.action] ?? event.action}
                 </span>
               </div>
-              <p className="text-[12px] font-mono truncate" style={{ color: 'var(--text-4)' }}>
+              <p className="audit-cell-detail text-[12px] font-mono truncate" style={{ color: 'var(--text-4)' }}>
                 {formatMeta(event.meta) || '—'}
               </p>
             </div>

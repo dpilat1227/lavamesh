@@ -65,7 +65,7 @@ export async function createBackup(trigger: 'manual' | 'scheduled'): Promise<Bac
 }
 
 export async function listBackups(limit = MAX_BACKUPS): Promise<BackupSummary[]> {
-  const raw = await kvLrange<string>(KEY, 0, limit - 1);
+  const raw = await kvLrange(KEY, 0, limit - 1);
   return raw.map(r => {
     try {
       const b: ConfigBackup = JSON.parse(r);
@@ -77,7 +77,7 @@ export async function listBackups(limit = MAX_BACKUPS): Promise<BackupSummary[]>
 }
 
 export async function getBackup(id: string): Promise<ConfigBackup | null> {
-  const raw = await kvLrange<string>(KEY, 0, MAX_BACKUPS - 1);
+  const raw = await kvLrange(KEY, 0, MAX_BACKUPS - 1);
   for (const r of raw) {
     try {
       const b: ConfigBackup = JSON.parse(r);

@@ -55,7 +55,7 @@ export default function DraftHero() {
           </h1>
 
           <p style={{ fontSize: 17, lineHeight: 1.65, color: 'rgba(255,255,255,0.35)', maxWidth: 420, marginBottom: 40, letterSpacing: '-0.01em' }}>
-            A self-hosted WireGuard mesh with a beautiful dashboard. No per-seat pricing. No vendor lock-in. Complete control.
+            A self-hosted WireGuard mesh with a free dashboard. You run Headscale. LavaMesh is the admin panel.
           </p>
 
           <div className="flex items-center gap-3">
@@ -67,7 +67,7 @@ export default function DraftHero() {
               GitHub
             </a>
           </div>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 16 }}>Free to self-host · Pro from $19/mo</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 16 }}>Free · open source · you bring Headscale</p>
         </div>
 
         {/* Right — Node animation (no background fill) */}

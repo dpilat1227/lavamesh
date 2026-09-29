@@ -34,7 +34,6 @@ export default function SiteNav() {
         <div className="nav-desktop-links items-center">
           <div className="flex items-center gap-8">
             <Link href="/#features" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Features</Link>
-            <Link href="/#pricing" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Pricing</Link>
             <Link href="/blog" className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>Blog</Link>
             <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
               className="text-[14px] font-medium nav-gh-link transition-colors" style={{ color: 'var(--text-accent)' }}>GitHub</a>
@@ -59,8 +58,6 @@ export default function SiteNav() {
           style={{ top: 56, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <Link href="/#features" onClick={() => setMobileMenuOpen(false)}
             className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Features</Link>
-          <Link href="/#pricing" onClick={() => setMobileMenuOpen(false)}
-            className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Pricing</Link>
           <Link href="/blog" onClick={() => setMobileMenuOpen(false)}
             className="px-4 py-3 rounded-[10px] text-[14px] font-medium" style={{ color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.03)' }}>Blog</Link>
           <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"

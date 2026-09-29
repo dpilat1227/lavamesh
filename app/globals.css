@@ -300,6 +300,24 @@ body {
   animation: shimmer 1.8s ease-in-out infinite;
 }
 
+/* Route-transition skeleton primitive (see components/ui/Skeleton.tsx). Kept
+ * deliberately low-contrast — a skeleton that shimmers as brightly as real
+ * content reads as broken UI rather than as pending UI. */
+.skeleton-block {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.6s ease-in-out infinite;
+  opacity: 0.55;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block { animation: none; }
+}
+/* The context pane becomes a drawer below the SplitView breakpoint, so its
+ * skeleton must hide too or the table column gets squeezed while loading. */
+@media (max-width: 1280px) {
+  .skeleton-pane { display: none; }
+}
+
 /* ── Glow effects ──────────────────────────────────────────────────────────── */
 .glow-orange { box-shadow: 0 0 20px rgba(255,115,0,0.3), 0 0 60px rgba(255,115,0,0.1); }
 .glow-green  { box-shadow: 0 0 12px rgba(61,220,132,0.4); }
@@ -877,6 +895,39 @@ body {
 }
 .insight-row-btn:hover { background: rgba(255,255,255,0.05); }
 
+/* ── Audit log rows ──────────────────────────────────────────────────────────
+   The 160px/180px/1fr grid needs ~420px of content width before the Details
+   column has anywhere to go; below that the timestamp, action and detail all
+   collide. Same fix as the Keys/Users/Routes tables: stack into a card, with
+   the action promoted to the top line since that's what you scan for. */
+.audit-grid {
+  display: grid;
+  grid-template-columns: 160px 180px 1fr;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .audit-grid {
+    grid-template-columns: 1fr;
+    align-items: start;
+    row-gap: 5px;
+  }
+  .audit-grid-head { display: none; }
+  .audit-cell-action { order: 1; }
+  .audit-cell-detail {
+    order: 2;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+  .audit-cell-time {
+    order: 3;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+}
+
 .split-pane-close-mobile { display: none; }
 .split-pane-mobile-trigger { display: none; }
 .split-pane-backdrop { display: none; }
@@ -888,6 +939,19 @@ body {
 .landing-page h1,
 .landing-page h2 {
   font-family: var(--font-display);
+}
+
+/* Footer links were 12px at 25% white on pure black — roughly 2:1 contrast,
+   well under the 4.5:1 minimum and genuinely hard to read. Readable at rest,
+   full white on hover. */
+.footer-link {
+  color: rgba(255, 255, 255, 0.62);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.footer-link:hover,
+.footer-link:focus-visible {
+  color: #fff;
 }
 
 @media (max-width: 1280px) {

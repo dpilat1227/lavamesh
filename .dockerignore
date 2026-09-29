@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.env
+.env.local
+*.md
+docs
+copilot_screenshots
+LavaMoney_build_17_screenshots

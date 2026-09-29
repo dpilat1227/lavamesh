@@ -23,7 +23,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: 'who-lavamesh-is-for',
     title: "You Don't Have to Be a Developer to Need This",
     description:
-      "Your devices talk like they're on the same Wi-Fi. You see them on a website. The bill doesn't grow when you add your dad. That's LavaMesh.",
+      "Your devices talk like they're on the same Wi-Fi. You see them on a website. The dashboard is free. That's LavaMesh.",
     date: '2026-09-11',
     readTime: '4 min read',
     tags: ['Story', 'Getting started'],
@@ -43,7 +43,7 @@ export const BLOG_POSTS: BlogPost[] = [
     slug: 'tailscale-vs-headscale-vs-lavamesh',
     title: 'Tailscale vs. Headscale vs. LavaMesh: What Actually Changes',
     description:
-      'Same WireGuard mesh under the hood, three very different deals. A straight comparison of the control plane, the pricing, and who each one is actually for.',
+      'Same WireGuard mesh under the hood, three very different setups. A straight comparison of the control plane and who each one is actually for.',
     date: '2026-08-12',
     readTime: '9 min read',
     tags: ['Comparison', 'Tailscale'],

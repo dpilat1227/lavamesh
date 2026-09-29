@@ -40,7 +40,7 @@ function RuleSelect({ value, onChange, groups, placeholder }: { value: string; o
   );
 }
 
-export default function AclBuilder({ isPro }: { isPro: boolean }) {
+export default function AclBuilder() {
   const [groups, setGroups] = useState<TagGroup[] | null>(null);
   const [rules, setRules] = useState<Rule[]>([newRule()]);
   const [preview, setPreview] = useState<string | null>(null);
@@ -50,20 +50,8 @@ export default function AclBuilder({ isPro }: { isPro: boolean }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isPro) return;
     getTagGroupsAction().then(setGroups).catch(() => setGroups([]));
-  }, [isPro]);
-
-  if (!isPro) {
-    return (
-      <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
-        <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
-          Build tag-based access rules visually — no HuJSON required — on the Pro or Cloud plan.
-        </p>
-        <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
-      </div>
-    );
-  }
+  }, []);
 
   if (groups === null) {
     return <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>Loading tags…</p>;

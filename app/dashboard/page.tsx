@@ -1,4 +1,4 @@
-import { getNodes } from "@/lib/headscale";
+import { getNodes, headscaleLoginServer } from "@/lib/headscale";
 import DashboardClient from "@/app/DashboardClient";
 import CloudProvisioningStatus from "@/components/CloudProvisioningStatus";
 import HeadscaleUnavailable from "@/components/HeadscaleUnavailable";
@@ -58,5 +58,6 @@ export default async function DashboardPage() {
     console.error("Failed to fetch uptime logs", e);
   }
 
-  return <DashboardClient nodes={nodes} initialTags={tags} uptimeLogs={logs} />;
+  const loginServer = await headscaleLoginServer();
+  return <DashboardClient nodes={nodes} initialTags={tags} uptimeLogs={logs} loginServer={loginServer} />;
 }

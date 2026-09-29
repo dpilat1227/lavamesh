@@ -119,11 +119,9 @@ export default function Page() {
       </P>
 
       <P>
-        That's LavaMesh. The free tier is exactly the setup I'd want if I were back at day one of this — self-host
-        it, own it, no seat limit worth mentioning. Pro exists for the stuff that shows up once it's not just your
-        own devices anymore: backups, alerts, a few people other than you who need access. I priced it flat
-        because the entire reason I went looking for this in the first place was resenting a bill that grew every
-        time I trusted one more person.
+        That's LavaMesh. Self-host it, own it, and use the whole dashboard — backups, alerts, and extra logins
+        included. There is no paid tier. The reason I went looking for this in the first place was resenting a
+        bill that grew every time I trusted one more person.
       </P>
 
       <P>

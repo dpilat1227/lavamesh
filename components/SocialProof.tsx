@@ -17,19 +17,19 @@ const reasons = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
     ),
     title: "Open source, auditable core",
-    desc: "The control plane isn't a black box. Read the code, run it air-gapped, fork it if we ever disappear. That's the actual guarantee — not a promise on a pricing page.",
+    desc: "The control plane isn't a black box. Read the code, run it air-gapped, fork it if the project ever goes quiet.",
   },
   {
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M2 12h20"/></svg>
     ),
-    title: "Priced like a tool, not a tax",
-    desc: "One flat rate covers your entire mesh, whether that's 3 devices or 300. No per-seat math to redo every time you add a machine.",
+    title: "The whole dashboard is free",
+    desc: "Backups, the audit log, webhooks, API keys, and the ACL builder ship with the app. There is no paid tier.",
   },
 ];
 
 const stats = [
-  { val: 'Flat rate', label: 'Pricing model', color: '#ff7300' },
+  { val: 'Free', label: 'The dashboard', color: '#ff7300' },
   { val: 'WireGuard', label: 'Encryption', color: '#60a5fa' },
   { val: 'Self-hosted', label: 'Data sovereignty', color: '#3ddc84' },
   { val: 'Open source', label: 'No lock-in', color: '#a78bfa' },
@@ -54,8 +54,8 @@ export default function SocialProof() {
             Community
           </p>
           <h2 className="font-bold tracking-tight" style={{ fontSize: 'clamp(32px, 5vw, 52px)', letterSpacing: '-0.03em', color: 'white' }}>
-            Built by a homelabber.{' '}
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>For homelabbers.</span>
+            A dashboard for the network you already own.{' '}
+            <span style={{ color: 'rgba(255,255,255,0.3)' }}>Nothing else to sign up for.</span>
           </h2>
         </div>
 

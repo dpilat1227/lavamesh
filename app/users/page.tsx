@@ -23,5 +23,15 @@ export default async function UsersPage() {
     (nodesByUser[uname] ||= []).push({ id: node.id, givenName: node.givenName, online: node.online, lastSeen: node.lastSeen });
   }
 
-  return <UsersClient users={users} nodeCounts={nodeCounts} nodesByUser={nodesByUser} />;
+  // One leg of the batch failing used to render as fact: a rejected getNodes()
+  // showed every user with "0 nodes", and a rejected getUsers() showed an
+  // empty roster. Say which half we're missing instead.
+  const loadError =
+    usersResult.status === 'rejected'
+      ? { message: "Couldn't load the user list. Node counts below may not match reality.", detail: usersResult.reason?.message }
+      : nodesResult.status === 'rejected'
+        ? { message: "Couldn't load nodes, so per-user node counts are unavailable.", detail: (nodesResult as PromiseRejectedResult).reason?.message }
+        : undefined;
+
+  return <UsersClient users={users} nodeCounts={nodeCounts} nodesByUser={nodesByUser} loadError={loadError} />;
 }

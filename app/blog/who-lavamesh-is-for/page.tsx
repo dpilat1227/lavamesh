@@ -66,15 +66,12 @@ export default function Page() {
       </P>
 
       <P>
-        Free if you run it yourself. Pro is flat — $19/month or $149 once — backups, logs, the stuff that shows
-        up when it&apos;s not just your own laptop. I priced it that way because the original complaint was a bill
-        that scaled with how many people I helped.
+        The dashboard is free. Backups, logs, and the rest of the admin tools ship with it. There is no paid tier.
       </P>
 
       <Callout label="One honest catch">
         Today someone still has to stand the server up once. If that&apos;s not you, send this to the person
-        who&apos;d enjoy that, or join the waitlist on the homepage and we&apos;ll run it for you later. I&apos;m
-        not going to walk you through renting a server in this post.
+        who&apos;d enjoy that. I&apos;m not going to walk you through renting a server in this post.
       </Callout>
 
       <P>

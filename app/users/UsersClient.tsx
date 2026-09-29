@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useTransition } from 'react';
 import { createUserAction, deleteUserAction, renameUserAction } from '@/app/actions';
-import { Badge, Button, ConfirmDialog, Modal, ModalHeader, PageHeader, SplitView, ContextSection, InsightCard, HealthMeter } from '@/components/ui';
+import { Badge, Button, ConfirmDialog, DegradedBanner, Modal, ModalHeader, PageHeader, SplitView, ContextSection, InsightCard, HealthMeter } from '@/components/ui';
 
 interface NodeSummary {
   id: string;
@@ -250,7 +250,7 @@ function AddUserModal({ open, onClose, onAdded }: { open: boolean; onClose: () =
   );
 }
 
-export default function UsersClient({ users, nodeCounts, nodesByUser = {} }: { users: User[]; nodeCounts: Record<string, number>; nodesByUser?: Record<string, NodeSummary[]> }) {
+export default function UsersClient({ users, nodeCounts, nodesByUser = {}, loadError }: { users: User[]; nodeCounts: Record<string, number>; nodesByUser?: Record<string, NodeSummary[]>; loadError?: { message: string; detail?: string } }) {
   const [localUsers, setLocalUsers] = useState(users.map(u => ({ ...u, nodeCount: nodeCounts[u.name] ?? 0 })));
   const [showAdd, setShowAdd] = useState(false);
   const [highlightedUser, setHighlightedUser] = useState<string | null>(null);
@@ -333,7 +333,7 @@ export default function UsersClient({ users, nodeCounts, nodesByUser = {} }: { u
         collapsible
         items={[
           { title: 'Namespaces', desc: 'Each user is a namespace that owns nodes and keys. Use namespaces to organize devices by team, environment, or purpose.', icon: '📁', color: '#ff7300' },
-          { title: 'Access Control', desc: 'Nodes within the same namespace can communicate freely. Cross-namespace access is managed through ACL policies (Pro).', icon: '🔒', color: '#8B5CF6' },
+          { title: 'Access Control', desc: 'Nodes within the same namespace can communicate freely. Cross-namespace access is managed through ACL policies in Settings.', icon: '🔒', color: '#8B5CF6' },
           { title: 'Node Ownership', desc: 'When a node joins using a key tied to a specific user, it belongs to that namespace. Reassignment requires re-registration.', icon: '🖥️', color: '#3ddc84' },
         ]}
       />
@@ -359,6 +359,8 @@ export default function UsersClient({ users, nodeCounts, nodesByUser = {} }: { u
           </Button>
         }
       />
+
+      {loadError && <DegradedBanner message={loadError.message} detail={loadError.detail} />}
 
       <SplitView
         scroll="page"

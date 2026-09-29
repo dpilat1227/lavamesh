@@ -119,7 +119,7 @@ export default function Page() {
       </P>
 
       <P>
-        The Community tier is free and self-hosted, same as Headscale itself — I built this because I needed it,
+        The dashboard is free and self-hosted, same as Headscale itself — I built this because I needed it,
         not because I wanted to paywall the basic act of seeing your own node list. If you're already running
         Headscale and just want eyes on it, that's the point.
       </P>
@@ -130,7 +130,7 @@ export default function Page() {
         problems (who did what, who still has access, proving it to someone who isn't you), and I'd rather hear
         it from someone dealing with it than guess. If that's your situation, email me at{' '}
         <a href="mailto:drew@lavamesh.com" style={{ color: 'inherit', textDecoration: 'underline' }}>drew@lavamesh.com</a>{' '}
-        — I'll set you up with Pro free in exchange for telling me honestly what's missing.
+        — tell me honestly what's missing.
       </P>
     </BlogPostLayout>
   );

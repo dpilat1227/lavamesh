@@ -4,51 +4,35 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { navSections } from './navConfig';
-import { Badge, IconChip, Modal, ProShowcase } from './ui';
-import { TIER_LABEL, type PlanTier } from '@/lib/planTier';
+import { IconChip } from './ui';
 
-const PULSE_SEEN_KEY = 'lavamesh_plan_pulse_seen';
-
-export default function Sidebar({ onClose, planTier = 'community', isPro = false, controlHost = 'api.lavamesh.com' }: { onClose?: () => void; planTier?: PlanTier; isPro?: boolean; controlHost?: string }) {
+export default function Sidebar({ onClose, controlHost = 'api.lavamesh.com' }: { onClose?: () => void; controlHost?: string }) {
   const pathname = usePathname();
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  // Pulse a few times to catch the eye on a brand-new session, then settle
-  // into a calmer, still-premium (but static) look — an upgrade nudge that
-  // never stops moving reads as an ad, not a feature of the product.
-  const [pulsing, setPulsing] = useState(false);
+
+  // Real control-plane status instead of a hardcoded "Connected". Starts as
+  // unknown so we never claim health we haven't verified.
+  const [health, setHealth] = useState<'unknown' | 'ok' | 'down'>('unknown');
   useEffect(() => {
-    if (isPro) return;
-    if (typeof window === 'undefined' || sessionStorage.getItem(PULSE_SEEN_KEY)) return;
-    sessionStorage.setItem(PULSE_SEEN_KEY, '1');
-    setPulsing(true);
-    const t = setTimeout(() => setPulsing(false), 3600 * 3); // ~3 breathing cycles
-    return () => clearTimeout(t);
-  }, [isPro]);
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch('/api/headscale-health', { cache: 'no-store' });
+        const body = await res.json();
+        if (!cancelled) setHealth(body?.ok ? 'ok' : 'down');
+      } catch {
+        if (!cancelled) setHealth('down');
+      }
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  const healthLabel = health === 'ok' ? 'Connected' : health === 'down' ? 'Unreachable' : 'Checking…';
+  const healthColor = health === 'ok' ? 'var(--green)' : health === 'down' ? 'var(--red)' : 'var(--text-4)';
 
   return (
     <aside className="w-[220px] flex flex-col min-h-screen" style={{ background: 'linear-gradient(180deg, rgba(255,115,0,0.05) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.3) 100%)', borderRight: '1px solid var(--border-1)', flexShrink: 0 }}>
-
-      <Modal open={showPlanModal} onClose={() => setShowPlanModal(false)} maxWidth={420} labelledBy="plan-modal-title">
-        {isPro ? (
-          <div className="relative">
-            <button
-              onClick={() => setShowPlanModal(false)}
-              className="absolute top-0 right-0 btn btn-ghost p-1.5 rounded-[8px]"
-              style={{ border: 'none', color: 'var(--text-3)' }}
-              aria-label="Close"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-            </button>
-            <Badge variant="green" dot className="mb-2.5">{TIER_LABEL[planTier]} plan</Badge>
-            <h3 id="plan-modal-title" className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>You&apos;re all set</h3>
-            <p className="text-[13px] leading-relaxed" style={{ color: 'var(--text-3)' }}>Thanks for supporting LavaMesh — every Pro feature is unlocked on this account.</p>
-          </div>
-        ) : (
-          <div id="plan-modal-title">
-            <ProShowcase onClose={() => setShowPlanModal(false)} />
-          </div>
-        )}
-      </Modal>
 
       {/* Logo + BETA badge */}
       <Link href="/" className="h-[56px] flex items-center justify-between px-5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border-1)', textDecoration: 'none' }}>
@@ -85,54 +69,19 @@ export default function Sidebar({ onClose, planTier = 'community', isPro = false
       </nav>
 
       {/* Bottom */}
-      <div className="p-3 space-y-2.5" style={{ borderTop: '1px solid var(--border-1)' }}>
-        {/* Bigger, bubble-shaped upgrade nudge — this is the one thing in the
-            sidebar we actually want people to click, so it gets more size,
-            rounder corners, an icon, a benefit line, and a slow breathing
-            glow instead of reading as just another quiet nav-adjacent pill. */}
-        <button
-          onClick={() => setShowPlanModal(true)}
-          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-[18px] text-left transition-all ${pulsing ? 'animate-pulse-orange-soft' : ''}`}
-          style={{
-            background: isPro
-              ? 'var(--green-soft)'
-              : 'linear-gradient(135deg, rgba(255,115,0,0.18), rgba(255,115,0,0.05))',
-            border: `1px solid ${isPro ? 'rgba(61,220,132,0.22)' : 'rgba(255,115,0,0.32)'}`,
-            // Settled (post-pulse) state keeps a quiet resting glow — same
-            // language as the BETA badge / "+ Add" affordance — instead of
-            // going fully flat, so it still reads as "special" without moving.
-            boxShadow: !isPro && !pulsing ? '0 0 0 1px rgba(255,115,0,0.08), 0 4px 16px rgba(255,115,0,0.12)' : 'none',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={e => { if (!isPro) { e.currentTarget.style.transform = 'translateY(-1px) scale(1.015)'; e.currentTarget.style.borderColor = 'rgba(255,115,0,0.5)'; } }}
-          onMouseLeave={e => { if (!isPro) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,115,0,0.32)'; } }}
-        >
-          <IconChip
-            size={34}
-            radius={12}
-            glow={!isPro}
-            style={isPro ? { background: 'var(--green-soft)', border: '1px solid rgba(61,220,132,0.3)', color: 'var(--green)', boxShadow: 'none' } : undefined}
-          >
-            {isPro ? (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            ) : (
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l1.6 4.9L18.5 8l-4.9 1.6L12 14.5l-1.6-4.9L5.5 8l4.9-1.6z"/><path d="M19 15l.9 2.7L22.5 18.5l-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.8z"/></svg>
-            )}
-          </IconChip>
-          <div className="min-w-0 flex-1">
-            <p className="text-[12.5px] font-semibold leading-none" style={{ color: isPro ? 'var(--green)' : 'var(--orange)' }}>{TIER_LABEL[planTier]} plan</p>
-            <p className="text-[10.5px] mt-1 truncate" style={{ color: 'var(--text-4)' }}>
-              {isPro ? 'Every feature unlocked' : 'Unlock unlimited seats →'}
-            </p>
-          </div>
-        </button>
+      <div className="p-3" style={{ borderTop: '1px solid var(--border-1)' }}>
         <div className="flex items-center gap-2.5 px-2 py-2">
           <IconChip size={28} glow={false} className="text-[11px] font-bold">
             N
           </IconChip>
           <div className="min-w-0 flex-1">
             <p className="text-[12px] font-medium truncate" style={{ color: 'var(--text-2)' }}>{controlHost}</p>
-            <p className="text-[10px] truncate" style={{ color: 'var(--text-4)' }}>Connected</p>
+            <p className="text-[10px] truncate flex items-center gap-1.5" style={{ color: healthColor }}>
+              {health !== 'unknown' && (
+                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: healthColor }} />
+              )}
+              {healthLabel}
+            </p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}

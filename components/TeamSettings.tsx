@@ -3,13 +3,12 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card } from '@/components/ui';
 
-export default function TeamSettings({ members, isPro, seatLimit }: { members: any[]; isPro: boolean; seatLimit: number }) {
+export default function TeamSettings({ members }: { members: any[] }) {
   const [email, setEmail] = useState('');
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const router = useRouter();
-  const atSeatLimit = !isPro && members.length >= seatLimit;
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,9 +43,6 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
       <div className="p-6">
       <div className="flex items-start justify-between mb-1">
         <h2 className="text-[14px] font-semibold" style={{ color: 'var(--text-1)' }}>Team Management</h2>
-        {!isPro && (
-          <Badge variant={atSeatLimit ? 'amber' : 'ghost'} className="text-[10px]">{members.length} / {seatLimit} {seatLimit === 1 ? 'seat' : 'seats'}</Badge>
-        )}
       </div>
       <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>Manage who has access to this LavaMesh network</p>
 
@@ -64,16 +60,6 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
       </div>
 
       {/* Invite Form */}
-      {atSeatLimit ? (
-        <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
-          <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
-            {seatLimit === 1
-              ? 'The Free plan includes a single dashboard login. Invite teammates by upgrading to Pro — unlimited seats.'
-              : `Free plan is limited to ${seatLimit} team members. Upgrade for unlimited seats.`}
-          </p>
-          <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
-        </div>
-      ) : (
         <form onSubmit={handleInvite} className="flex gap-2">
           <input 
             type="email" 
@@ -93,7 +79,6 @@ export default function TeamSettings({ members, isPro, seatLimit }: { members: a
             {inviting ? 'Inviting...' : 'Grant Access'}
           </Button>
         </form>
-      )}
 
       {error && <p className="text-[12px] mt-3" style={{ color: 'var(--red)' }}>{error}</p>}
       {success && <p className="text-[12px] mt-3" style={{ color: 'var(--green)' }}>{success}</p>}

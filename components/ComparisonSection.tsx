@@ -35,21 +35,21 @@ interface Row {
 
 const rows: Row[] = [
   // ── Control & cost: where Tailscale loses, Headscale ties ──
-  { group: 'sovereignty', feature: 'Who runs the control plane', lava: 'You, or we host it', tail: 'Tailscale does', head: 'You do', tailBad: true, key: true },
+  { group: 'sovereignty', feature: 'Who runs the control plane', lava: 'You', tail: 'Tailscale does', head: 'You do', tailBad: true, key: true },
   { group: 'sovereignty', feature: 'Who can see your device list', lava: 'Only you', tail: 'Tailscale', head: 'Only you', tailBad: true, key: true },
-  { group: 'sovereignty', feature: 'Cost at 10 people', lava: '$19/mo flat', tail: '$80/mo', head: 'Free + server cost', tailBad: true },
-  { group: 'sovereignty', feature: 'Seat limits', lava: 'None, ever', tail: '7th user bills every seat', head: 'None', tailBad: true },
+  { group: 'sovereignty', feature: 'What it costs', lava: 'Free', tail: '$8/user/mo after the free tier', head: 'Free + server cost', tailBad: true },
+  { group: 'sovereignty', feature: 'Seat limits', lava: 'None', tail: '7th user bills every seat', head: 'None', tailBad: true },
   { group: 'sovereignty', feature: 'Open source', lava: 'Yes', tail: 'Client only', head: 'Yes', tailBad: true },
 
   // ── Operations: the actual wedge ──
-  { group: 'operations', feature: 'Standing up Headscale', lava: 'Hosted for you, or one compose file', tail: 'Nothing to run', head: 'config.yaml, TLS, database, systemd', headBad: true, key: true },
-  { group: 'operations', feature: 'Headscale upgrades', lava: 'Handled on Cloud', tail: 'Managed for you', head: 'One minor version at a time, migrate the DB', headBad: true, key: true },
+  { group: 'operations', feature: 'Standing up Headscale', lava: 'You still run Headscale', tail: 'Nothing to run', head: 'config.yaml, TLS, database, systemd', key: true },
+  { group: 'operations', feature: 'Headscale upgrades', lava: 'You upgrade Headscale', tail: 'Managed for you', head: 'One minor version at a time, migrate the DB', key: true },
   { group: 'operations', feature: 'Knowing a node dropped', lava: 'Email + webhook alert', tail: 'Premium only', head: 'You notice eventually', headBad: true, key: true },
   { group: 'operations', feature: 'Uptime history', lava: 'Built in', tail: 'Built in', head: 'None', headBad: true },
-  { group: 'operations', feature: 'Config backups', lava: 'Automated, restorable', tail: 'Managed for you', head: 'Write your own cron', headBad: true },
+  { group: 'operations', feature: 'Config backups', lava: 'Built in', tail: 'Managed for you', head: 'Write your own cron', headBad: true },
   { group: 'operations', feature: 'Audit log', lava: 'Searchable + CSV export', tail: 'Premium only', head: 'None', headBad: true },
   { group: 'operations', feature: 'Adding a node', lava: 'One curl command', tail: 'Admin console', head: 'Mint a key, SSH in, run the CLI', headBad: true },
-  { group: 'operations', feature: 'Someone to email', lava: 'Priority support on Pro', tail: 'Paid plans', head: 'GitHub issues', headBad: true },
+  { group: 'operations', feature: 'Where to ask for help', lava: 'GitHub issues', tail: 'Paid plans', head: 'GitHub issues', tailBad: true },
 
   // Honest ties. These stay in the table on purpose — dropping them to look
   // stronger is exactly what makes a comparison table untrustworthy.
@@ -96,8 +96,7 @@ export default function ComparisonSection() {
             Headscale fixes that, and there are good free UIs for it.
           </p>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, maxWidth: 600, margin: '0 auto', lineHeight: 1.65 }}>
-            What none of them do is <span style={{ color: 'rgba(255,255,255,0.85)' }}>run the thing</span> — the config file, the TLS cert, the database
-            migrations, the upgrades you have to take one minor version at a time. That&apos;s the part we take.
+            LavaMesh is one of those dashboards. It does not host the network. It puts nodes, keys, routes, ACLs, backups, and an audit log on the Headscale server you already run.
           </p>
         </div>
 

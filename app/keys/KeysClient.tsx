@@ -2,7 +2,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { expireKeyAction, generateKeyForUser } from '@/app/actions';
-import { Badge, Button, ConfirmDialog, Modal, ModalHeader, PageHeader, SplitView, ContextSection, UpsellCard, InsightCard, HealthMeter } from '@/components/ui';
+import { Badge, Button, ConfirmDialog, DegradedBanner, Modal, ModalHeader, PageHeader, SplitView, ContextSection, UpsellCard, InsightCard, HealthMeter } from '@/components/ui';
 
 interface PreAuthKey {
   id?: string;
@@ -53,10 +53,15 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
   ) : (
     <Badge variant="green" dot pulse>Active</Badge>
   );
+  // A disabled button with no explanation reads as a bug. Say why it's off:
+  // an expired or already-used key has nothing left to revoke.
+  const disabledReason = expired ? 'Already expired — nothing left to revoke' : 'Already used — this key can no longer authenticate';
   const revokeBtn = isValid ? (
-    <Button variant="ghost" onClick={() => setConfirming(true)} className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ color: 'var(--red)', borderColor: 'rgba(248,113,113,0.15)' }}>Revoke</Button>
+    <Button variant="ghost" onClick={() => setConfirming(true)} aria-label={`Revoke key for ${userName}`} className="text-[11px] px-3 py-1.5 rounded-[8px]" style={{ color: 'var(--red)', borderColor: 'rgba(248,113,113,0.15)' }}>Revoke</Button>
   ) : (
-    <Button variant="ghost" disabled className="text-[11px] px-3 py-1.5 rounded-[8px]">Revoke</Button>
+    <span title={disabledReason} className="inline-flex">
+      <Button variant="ghost" disabled aria-label={`Revoke unavailable — ${disabledReason}`} className="text-[11px] px-3 py-1.5 rounded-[8px]">Revoke</Button>
+    </span>
   );
 
   return (
@@ -250,7 +255,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
   );
 }
 
-export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[]; users: string[]; isPro: boolean }) {
+export default function KeysClient({ keys, users, loadError }: { keys: PreAuthKey[]; users: string[]; loadError?: { message: string; detail?: string } }) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [localKeys, setLocalKeys] = useState(keys);
@@ -376,31 +381,18 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
           { title: 'Ephemeral Nodes', desc: 'Keys marked ephemeral create nodes that auto-deregister when they go offline. Perfect for CI/CD runners or temp environments.', icon: '⏱️', color: '#3ddc84' },
         ]}
       />
-      {isPro ? (
-        <UpsellCard
-          eyebrow="Pro Feature"
-          title="Advanced ACLs"
-          description="Build tag-based access rules visually, no HuJSON required — head to Settings → Access Control Policy."
-          href="/settings"
-          ctaLabel="Open ACL builder"
-          icon={
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          }
-        />
-      ) : (
-        <UpsellCard
-          eyebrow="Pro Feature"
-          title="Advanced ACLs"
-          description="Lock down your mesh network with tag-based access control policies — build rules visually in Settings on LavaMesh Pro."
-          icon={
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          }
-        />
-      )}
+      <UpsellCard
+        eyebrow="Access control"
+        title="Visual ACL builder"
+        description="Build tag-based access rules without writing HuJSON. It lives in Settings, under Access Control Policy."
+        href="/settings"
+        ctaLabel="Open ACL builder"
+        icon={
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        }
+      />
     </>
   );
 
@@ -427,6 +419,8 @@ export default function KeysClient({ keys, users, isPro }: { keys: PreAuthKey[];
           </Button>
         }
       />
+
+      {loadError && <DegradedBanner message={loadError.message} detail={loadError.detail} />}
 
       <SplitView main={table} pane={pane} />
     </div>

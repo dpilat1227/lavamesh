@@ -13,7 +13,8 @@ import {
 } from '@/app/actions';
 import NetworkTopology from '@/components/NetworkTopology';
 import FleetOverview from '@/components/FleetOverview';
-import { Badge, Button, ConfirmDialog, IconChip, Modal, PageHeader, SplitView, InsightCard } from '@/components/ui';
+import { AddDeviceCard } from '@/components/AddDeviceCard';
+import { Badge, Button, ConfirmDialog, CopyableCommand, EmptyState, IconChip, Modal, PageHeader, SplitView, InsightCard } from '@/components/ui';
 
 /** Per-OS accent so the device chips carry Copilot-style category color variety
  *  instead of everything reading green-when-online (which made the fleet look
@@ -41,7 +42,7 @@ function OsIcon({ name }: { name: string }) {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>;
 }
 
-function InviteModal({ open, onClose, onTokenIssued }: { open: boolean; onClose: () => void; onTokenIssued: () => void }) {
+function InviteModal({ open, onClose, onTokenIssued, loginServer }: { open: boolean; onClose: () => void; onTokenIssued: () => void; loginServer: string }) {
   const [step, setStep] = useState<'config' | 'result'>('config');
   const [users, setUsers] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState('admin');
@@ -49,7 +50,6 @@ function InviteModal({ open, onClose, onTokenIssued }: { open: boolean; onClose:
   const [ephemeral, setEphemeral] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [token, setToken] = useState('');
-  const [copied, setCopied] = useState<'key' | 'cmd' | null>(null);
   const [error, setError] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
   const [newUserName, setNewUserName] = useState('');
@@ -97,11 +97,6 @@ function InviteModal({ open, onClose, onTokenIssued }: { open: boolean; onClose:
   };
 
   const cmd = `curl -fsSL "${typeof window !== 'undefined' ? window.location.origin : ''}/api/install.sh?token=${token}${ephemeral ? '&ephemeral=true' : ''}" | sudo sh`;
-  const copy = async (text: string, which: 'key' | 'cmd') => {
-    await navigator.clipboard.writeText(text);
-    setCopied(which);
-    setTimeout(() => setCopied(null), 2000);
-  };
 
   const handleClose = () => {
     setCreatingUser(false);
@@ -116,9 +111,9 @@ function InviteModal({ open, onClose, onTokenIssued }: { open: boolean; onClose:
         <div>
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1.5 h-1.5 rounded-full animate-pulse-orange" style={{ background: '#ff7300' }} />
-            <h2 id="invite-node-title" className="text-[15px] font-semibold" style={{ color: 'var(--text-1)' }}>{step === 'config' ? 'Add Node to Mesh' : 'Node Token Ready'}</h2>
+            <h2 id="invite-node-title" className="text-[15px] font-semibold" style={{ color: 'var(--text-1)' }}>{step === 'config' ? 'Add a device' : 'Add this device'}</h2>
           </div>
-          <p className="text-[12px]" style={{ color: 'var(--text-3)' }}>{step === 'config' ? 'Configure and generate a one-time install token' : `Single-use · Expires in ${expiryDays}d · Shown once`}</p>
+          <p className="text-[12px]" style={{ color: 'var(--text-3)' }}>{step === 'config' ? 'Who owns it, and how long the invite lasts' : `Single-use · Expires in ${expiryDays}d · Shown once`}</p>
         </div>
         <button onClick={handleClose} className="btn btn-ghost p-1.5 rounded-[8px]" style={{ border: 'none', color: 'var(--text-3)' }} aria-label="Close">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -178,6 +173,8 @@ function InviteModal({ open, onClose, onTokenIssued }: { open: boolean; onClose:
           <button
             role="switch"
             aria-checked={ephemeral}
+            aria-label="Ephemeral node — auto-remove this node when it goes offline"
+            className="focus-ring"
             onClick={() => setEphemeral(e => !e)}
             style={{ background: ephemeral ? '#ff7300' : 'var(--surface-3)', border: `1px solid ${ephemeral ? 'rgba(255,115,0,0.5)' : 'var(--border-2)'}`, width: 40, height: 22, borderRadius: 11, position: 'relative', cursor: 'pointer', transition: 'all 0.2s', flexShrink: 0 }}>
             <span style={{ position: 'absolute', top: 4, left: ephemeral ? 22 : 4, width: 14, height: 14, background: 'white', borderRadius: '50%', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
@@ -187,29 +184,22 @@ function InviteModal({ open, onClose, onTokenIssued }: { open: boolean; onClose:
           <p className="text-[12px]" style={{ color: 'var(--red)' }}>{error}</p>
         )}
         <Button variant="primary" onClick={generate} disabled={generating} className="w-full justify-center" style={{ borderRadius: 12 }}>
-          {generating ? <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</> : 'Generate Token →'}
+          {generating ? <><svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity=".25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" opacity=".75"/></svg> Generating…</> : 'Create invite →'}
         </Button>
       </>) : (<>
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>Auth Key</p>
-          <div className="flex items-center gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
-            <code className="flex-1 text-[12px] font-mono truncate" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{token}</code>
-            <Button variant="ghost" onClick={() => copy(token, 'key')} className="text-[11px] px-2.5 py-1 rounded-[7px] flex-shrink-0">{copied === 'key' ? '✓ Copied' : 'Copy'}</Button>
+        <AddDeviceCard loginServer={loginServer} authKey={token} />
+        <details className="rounded-[10px] px-3 py-2" style={{ background: 'var(--surface-2)', border: '1px solid var(--border-1)' }}>
+          <summary className="text-[12px] cursor-pointer" style={{ color: 'var(--text-4)' }}>Linux / server one-liner</summary>
+          <div className="mt-2">
+            <CopyableCommand command={cmd} />
           </div>
-        </div>
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>Run on the new device</p>
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-[10px]" style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-2)' }}>
-            <pre className="flex-1 text-[11.5px] whitespace-pre-wrap break-all leading-relaxed" style={{ color: 'var(--text-2)', fontFamily: 'var(--font-mono)' }}>{cmd}</pre>
-            <Button variant="ghost" onClick={() => copy(cmd, 'cmd')} className="text-[11px] px-2.5 py-1 rounded-[7px] flex-shrink-0 mt-0.5">{copied === 'cmd' ? '✓' : 'Copy'}</Button>
-          </div>
-          <p className="text-[11px] flex items-center gap-1.5" style={{ color: 'var(--text-4)' }}>
-            <span className="status-dot online" style={{ width: 5, height: 5 }} />
-            Once it connects, the node appears on this page automatically — usually within a few seconds.
-          </p>
-        </div>
+        </details>
+        <p className="text-[11px] flex items-center gap-1.5" style={{ color: 'var(--text-4)' }}>
+          <span className="status-dot online" style={{ width: 5, height: 5 }} />
+          Once it connects, it shows up here — usually within a few seconds.
+        </p>
         <div className="flex gap-2">
-          <Button variant="ghost" onClick={() => { setStep('config'); setToken(''); }} className="flex-1 justify-center" style={{ borderColor: 'var(--border-2)' }}>← New Token</Button>
+          <Button variant="ghost" onClick={() => { setStep('config'); setToken(''); }} className="flex-1 justify-center" style={{ borderColor: 'var(--border-2)' }}>← Another device</Button>
           <Button variant="ghost" onClick={handleClose} className="flex-1 justify-center" style={{ borderColor: 'var(--border-2)' }}>Done</Button>
         </div>
       </>)}
@@ -258,9 +248,22 @@ function CopyField({ label, value, mono = true }: { label: string; value: string
   return (
     <div>
       <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-4)' }}>{label}</p>
-      <button onClick={copy} className="flex items-center gap-1.5 group min-w-0 max-w-full" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+      <button
+        onClick={copy}
+        aria-label={copied ? `${label} copied` : `Copy ${label}: ${value}`}
+        className="focus-ring flex items-center gap-1.5 group min-w-0 max-w-full rounded-[6px]"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
+      >
         <p className="text-[13px] truncate" style={{ color: 'var(--text-2)', fontFamily: mono ? 'var(--font-mono)' : undefined }}>{value}</p>
-        <span className="text-[10px] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--text-4)' }}>{copied ? '✓' : 'copy'}</span>
+        {/* Was opacity-0 until hover, which made this look non-interactive on
+            every touch device. Dim-but-present, brightening on hover/focus. */}
+        <span
+          className="text-[10px] flex-shrink-0 transition-opacity opacity-60 group-hover:opacity-100 group-focus-visible:opacity-100"
+          style={{ color: copied ? 'var(--green)' : 'var(--text-4)' }}
+          aria-hidden="true"
+        >
+          {copied ? '✓ copied' : 'copy'}
+        </span>
       </button>
     </div>
   );
@@ -409,7 +412,7 @@ function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename,
   );
 }
 
-export default function DashboardClient({ nodes, apiError, initialTags, uptimeLogs = [] }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]>; uptimeLogs?: any[] }) {
+export default function DashboardClient({ nodes, apiError, initialTags, uptimeLogs = [], loginServer }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]>; uptimeLogs?: any[]; loginServer: string }) {
   const [showInvite, setShowInvite] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
@@ -417,6 +420,9 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
   const [renamedNodes, setRenamedNodes] = useState<Record<string, string>>({});
   const [nodeTags, setNodeTags] = useState<Record<string, string[]>>(initialTags || {});
   const [exporting, setExporting] = useState(false);
+  // Failures from revoke / expire / export used to be caught and dropped, so a
+  // rejected server action looked exactly like a successful one.
+  const [actionError, setActionError] = useState('');
   const router = useRouter();
   // Bumped to 5s for ~2 minutes right after a token is issued, so a node that
   // joins while the "run this on the device" modal is still open shows up
@@ -456,6 +462,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
 
   const handleExportCsv = useCallback(async () => {
     setExporting(true);
+    setActionError('');
     try {
       const csv = await exportNodesCsvAction();
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -465,18 +472,34 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
       a.download = `lavamesh-nodes-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {}
+    } catch (e: any) {
+      setActionError(e?.message || 'Export failed. Please try again.');
+    }
     setExporting(false);
   }, []);
 
   const handleRevoke = useCallback(async (id: string) => {
     setRemovedIds(prev => new Set(prev).add(id));
     setSelectedNode(null);
-    try { await revokeNode(id); } catch { setRemovedIds(prev => { const s = new Set(prev); s.delete(id); return s; }); }
+    setActionError('');
+    try {
+      await revokeNode(id);
+    } catch (e: any) {
+      // Roll the optimistic removal back, and say why the node reappeared —
+      // previously it silently popped back into the table with no explanation.
+      setRemovedIds(prev => { const s = new Set(prev); s.delete(id); return s; });
+      setActionError(e?.message || 'Could not remove that node. It is still on your mesh.');
+    }
   }, []);
 
   const handleExpire = useCallback(async (id: string) => {
-    try { await expireNodeAction(id); router.refresh(); } catch {}
+    setActionError('');
+    try {
+      await expireNodeAction(id);
+      router.refresh();
+    } catch (e: any) {
+      setActionError(e?.message || 'Could not expire that node. Its session is unchanged.');
+    }
   }, [router]);
 
   const formatDate = (d: string) => {
@@ -491,11 +514,20 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
 
   return (
     <div className="flex flex-col h-full relative overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
-      <InviteModal open={showInvite} onClose={() => setShowInvite(false)} onTokenIssued={handleTokenIssued} />
+      <InviteModal open={showInvite} onClose={() => setShowInvite(false)} onTokenIssued={handleTokenIssued} loginServer={loginServer} />
       {apiError && (
         <div className="flex-shrink-0 flex items-center gap-2.5 px-8 py-3" style={{ background: 'rgba(248,113,113,0.06)', borderBottom: '1px solid rgba(248,113,113,0.15)' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--red)', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <p className="text-[12px]" style={{ color: 'var(--red)' }}>Headscale API error: {apiError}</p>
+        </div>
+      )}
+      {actionError && (
+        <div role="alert" className="flex-shrink-0 flex items-center gap-2.5 px-8 py-3" style={{ background: 'rgba(248,113,113,0.06)', borderBottom: '1px solid rgba(248,113,113,0.15)' }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--red)', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p className="text-[12px] flex-1" style={{ color: 'var(--red)' }}>{actionError}</p>
+          <button onClick={() => setActionError('')} className="btn btn-ghost p-1 rounded-[6px]" style={{ border: 'none', color: 'var(--text-3)' }} aria-label="Dismiss error">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
       )}
       <PageHeader
@@ -521,12 +553,13 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
             <Button variant="primary" onClick={() => setShowInvite(true)} icon={
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             }>
-              Add Node
+              Add device
             </Button>
           </>
         }
       />
 
+      {visibleNodes.length > 0 && (
       <div className="px-8 pt-1 pb-4 flex-shrink-0">
         <FleetOverview
           total={visibleNodes.length}
@@ -537,6 +570,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
           uptimeLogs={uptimeLogs}
         />
       </div>
+      )}
 
       <SplitView
         columns={4}
@@ -544,7 +578,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
         autoOpenSignal={selectedNode?.id ?? null}
         main={
           <>
-            {/* Table header — no card wrapper */}
+            {visibleNodes.length > 0 && (
             <div className="node-row-desktop flex-shrink-0 flex items-center justify-between py-3" style={{ borderBottom: '1px solid var(--border-1)' }}>
               <span className="text-[11px] font-semibold uppercase tracking-wider flex-1" style={{ color: 'var(--text-3)' }}>Node</span>
               <div className="flex items-center flex-shrink-0">
@@ -554,25 +588,15 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
                 <span className="w-[32px]"></span>
               </div>
             </div>
-            {/* Table rows — directly on page, no card */}
+            )}
             <div className="pt-1">
               {visibleNodes.length === 0 ? (
-                <div
-                  className="animate-fade-in-up flex flex-col items-center justify-center text-center py-20 px-8 gap-4 my-4"
-                  style={{ borderRadius: 'var(--radius-xl)', border: '1px dashed var(--border-2)', background: 'rgba(255,255,255,0.015)' }}
-                >
-                  <div
-                    className="w-14 h-14 rounded-[16px] flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, rgba(255,115,0,0.14), rgba(255,115,0,0.02))', border: '1px solid rgba(255,115,0,0.18)' }}
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-medium" style={{ color: 'var(--text-1)' }}>Your mesh is empty</p>
-                    <p className="text-[12.5px] mt-1 max-w-[280px]" style={{ color: 'var(--text-4)' }}>Add your first node to start building your network — it takes under a minute.</p>
-                  </div>
-                  <Button variant="primary" onClick={() => setShowInvite(true)} className="text-[12px]" style={{ padding: '9px 18px' }}>Add your first node →</Button>
-                </div>
+                <EmptyState
+                  icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>}
+                  title="Add your first device"
+                  description="Install the Tailscale app on a phone or laptop, then paste the login server and a key. No server to rent."
+                  action={<Button variant="primary" onClick={() => setShowInvite(true)} className="text-[12px]" style={{ padding: '9px 18px' }}>Add your first device →</Button>}
+                />
               ) : (
                 <>
                   {visibleNodes.map((node, i) => {
@@ -635,7 +659,9 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
                             <span className="text-[12px] font-mono" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}>{ip}</span>
                           </div>
                           <div className="w-[120px]">
-                            <span className="text-[12px]" style={{ color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>{formatDate(node.lastSeen)}</span>
+                            {/* Relative to Date.now(), so the server's string and the
+                                client's can legitimately differ by a bucket. */}
+                            <span suppressHydrationWarning className="text-[12px]" style={{ color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>{formatDate(node.lastSeen)}</span>
                           </div>
                           <div className="w-[90px]">{statusBadge}</div>
                           <div className="w-[32px] flex justify-end">{chevron}</div>
@@ -655,7 +681,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
                         </div>
                         <div className="flex items-center justify-between gap-3 pl-[44px]">
                           <span className="text-[11.5px] font-mono truncate" style={{ color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>{ip}</span>
-                          <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-4)' }}>{formatDate(node.lastSeen)}</span>
+                          <span suppressHydrationWarning className="text-[11px] flex-shrink-0" style={{ color: 'var(--text-4)' }}>{formatDate(node.lastSeen)}</span>
                         </div>
                       </div>
                     </div>
@@ -684,7 +710,13 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
           </>
         }
         pane={
-          selectedNode ? (
+          visibleNodes.length === 0 ? (
+            <InsightCard
+              title="Next"
+              emptyLabel="Add a device. The list fills in when the Tailscale app connects."
+              items={[]}
+            />
+          ) : selectedNode ? (
             <NodeInspector
               key={selectedNode.id}
               node={{ ...selectedNode, givenName: renamedNodes[selectedNode.id] || selectedNode.givenName }}

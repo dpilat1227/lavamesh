@@ -1,51 +1,63 @@
 import { AuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { emailFrom } from "./email";
 
+const providers: AuthOptions["providers"] = [
+  EmailProvider({
+    server: {
+      host: "smtp.resend.com",
+      port: 465,
+      auth: {
+        user: "resend",
+        pass: process.env.RESEND_API_KEY,
+      },
+    },
+    from: emailFrom(),
+  }),
+  CredentialsProvider({
+    id: "password",
+    name: "Password",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      const email = credentials?.email?.trim().toLowerCase();
+      const password = credentials?.password ?? "";
+      if (!email || !password) return null;
+
+      const expected = process.env.AUTH_PASSWORD || process.env.ADMIN_PASSWORD;
+      const devOpen = process.env.NODE_ENV === "development" && !expected;
+      if (!expected && process.env.NODE_ENV === "production") return null;
+      if (!devOpen && password !== expected) return null;
+
+      let user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: { email, name: email.split("@")[0] },
+        });
+      }
+      return { id: user.id, email: user.email, name: user.name };
+    },
+  }),
+];
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.push(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+  );
+}
+
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
-  providers: [
-    EmailProvider({
-      server: {
-        host: "smtp.resend.com",
-        port: 465,
-        auth: {
-          user: "resend",
-          pass: process.env.RESEND_API_KEY,
-        },
-      },
-      from: emailFrom(),
-    }),
-    CredentialsProvider({
-      id: "password",
-      name: "Password",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        const email = credentials?.email?.trim().toLowerCase();
-        const password = credentials?.password ?? "";
-        if (!email || !password) return null;
-
-        const expected = process.env.AUTH_PASSWORD || process.env.ADMIN_PASSWORD;
-        const devOpen = process.env.NODE_ENV === "development" && !expected;
-        if (!expected && process.env.NODE_ENV === "production") return null;
-        if (!devOpen && password !== expected) return null;
-
-        let user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-          user = await prisma.user.create({
-            data: { email, name: email.split("@")[0] },
-          });
-        }
-        return { id: user.id, email: user.email, name: user.name };
-      },
-    }),
-  ],
+  providers,
   session: {
     strategy: "jwt",
   },
@@ -63,3 +75,7 @@ export const authOptions: AuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+export function googleAuthEnabled(): boolean {
+  return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}

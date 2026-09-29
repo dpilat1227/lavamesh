@@ -1,7 +1,4 @@
 import { listPreAuthKeys, getUsers } from '@/lib/headscale';
-import { getPlanStatus } from '@/lib/billing';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import KeysClient from './KeysClient';
 import HeadscaleUnavailable from '@/components/HeadscaleUnavailable';
 
@@ -15,9 +12,20 @@ export default async function KeysPage() {
     return <HeadscaleUnavailable message={e?.message} />;
   }
 
-  const keysNested = await Promise.all(users.map((u: any) => listPreAuthKeys(u.name).catch(() => [])));
-  const keys = keysNested.flat();
-  const session = await getServerSession(authOptions);
+  // Per-user key fetches used to swallow failures into `[]`, so a broken API
+  // call rendered as a confident "No keys yet" — strictly worse than saying
+  // we couldn't load them. Track which users failed and tell the user.
+  const keysNested = await Promise.all(
+    users.map((u: any) =>
+      listPreAuthKeys(u.name).then(
+        ks => ({ ok: true as const, user: u.name, keys: ks }),
+        (e: any) => ({ ok: false as const, user: u.name, message: e?.message as string | undefined }),
+      ),
+    ),
+  );
+  const keys = keysNested.flatMap(r => (r.ok ? r.keys : []));
+  const failedUsers = keysNested.filter(r => !r.ok).map(r => r.user);
+  const firstKeyError = keysNested.find(r => !r.ok && r.message);
 
   // Fall back to a literal 'admin' option only when Headscale has no real users
   // yet (fresh install) — injecting it unconditionally used to let people
@@ -26,7 +34,18 @@ export default async function KeysPage() {
   const userNames = users.map((u: any) => u.name).filter(Boolean);
   if (userNames.length === 0) userNames.push('admin');
 
-  const plan = await getPlanStatus((session?.user as any)?.id).catch(() => ({ isPro: false }));
-
-  return <KeysClient keys={keys} users={userNames} isPro={plan.isPro} />;
+  return (
+    <KeysClient
+      keys={keys}
+      users={userNames}
+      loadError={
+        failedUsers.length > 0
+          ? {
+              message: `Couldn't load keys for ${failedUsers.length} user${failedUsers.length > 1 ? 's' : ''} (${failedUsers.join(', ')}). This list may be incomplete.`,
+              detail: firstKeyError && !firstKeyError.ok ? firstKeyError.message : undefined,
+            }
+          : undefined
+      }
+    />
+  );
 }

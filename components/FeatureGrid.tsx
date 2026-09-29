@@ -51,7 +51,7 @@ const features = [
     ),
     color: '#60a5fa',
     title: 'Fully Self-Hosted',
-    desc: 'Your Headscale server, your data, your rules. No per-seat fees, no vendor lock-in, no data leaving your infrastructure.',
+    desc: 'Your Headscale server, your data, your rules. The dashboard is free to run on infrastructure you already control.',
   },
   {
     icon: (

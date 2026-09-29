@@ -42,3 +42,7 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# Go-to-market notes, outreach drafts, interview transcripts. The repo is
+# public — none of this should ship with it.
+/private

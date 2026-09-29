@@ -7,11 +7,9 @@ import { Badge, Button, Card } from '@/components/ui';
 
 export default function NotificationSettings({
   config,
-  isPro,
   hasResend,
 }: {
   config: NotificationConfig;
-  isPro: boolean;
   hasResend: boolean;
 }) {
   const [form, setForm] = useState(config);
@@ -100,7 +98,6 @@ export default function NotificationSettings({
 
         {/* Webhook */}
         <div className="py-3">
-          {isPro ? (
             <div className="flex items-start justify-between">
               <div className="flex-1 pr-4">
                 <p className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-2)' }}>Webhook alerts</p>
@@ -126,20 +123,10 @@ export default function NotificationSettings({
                 <span style={{ position: 'absolute', top: 1, left: form.webhookEnabled ? 17 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
               </button>
             </div>
-          ) : (
-            <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
-              <div>
-                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Webhook alerts <Badge variant="orange" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
-                <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Send node/key alerts to Slack or Discord on the Pro or Cloud plan.</p>
-              </div>
-              <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
-            </div>
-          )}
         </div>
 
         {/* Route failover */}
         <div className="py-3" style={{ borderTop: '1px solid var(--border-1)' }}>
-          {isPro ? (
             <div className="flex items-start justify-between">
               <div className="flex-1 pr-4">
                 <p className="text-[13px] font-medium mb-1" style={{ color: 'var(--text-2)' }}>Route failover alerts</p>
@@ -156,15 +143,6 @@ export default function NotificationSettings({
                 <span style={{ position: 'absolute', top: 1, left: form.failoverAlertsEnabled ? 17 : 1, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.15s' }} />
               </button>
             </div>
-          ) : (
-            <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
-              <div>
-                <p className="text-[13px] font-medium mb-0.5" style={{ color: 'var(--text-2)' }}>Route failover alerts <Badge variant="orange" className="text-[9px] uppercase tracking-wider ml-1">Pro</Badge></p>
-                <p className="text-[11px]" style={{ color: 'var(--text-4)' }}>Get notified the moment a subnet route fails over to its backup node.</p>
-              </div>
-              <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center justify-between pt-3">

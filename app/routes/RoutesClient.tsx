@@ -1,7 +1,7 @@
 'use client';
-import { useTransition, useOptimistic } from 'react';
+import { useState, useTransition, useOptimistic } from 'react';
 import { enableRoute, disableRoute } from '@/app/actions';
-import { Badge, PageHeader, StatsHero, SplitView, ContextSection, UpsellCard, InsightCard } from '@/components/ui';
+import { Badge, ConfirmDialog, CopyableCommand, EmptyState, PageHeader, StatsHero, SplitView, ContextSection, UpsellCard, InsightCard } from '@/components/ui';
 
 interface Route {
   id: string;
@@ -18,19 +18,36 @@ const isExitNode = (r: Route) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0'
 function RouteRow({ route, index, haRole }: { route: Route; index: number; haRole?: 'primary' | 'backup' }) {
   const [isPending, startTransition] = useTransition();
   const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(route.enabled);
+  const [confirmDisable, setConfirmDisable] = useState(false);
+  const [error, setError] = useState('');
 
   const machine = route.machine || route.node;
   const name = machine?.givenName || `Node ${machine?.id || '?'}`;
   const ip = machine?.ipAddresses?.[0] || '';
   const exit = isExitNode(route);
 
-  const toggle = () => {
-    startTransition(async () => {
-      setOptimisticEnabled(!optimisticEnabled);
-      if (optimisticEnabled) await disableRoute(route.id);
-      else await enableRoute(route.id);
+  // Disabling a route yanks connectivity for everyone downstream of it, so it
+  // gets the same confirmation treatment as key revoke / user delete. Approving
+  // is additive and stays one click.
+  const run = (fn: () => Promise<unknown>, nextEnabled: boolean) =>
+    new Promise<void>((resolve, reject) => {
+      setError('');
+      startTransition(async () => {
+        setOptimisticEnabled(nextEnabled);
+        try {
+          await fn();
+          resolve();
+        } catch (e: any) {
+          // useOptimistic snaps back to the server value when the transition
+          // ends, so the badge self-corrects; we only need to say why.
+          setError(e?.message || 'Request failed. The route was not changed.');
+          reject(e);
+        }
+      });
     });
-  };
+
+  const approve = () => { void run(() => enableRoute(route.id), true).catch(() => {}); };
+  const disable = () => run(() => disableRoute(route.id), false);
 
   const icon = (
     <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
@@ -53,8 +70,9 @@ function RouteRow({ route, index, haRole }: { route: Route; index: number; haRol
   );
   const actionBtn = (
     <button
-      onClick={toggle}
+      onClick={() => (optimisticEnabled ? setConfirmDisable(true) : approve())}
       disabled={isPending}
+      aria-label={`${optimisticEnabled ? 'Disable' : 'Approve'} route ${route.prefix} on ${name}`}
       className="btn text-[12px] px-3 py-1.5"
       style={{
         background: optimisticEnabled ? 'var(--red-soft)' : 'var(--green-soft)',
@@ -131,6 +149,24 @@ function RouteRow({ route, index, haRole }: { route: Route; index: number; haRol
           {actionBtn}
         </div>
       </div>
+
+      {error && (
+        <p className="text-[11.5px] px-1 pb-2.5" style={{ color: 'var(--red)' }} role="alert">{error}</p>
+      )}
+
+      <ConfirmDialog
+        open={confirmDisable}
+        title="Disable this route?"
+        description={
+          <>
+            Nodes on your mesh will immediately lose access to <strong style={{ color: 'var(--text-2)' }}>{route.prefix}</strong> through <strong style={{ color: 'var(--text-2)' }}>{name}</strong>.
+            {exit ? ' Any device using it as an exit node will fall back to its own internet connection.' : ''} You can re-approve it at any time.
+          </>
+        }
+        confirmLabel="Disable route"
+        onConfirm={disable}
+        onClose={() => setConfirmDisable(false)}
+      />
     </div>
   );
 }
@@ -159,17 +195,30 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
   const table = (
     <div className="flex-1 flex flex-col min-h-0 relative space-y-5 overflow-y-auto pr-4 custom-scrollbar pb-8">
       {routes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-[60%] gap-4" style={{ color: 'var(--text-4)' }}>
-          <div className="w-12 h-12 rounded-[14px] flex items-center justify-center" style={{ background: 'var(--surface-3)', border: '1px solid var(--border-2)' }}>
+        <EmptyState
+          icon={
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+              <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
-          </div>
-          <div className="text-center">
-            <p className="text-[14px] font-medium mb-1" style={{ color: 'var(--text-3)' }}>No routes advertised</p>
-            <p className="text-[12px]">Connect a node with <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--orange)' }}>--advertise-routes</code> or <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--purple)' }}>--advertise-exit-node</code></p>
-          </div>
-        </div>
+          }
+          title="No routes advertised yet"
+          description={
+            <>
+              Routes show up here once a node offers one. Run this on the machine that should share its network, then come back to approve it.
+            </>
+          }
+          action={
+            <div className="w-full" style={{ maxWidth: 460 }}>
+              <CopyableCommand command="tailscale up --advertise-routes=192.168.1.0/24" />
+              <p className="text-[11.5px] mt-2.5" style={{ color: 'var(--text-4)' }}>
+                Or use <code style={{ fontFamily: 'var(--font-mono)', color: 'var(--purple)' }}>--advertise-exit-node</code> to route all traffic through it.
+              </p>
+              <a href="/nodes" className="inline-block text-[12.5px] font-medium mt-3" style={{ color: 'var(--orange)', textDecoration: 'none' }}>
+                No nodes yet? Add one first →
+              </a>
+            </div>
+          }
+        />
       ) : (
         <>
           {exits.length > 0 && (
@@ -242,13 +291,13 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
           { title: 'Exit Nodes', desc: 'Route all traffic through a node to use its IP address and location. Useful for accessing geo-restricted services.', icon: '🌐', color: '#ff7300' },
           { title: 'Subnet Routes', desc: 'Expose an entire subnet (like 192.168.1.0/24) to your mesh. Other nodes can access devices on that LAN.', icon: '🔗', color: '#8B5CF6' },
           { title: 'Advertising a Route', desc: 'Run tailscale up --advertise-routes=192.168.1.0/24 on any node, then approve it here.', icon: '📡', color: '#3ddc84' },
-          { title: 'High Availability, free', desc: 'Advertise the same subnet from a second node and approve both — Headscale automatically marks one Primary and fails over to the other if it drops. No extra config, any plan.', icon: '🔁', color: '#3ddc84' },
+          { title: 'High availability', desc: 'Advertise the same subnet from a second node and approve both — Headscale marks one primary and fails over to the other if it drops.', icon: '🔁', color: '#3ddc84' },
         ]}
       />
       <UpsellCard
-        eyebrow="Pro Feature"
-        title="Failover Alerts"
-        description="Get an email or webhook the moment a subnet route fails over to its backup node — configure it in Settings on Pro or Cloud."
+        eyebrow="Alerts"
+        title="Failover alerts"
+        description="Get an email or webhook the moment a subnet route fails over to its backup node. Turn it on in Settings."
         href="/settings"
         ctaLabel="Open notification settings"
         icon={

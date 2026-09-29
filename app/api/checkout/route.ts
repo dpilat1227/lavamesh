@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { cloudBetaFull, isCloudCheckoutEnabled } from "@/lib/cloud";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
   apiVersion: '2025-02-24.acacia' as any, // Bypass strict type check for now or use the latest
@@ -14,8 +15,11 @@ export async function GET(req: Request) {
     // Flip CLOUD_CHECKOUT_ENABLED=true when we're willing to take real money.
     // The Stripe + /api/provision path is built and waiting; this gate is the
     // only thing standing between a buyer and a charge.
-    if (process.env.CLOUD_CHECKOUT_ENABLED !== 'true') {
+    if (!isCloudCheckoutEnabled()) {
       return NextResponse.redirect(new URL('/#waitlist', req.url));
+    }
+    if (await cloudBetaFull()) {
+      return NextResponse.redirect(new URL('/#waitlist?full=1', req.url));
     }
 
     const session = await getServerSession(authOptions);

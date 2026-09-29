@@ -4,9 +4,8 @@ import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import CommandPalette from '@/components/CommandPalette';
 import { IconChip } from '@/components/ui';
-import type { PlanTier } from '@/lib/planTier';
 
-export default function MainLayout({ children, planTier = 'community', isPro = false, controlHost }: { children: React.ReactNode; planTier?: PlanTier; isPro?: boolean; controlHost?: string }) {
+export default function MainLayout({ children, controlHost }: { children: React.ReactNode; controlHost?: string }) {
   const pathname = usePathname();
   // Marketing pages render their own nav/footer (SiteNav, SiteFooter) and are
   // plain-document-flow layouts, not the app shell — without this, /blog fell
@@ -38,7 +37,7 @@ export default function MainLayout({ children, planTier = 'community', isPro = f
 
       {/* Sidebar — slides in on mobile, fixed on desktop */}
       <div className={`sidebar-mobile ${sidebarOpen ? 'open' : ''}`} style={{ position: 'relative' }}>
-        <Sidebar onClose={() => setSidebarOpen(false)} planTier={planTier} isPro={isPro} controlHost={controlHost} />
+        <Sidebar onClose={() => setSidebarOpen(false)} controlHost={controlHost} />
       </div>
 
       {/* Mobile backdrop */}

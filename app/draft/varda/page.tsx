@@ -70,7 +70,7 @@ function HeroVariant({ img, index }: { img: string; index: number }) {
           maxWidth: 480, marginBottom: 40,
           textShadow: '0 2px 30px rgba(0,0,0,0.8)',
         }}>
-          A self-hosted WireGuard mesh with a beautiful dashboard. No per-seat pricing. Total control over your network.
+          A self-hosted WireGuard mesh with a free dashboard. You run Headscale. LavaMesh is the admin panel.
         </p>
 
         {/* CTAs */}
@@ -96,7 +96,7 @@ function HeroVariant({ img, index }: { img: string; index: number }) {
         </div>
 
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 20, textShadow: '0 1px 10px rgba(0,0,0,0.8)' }}>
-          Free to self-host · Pro from $19/mo
+          Free · open source · you bring Headscale
         </p>
       </div>
 

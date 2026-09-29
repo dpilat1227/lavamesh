@@ -15,7 +15,7 @@ function formatWhen(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function BackupsCard({ initialBackups, isPro, kvReady }: { initialBackups: BackupSummary[]; isPro: boolean; kvReady: boolean }) {
+export default function BackupsCard({ initialBackups, kvReady }: { initialBackups: BackupSummary[]; kvReady: boolean }) {
   const [backups, setBackups] = useState(initialBackups);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
@@ -60,24 +60,15 @@ export default function BackupsCard({ initialBackups, isPro, kvReady }: { initia
               Snapshots of your ACL policy, users, and node roster. Restore a policy or download the JSON.
             </p>
           </div>
-          <Badge variant="orange" className="text-[10px] uppercase tracking-wider">Pro</Badge>
         </div>
 
-        {!kvReady && isPro && (
+        {!kvReady && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-[10px] mb-4" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#fbbf24', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <p className="text-[11px]" style={{ color: '#fbbf24' }}>Requires Vercel KV — create one in Vercel → Storage</p>
           </div>
         )}
 
-        {!isPro ? (
-          <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-[10px]" style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.16)' }}>
-            <p className="text-[12px] leading-relaxed" style={{ color: 'var(--text-3)' }}>
-              Daily snapshots of your ACL policy and node roster, with one-click policy restore.
-            </p>
-            <a href="/#pricing" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-[12px] flex-shrink-0" style={{ padding: '7px 16px' }}>Upgrade →</a>
-          </div>
-        ) : (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Button variant="primary" onClick={runBackup} disabled={isPending || !kvReady} className="text-[12px]">
@@ -123,7 +114,6 @@ export default function BackupsCard({ initialBackups, isPro, kvReady }: { initia
               </div>
             )}
           </div>
-        )}
       </div>
     </Card>
   );

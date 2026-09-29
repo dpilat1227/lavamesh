@@ -128,7 +128,7 @@ interface UpsellCardProps {
 /** The Pro/Cloud upsell card pattern — now an actual link instead of static, dead-end copy.
  * Eyebrow is always the orange "Pro" pill (never a per-card color) — orange is reserved
  * exclusively for Pro/upgrade signaling app-wide, so it reads the same everywhere. */
-export function UpsellCard({ eyebrow, title, description, icon, href = '/#pricing', ctaLabel = 'Upgrade' }: UpsellCardProps) {
+export function UpsellCard({ eyebrow, title, description, icon, href = '/settings', ctaLabel = 'Open settings' }: UpsellCardProps) {
   // Only the marketing-site anchor leaves the dashboard, so only that case
   // opens in a new tab — an internal link like "/settings" should stay put.
   const external = href.startsWith('/#');

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { hasLicenseKey } from "@/lib/billing";
 import { createBackup } from "@/lib/backups";
 import { logEvent } from "@/lib/audit";
 
@@ -15,10 +14,6 @@ import { logEvent } from "@/lib/audit";
  * single-tenant assumption elsewhere in this app).
  */
 export async function GET() {
-  if (!(await hasLicenseKey())) {
-    return NextResponse.json({ skipped: true, reason: 'No Pro license key configured' });
-  }
-
   try {
     const summary = await createBackup('scheduled');
     await logEvent('backup.create', { trigger: 'scheduled', nodes: String(summary.nodeCount), users: String(summary.userCount) });

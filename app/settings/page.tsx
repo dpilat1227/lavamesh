@@ -8,15 +8,13 @@ import ApiKeyCard from './ApiKeyCard';
 import BackupsCard from './BackupsCard';
 import CloudInstanceCard from './CloudInstanceCard';
 import DnsRecordsCard from './DnsRecordsCard';
-import LicenseCard from './LicenseCard';
 import NotificationSettings from './NotificationSettings';
 import TeamSettings from '@/components/TeamSettings';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getPlanStatus, COMMUNITY_SEAT_LIMIT, type PlanTier } from '@/lib/billing';
 import { getExtraRecords, policyTextFromResponse } from '@/lib/policyDns';
-import { Badge, Card, PageHeader, StatCard, ProShowcase } from '@/components/ui';
+import { Badge, Card, CopyableCommand, DegradedBanner, PageHeader, StatCard } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +22,27 @@ async function fetchSettingsData() {
   const [routes, dns, ns, policy, apiKey, notifications, backups, loginServer] = await Promise.allSettled([
     getRoutes(), getDnsConfig(), getNameservers(), getPolicy(), getCurrentApiKey(), getNotificationConfig(), listBackups(), headscaleLoginServer()
   ]);
+  // The fallbacks below are what keep the page renderable, but on their own
+  // they're indistinguishable from real state: a failed getDnsConfig() reads
+  // as "MagicDNS: Off", a failed getCurrentApiKey() as "no key configured".
+  // Collect the names of whatever we couldn't reach so the page can say so.
+  const degraded = (
+    [
+      ['Exit routes', routes],
+      ['DNS config', dns],
+      ['Nameservers', ns],
+      ['ACL policy', policy],
+      ['API key', apiKey],
+      ['Notification settings', notifications],
+      ['Backups', backups],
+    ] as const
+  )
+    .filter(([, r]) => r.status === 'rejected')
+    .map(([label]) => label);
+
+  const firstReason = [routes, dns, ns, policy, apiKey, notifications, backups]
+    .find((r): r is PromiseRejectedResult => r.status === 'rejected')?.reason;
+
   return {
     routes: routes.status === 'fulfilled' ? routes.value : [],
     dns: dns.status === 'fulfilled' ? dns.value : null,
@@ -33,6 +52,8 @@ async function fetchSettingsData() {
     notifications: notifications.status === 'fulfilled' ? notifications.value : { emailEnabled: true, email: '', webhookEnabled: false, webhookUrl: '', failoverAlertsEnabled: false },
     backups: backups.status === 'fulfilled' ? backups.value : [],
     loginServer: loginServer.status === 'fulfilled' ? loginServer.value : 'https://mesh.lavamesh.com',
+    degraded,
+    degradedDetail: firstReason?.message as string | undefined,
   };
 }
 
@@ -58,7 +79,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default async function SettingsPage() {
-  const { routes, dns, ns, policy, apiKey, notifications, backups, loginServer } = await fetchSettingsData();
+  const { routes, dns, ns, policy, apiKey, notifications, backups, loginServer, degraded, degradedDetail } = await fetchSettingsData();
 
   let members: any[] = [];
   let cloudInstance: { url: string; status: string; region: string | null; errorMessage: string | null; provisionedAt: Date | null } | null = null;
@@ -93,8 +114,6 @@ export default async function SettingsPage() {
     console.error("Failed to fetch tenant members", e);
   }
 
-  const plan = await getPlanStatus(userId).catch(() => ({ tier: 'community' as PlanTier, isPro: false, source: 'none' as const }));
-
   const exitRoutes = routes.filter((r: any) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0');
   const exitActive = exitRoutes.some((r: any) => r.enabled);
   // Card accent mirrors real state (matches MagicDNS below), not a fixed decorative hue:
@@ -121,28 +140,44 @@ export default async function SettingsPage() {
 }`;
   const extraDnsRecords = getExtraRecords(policyText);
 
+  // A StatCard reading "Off" or "Default" is a claim about the user's config.
+  // If the call that would have told us failed, we don't get to make it — show
+  // an unknown dash and let the banner explain.
+  const unknown = (label: (typeof degraded)[number]) => degraded.includes(label);
+  const dnsUnknown = unknown('DNS config') || unknown('Nameservers');
+
   return (
     <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
       <PageHeader
         title="Settings"
         subtitle="Network configuration and access control"
         stats={
-          <div className="grid grid-cols-4 gap-4">
-            <StatCard label="EXIT NODE" value={exitActive ? 'Active' : exitRoutes.length > 0 ? 'Pending' : 'Off'} color={exitActive ? 'var(--green)' : undefined} />
-            <StatCard label="MAGIC DNS" value={magicDnsOn ? 'On' : 'Off'} color={magicDnsOn ? 'var(--green)' : undefined} />
-            <StatCard label="ACL POLICY" value={customPolicy ? 'Custom' : 'Default'} />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <StatCard label="EXIT NODE" value={unknown('Exit routes') ? '—' : exitActive ? 'Active' : exitRoutes.length > 0 ? 'Pending' : 'Off'} color={exitActive ? 'var(--green)' : undefined} />
+            <StatCard label="MAGIC DNS" value={unknown('DNS config') || unknown('Nameservers') ? '—' : magicDnsOn ? 'On' : 'Off'} color={magicDnsOn ? 'var(--green)' : undefined} />
+            <StatCard label="ACL POLICY" value={unknown('ACL policy') ? '—' : customPolicy ? 'Custom' : 'Default'} />
             <StatCard label="TEAM" value={members.length > 0 ? members.length : '—'} />
           </div>
         }
       />
 
+      {degraded.length > 0 && (
+        <DegradedBanner
+          message={`Couldn't load ${degraded.join(', ')} from Headscale. The values shown for those may be defaults, not your real configuration.`}
+          detail={degradedDetail}
+        />
+      )}
+
       <div className="flex-1 overflow-y-auto custom-scrollbar px-5 sm:px-8 py-6" style={{ minHeight: 0 }}>
-        <div className={plan.isPro ? undefined : 'settings-layout'} style={plan.isPro ? { maxWidth: 860 } : { display: 'grid', gridTemplateColumns: 'minmax(0, 860px) 300px', gap: '2rem', alignItems: 'start' }}>
+        <div style={{ maxWidth: 860 }}>
         <div className="space-y-5">
 
-          <SectionLabel>Account</SectionLabel>
-          {cloudInstance && <CloudInstanceCard instance={cloudInstance} />}
-          <LicenseCard isPro={plan.isPro} source={plan.source} />
+          {cloudInstance && (
+            <>
+              <SectionLabel>Account</SectionLabel>
+              <CloudInstanceCard instance={cloudInstance} />
+            </>
+          )}
 
           <SectionLabel>Network</SectionLabel>
           {/* Exit Node */}
@@ -153,8 +188,8 @@ export default async function SettingsPage() {
               {exitRoutes.length === 0 ? (
                 <div>
                   <Badge className="mb-3">Not configured</Badge>
-                  <div className="px-4 py-3 rounded-[10px] overflow-x-auto mt-3" style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-2)' }}>
-                    <pre className="text-[11.5px] leading-relaxed" style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{`sudo tailscale up \\\n  --login-server=https://api.lavamesh.com \\\n  --advertise-exit-node \\\n  --accept-routes`}</pre>
+                  <div className="mt-3">
+                    <CopyableCommand command={`sudo tailscale up --login-server=${loginServer} --advertise-exit-node --accept-routes`} />
                   </div>
                   <p className="text-[11px] mt-3" style={{ color: 'var(--text-4)' }}>Then approve it in the <strong style={{ color: 'var(--text-3)' }}>Routes</strong> tab.</p>
                 </div>
@@ -180,22 +215,24 @@ export default async function SettingsPage() {
           </Card>
 
           {/* MagicDNS */}
-          <Card accent={magicDnsOn ? 'var(--green)' : undefined} padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
+          <Card accent={magicDnsOn && !dnsUnknown ? 'var(--green)' : undefined} padded={false} className="animate-fade-in-up" style={{ animationDelay: '60ms' }}>
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h2 className="text-[16px] font-semibold" style={{ color: 'var(--text-1)' }}>MagicDNS</h2>
                   <p className="text-[12px] mt-0.5" style={{ color: 'var(--text-4)' }}>Automatic hostname resolution across the mesh</p>
                 </div>
-                <Badge variant={magicDnsOn ? 'green' : 'ghost'} dot={magicDnsOn}>{magicDnsOn ? 'Enabled' : 'Disabled'}</Badge>
+                <Badge variant={dnsUnknown ? 'amber' : magicDnsOn ? 'green' : 'ghost'} dot={magicDnsOn && !dnsUnknown}>
+                  {dnsUnknown ? 'Unknown' : magicDnsOn ? 'Enabled' : 'Disabled'}
+                </Badge>
               </div>
-              <InfoRow label="Base Domain" value={baseDomain || 'Not configured'} mono={!!baseDomain} />
+              <InfoRow label="Base Domain" value={baseDomain || (unknown('DNS config') ? "Couldn't load" : 'Not configured')} mono={!!baseDomain} />
               <div className="pt-3">
                 <span className="text-[13px]" style={{ color: 'var(--text-3)' }}>Nameservers</span>
                 <div className="mt-2 space-y-1">
                   {nameservers.length > 0 ? nameservers.map((ns: string) => (
                     <div key={ns} className="px-3 py-1.5 rounded-[8px] text-[12px]" style={{ background: 'var(--surface-3)', color: 'var(--text-2)', border: '1px solid var(--border-1)', fontFamily: 'var(--font-mono)' }}>{ns}</div>
-                  )) : <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>No nameservers configured</p>}
+                  )) : <p className="text-[12px]" style={{ color: 'var(--text-4)' }}>{unknown('Nameservers') ? "Couldn't load nameservers from Headscale" : 'No nameservers configured'}</p>}
                 </div>
               </div>
               <DnsRecordsCard records={extraDnsRecords} policyAvailable={!!policy} />
@@ -204,14 +241,14 @@ export default async function SettingsPage() {
 
           <SectionLabel>Security &amp; Access</SectionLabel>
           {/* Developer API Key */}
-          <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} isPro={plan.isPro} />
+          <ApiKeyCard apiKey={apiKey} kvReady={kvConfigured()} />
 
           {/* ACL Editor */}
           <Card padded={false} className="animate-fade-in-up" style={{ animationDelay: '120ms' }}>
             <div className="p-6">
               <h2 className="text-[16px] font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Access Control Policy</h2>
               <p className="text-[12px] mb-4" style={{ color: 'var(--text-4)' }}>HuJSON policy defining which devices can communicate</p>
-              <AclPolicyCard initialPolicy={policyText} policyAvailable={!!policy} isPro={plan.isPro} />
+              <AclPolicyCard initialPolicy={policyText} policyAvailable={!!policy} />
             </div>
           </Card>
 
@@ -231,21 +268,15 @@ export default async function SettingsPage() {
           </Card>
 
           {/* Config Backups */}
-          <BackupsCard initialBackups={backups} isPro={plan.isPro} kvReady={kvConfigured()} />
+          <BackupsCard initialBackups={backups} kvReady={kvConfigured()} />
 
           {/* Alerts & Notifications */}
-          <NotificationSettings config={notifications} isPro={plan.isPro} hasResend={!!process.env.RESEND_API_KEY} />
+          <NotificationSettings config={notifications} hasResend={!!process.env.RESEND_API_KEY} />
 
           <SectionLabel>Team</SectionLabel>
-          <TeamSettings members={members} isPro={plan.isPro} seatLimit={COMMUNITY_SEAT_LIMIT} />
+          <TeamSettings members={members} />
 
         </div>
-
-        {!plan.isPro && (
-          <div style={{ position: 'sticky', top: 0 }}>
-            <ProShowcase />
-          </div>
-        )}
         </div>
       </div>
     </div>

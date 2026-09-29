@@ -1,12 +1,8 @@
 'use client';
-import { useState } from 'react';
-import Link from 'next/link';
 import HeroAnimation from '@/components/HeroAnimation';
 import HeroMobileProof from '@/components/HeroMobileProof';
 import TerminalBlock from '@/components/TerminalBlock';
 import FeatureGrid from '@/components/FeatureGrid';
-import PricingSection from '@/components/PricingSection';
-import WaitlistForm from '@/components/WaitlistForm';
 import ComparisonSection from '@/components/ComparisonSection';
 import SocialProof from '@/components/SocialProof';
 import FounderSection from '@/components/FounderSection';
@@ -152,28 +148,28 @@ export default function LandingPage() {
           <div className="animate-fade-in inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8 self-start"
             style={{ background: 'rgba(255,115,0,0.08)', border: '1px solid rgba(255,115,0,0.2)' }}>
             <span className="w-1.5 h-1.5 rounded-full animate-pulse-orange" style={{ background: '#ff7300' }}></span>
-            <span className="text-[12px] font-medium" style={{ color: '#ff7300' }}>Self-hosted WireGuard mesh — zero per-seat fees</span>
+            <span className="text-[12px] font-medium" style={{ color: '#ff7300' }}>Free dashboard for Headscale</span>
           </div>
 
           {/* Headline */}
           <h1 className="animate-fade-in-up font-bold mb-6"
             style={{ fontSize: 'clamp(42px, 4.8vw, 74px)', letterSpacing: '-0.035em', lineHeight: 1.03, animationDelay: '80ms' }}>
-            <span style={{ color: 'white' }}>Private networking.</span><br />
-            <span style={{ background: 'linear-gradient(135deg, #ff7300 0%, #FF8A00 60%, rgba(255,180,50,0.9) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>No compromise.</span>
+            <span style={{ color: 'white' }}>A dashboard</span><br />
+            <span style={{ background: 'linear-gradient(135deg, #ff7300 0%, #FF8A00 60%, rgba(255,180,50,0.9) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>for your mesh.</span>
           </h1>
 
           {/* Sub */}
           <p className="animate-fade-in-up text-[17px] leading-relaxed mb-10"
             style={{ color: 'rgba(255,255,255,0.45)', maxWidth: 460, letterSpacing: '-0.01em', animationDelay: '160ms' }}>
-            A self-hosted mesh network with a beautiful dashboard. Powered by Headscale and WireGuard. Zero per-seat fees. Total control.
+            Nodes, keys, routes, and ACLs for the Headscale server you already run. Free, open source, and nothing to upgrade into.
           </p>
 
           {/* CTAs */}
           <div className="animate-fade-in-up flex flex-col gap-4" style={{ animationDelay: '240ms' }}>
             <div className="flex flex-wrap items-center gap-3">
-              <a href="#pricing" className="btn btn-primary"
+              <a href="/dashboard" className="btn btn-primary"
                 style={{ padding: '13px 28px', borderRadius: '12px', fontSize: 15, boxShadow: '0 0 30px rgba(255,115,0,0.3)' }}>
-                Deploy Free →
+                Open the dashboard →
               </a>
               <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
                 className="btn btn-ghost" style={{ padding: '13px 28px', borderRadius: '12px', fontSize: 15 }}>
@@ -181,7 +177,7 @@ export default function LandingPage() {
                 View on GitHub
               </a>
             </div>
-            <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Free to self-host · Pro license from $19/mo</p>
+            <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Free to self-host · you bring Headscale</p>
           </div>
         </div>
 
@@ -296,12 +292,6 @@ export default function LandingPage() {
 
       {/* ── FOUNDER BIO ───────────────────────────────────────────────────────── */}
       <FounderSection />
-
-      {/* ── PRICING ───────────────────────────────────────────────────────────── */}
-      <PricingSection />
-
-      {/* ── WAITLIST ──────────────────────────────────────────────────────────── */}
-      <WaitlistForm />
 
       {/* ── FOOTER ────────────────────────────────────────────────────────────── */}
       <SiteFooter />

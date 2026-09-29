@@ -11,12 +11,12 @@ const plans = [
     id: 'community',
     name: 'Community',
     badge: null,
-    desc: 'For homelabbers and developers self-hosting their own infrastructure.',
+    desc: 'You already run Headscale. This is the dashboard.',
     price: { monthly: 'Free', lifetime: 'Free' },
     sub: { monthly: 'forever', lifetime: 'forever' },
     features: [
       'Full dashboard — nodes, keys, users, routes',
-      'Self-hosted on your own server',
+      'Runs on your own server',
       'ACL policy editor + extra DNS records',
       'Expire or revoke nodes from the dashboard',
       'Up to 5 team members',
@@ -34,8 +34,8 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    badge: 'Recommended',
-    desc: 'For serious operators who want full control with premium tooling and support.',
+    badge: null,
+    desc: 'Same dashboard, plus audit, backups, and alerts — still on your box.',
     price: { monthly: '$19', lifetime: '$149' },
     sub: { monthly: '/month', lifetime: 'one-time' },
     savings: 'Save $79 vs monthly',
@@ -60,35 +60,31 @@ const plans = [
     // fixed in stone yet. Softens the "money grab" read for cold visitors
     // without pretending a live Stripe link doesn't exist.
     note: 'Early pricing while I figure out what teams actually need — reply below if $19 feels off.',
-    highlight: true,
+    highlight: false,
   },
   {
     id: 'cloud',
     name: 'Cloud',
-    badge: 'Coming Soon',
-    desc: 'Zero infrastructure. We host Headscale and LavaMesh together for you.',
+    badge: 'We run it',
+    desc: 'We host Headscale and the dashboard. You add devices.',
     price: { monthly: '$39', lifetime: '$39' },
     sub: { monthly: '/month', lifetime: '/month · billed monthly' },
     features: [
       'Everything in Pro',
       'Managed Headscale instance',
-      'Zero server setup required',
-      'Automatic updates & backups',
-      '99.9% uptime SLA',
-      'White-glove onboarding call',
-      'Custom domain support',
+      'No server to stand up',
+      'Automatic updates and config backups',
+      'Email me if something breaks',
     ],
     notIncluded: [],
-    // Cloud infrastructure is actively being built (real per-tenant Fly.io
-    // provisioning — see app/api/provision) but isn't production-ready yet.
-    // Route interest to the waitlist instead of live Stripe checkout so we
-    // don't take payment for something that isn't ready to hand over.
-    cta: (billing: Billing) => ({
-      label: 'Join Cloud Waitlist →',
-      href: '#waitlist',
-      external: false,
-    }),
-    highlight: false,
+    // Checkout stays waitlisted until CLOUD_CHECKOUT_ENABLED=true *and*
+    // NEXT_PUBLIC_CLOUD_CHECKOUT_ENABLED=true (see lib/cloud.ts).
+    cta: (billing: Billing) =>
+      process.env.NEXT_PUBLIC_CLOUD_CHECKOUT_ENABLED === 'true'
+        ? { label: 'Start Cloud →', href: '/api/checkout?plan=cloud', external: false }
+        : { label: 'Join Cloud Waitlist →', href: '#waitlist', external: false },
+    highlight: true,
+    note: 'Private beta. I host it. No SLA paperwork, no onboarding call — just a working network.',
   },
 ];
 

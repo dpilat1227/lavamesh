@@ -125,11 +125,11 @@ export function ArticleCTA() {
         Want the dashboard without the CLI?
       </h3>
       <p className="text-[15px] mb-6 max-w-md mx-auto" style={{ color: 'rgba(255,255,255,0.55)' }}>
-        LavaMesh is a self-hosted control panel for Headscale — nodes, keys, ACLs, and users in one place. Free to self-host, flat-rate if you want the extras.
+        LavaMesh is a free dashboard for Headscale — nodes, keys, ACLs, and users in one place.
       </p>
       <div className="flex items-center justify-center gap-3 flex-wrap">
-        <a href="/#pricing" className="btn btn-primary text-[14px] font-semibold" style={{ padding: '11px 22px', borderRadius: 12, textDecoration: 'none' }}>
-          See pricing →
+        <a href="/dashboard" className="btn btn-primary text-[14px] font-semibold" style={{ padding: '11px 22px', borderRadius: 12, textDecoration: 'none' }}>
+          Open the dashboard →
         </a>
         <a href="https://github.com/dpilat1227/lavamesh" target="_blank" rel="noopener noreferrer"
           className="text-[14px] font-medium" style={{ padding: '11px 22px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.75)', textDecoration: 'none' }}>

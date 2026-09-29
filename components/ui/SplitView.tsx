@@ -34,11 +34,17 @@ export function SplitView({
   scroll = 'inner',
 }: SplitViewProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  // Pages that pass autoOpenSignal (Nodes/Users) drive the drawer entirely off
-  // selection state: opening on select, closing on deselect. Their pane content
-  // already renders its own close/deselect affordance, so the generic floating
-  // close button below would just duplicate it — hence it's suppressed for them.
-  const hasContentDrivenClose = autoOpenSignal !== undefined;
+  // Pages that pass autoOpenSignal (Nodes/Users) drive the drawer off selection
+  // state: opening on select, closing on deselect. While something *is*
+  // selected, the pane renders its own close/deselect affordance, so the
+  // generic floating button would just duplicate it.
+  //
+  // But when nothing is selected those pages fall back to a default pane
+  // (Needs Attention, help content) that has no close button of its own —
+  // suppressing the trigger for the whole page made that content completely
+  // unreachable below 1280px. So the suppression is tied to there actually
+  // being a selection, not merely to the page opting into the signal.
+  const hasContentDrivenClose = autoOpenSignal !== undefined && autoOpenSignal !== null;
 
   useEffect(() => {
     if (autoOpenSignal === undefined) return;

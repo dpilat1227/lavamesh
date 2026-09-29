@@ -62,17 +62,16 @@ export async function kvLpush(key: string, ...values: unknown[]): Promise<void> 
   }
 }
 
-export async function kvLrange<T>(key: string, start: number, stop: number): Promise<T[]> {
+/**
+ * Returns the raw list entries. Deliberately does *not* JSON.parse: every
+ * caller stores a JSON string and parses it back into its own type, so parsing
+ * here handed them an object they then parsed a second time — which throws and
+ * silently emptied both the audit log and the backup list.
+ */
+export async function kvLrange(key: string, start: number, stop: number): Promise<string[]> {
   const kv = getKv();
   if (!kv) return [];
-  const vals = await kv.lrange(key, start, stop).catch(() => []);
-  return vals.map(val => {
-    try {
-      return JSON.parse(val) as T;
-    } catch {
-      return val as unknown as T;
-    }
-  });
+  return kv.lrange(key, start, stop).catch(() => []);
 }
 
 export async function kvLtrim(key: string, start: number, stop: number): Promise<void> {

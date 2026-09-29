@@ -22,6 +22,7 @@ export function proxy(req: NextRequest) {
     pathname.startsWith("/api/pro-access") ||
     pathname.startsWith("/api/github-stats") ||
     pathname.startsWith("/api/checkout") ||
+    pathname.startsWith("/api/cloud-ready") ||
     pathname.startsWith("/api/webhooks/") ||
     pathname.startsWith("/api/provision") ||
     pathname.startsWith("/api/cron/");

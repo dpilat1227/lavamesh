@@ -1,7 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function WaitlistForm() {
+  const params = useSearchParams();
+  const betaFull = params.get('full') === '1';
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -60,7 +63,9 @@ export default function WaitlistForm() {
               Coming soon · Managed hosting
             </p>
             <p className="mb-8 text-[15px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              We host Headscale and the dashboard for you. No servers, no config files, no ops tax. Just your private mesh — managed.
+              {betaFull
+                ? 'This first wave of Cloud is full. Leave your email and I will write when the next seats open.'
+                : 'We host Headscale and the dashboard for you. No servers, no config files. Just your private mesh.'}
             </p>
 
             {status === 'success' ? (

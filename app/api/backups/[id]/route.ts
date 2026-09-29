@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getPlanStatus } from "@/lib/billing";
 import { getBackup } from "@/lib/backups";
 
-/** GET /api/backups/:id — downloads one config backup as a JSON file. Pro/Cloud only. */
+/** GET /api/backups/:id — downloads one config backup as a JSON file. */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
-  const plan = await getPlanStatus((session?.user as any)?.id);
-  if (!plan.isPro) {
-    return NextResponse.json({ error: "This feature requires a Pro or Cloud plan." }, { status: 403 });
+  if (!(session?.user as any)?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;

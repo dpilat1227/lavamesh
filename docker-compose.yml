@@ -1,0 +1,56 @@
+# Community install: Headscale + LavaMesh on one box.
+# 1. Copy .env.example → .env and fill POSTGRES_URL, NEXTAUTH_SECRET, AUTH_PASSWORD, KV_REDIS_URL.
+# 2. Edit deploy/headscale/config.yaml (server_url + base_domain).
+# 3. docker compose up -d
+# 4. Mint a Headscale API key inside the container and put it in HEADSCALE_API_KEY.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lavamesh
+      POSTGRES_PASSWORD: lavamesh
+      POSTGRES_DB: lavamesh
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lavamesh"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+
+  headscale:
+    image: headscale/headscale:latest
+    command: serve
+    volumes:
+      - ./deploy/headscale/config.yaml:/etc/headscale/config.yaml:ro
+      - hsdata:/var/lib/headscale
+    ports:
+      - "8080:8080"
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      POSTGRES_URL: postgres://lavamesh:lavamesh@postgres:5432/lavamesh
+      DATABASE_URL: postgres://lavamesh:lavamesh@postgres:5432/lavamesh
+      KV_REDIS_URL: redis://redis:6379
+      HEADSCALE_API_URL: http://headscale:8080
+      HEADSCALE_PUBLIC_URL: http://127.0.0.1:8080
+      NEXTAUTH_URL: http://127.0.0.1:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      headscale:
+        condition: service_started
+
+volumes:
+  pgdata:
+  hsdata:

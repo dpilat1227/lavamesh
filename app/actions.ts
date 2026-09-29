@@ -16,7 +16,7 @@ import { revalidatePath } from 'next/cache';
 import { logEvent } from '@/lib/audit';
 import { setNodeTags, getNodeTags, getTagsForNodes } from '@/lib/tags';
 import { generateApiKey, getCurrentApiKey, revokeApiKey } from '@/lib/apikeys';
-import { getPlanStatus, hasLicenseKey, saveLicenseKey } from '@/lib/billing';
+import { hasLicenseKey, saveLicenseKey } from '@/lib/billing';
 import { kvConfigured } from '@/lib/kv';
 import { saveNotificationConfig, sendTestAlert, type NotificationConfig } from '@/lib/notifications';
 import { getTagGroups, compilePolicy, mergeBuilderIntoExisting, validateRule, type AclRule } from '@/lib/aclBuilder';
@@ -32,13 +32,8 @@ async function requireSession() {
   return userId;
 }
 
-async function requirePro() {
+async function requireSignedIn() {
   await requireSession();
-  const session = await getServerSession(authOptions);
-  const plan = await getPlanStatus((session?.user as any)?.id);
-  if (!plan.isPro) {
-    throw new Error('This feature requires a Pro or Cloud plan. Upgrade at /#pricing.');
-  }
 }
 
 // ── Node ──────────────────────────────────────────────────────────────────────
@@ -151,7 +146,7 @@ export async function updatePolicyAction(policy: string) {
 // ── Visual ACL Builder (Pro) ──────────────────────────────────────────────────
 
 export async function getTagGroupsAction() {
-  await requirePro();
+  await requireSignedIn();
   return getTagGroups();
 }
 
@@ -164,7 +159,7 @@ async function currentPolicyText(): Promise<string> {
 }
 
 export async function previewAclBuilderPolicyAction(rules: AclRule[]) {
-  await requirePro();
+  await requireSignedIn();
   const groups = await getTagGroups();
   for (const rule of rules) {
     const err = validateRule(rule, groups);
@@ -176,7 +171,7 @@ export async function previewAclBuilderPolicyAction(rules: AclRule[]) {
 }
 
 export async function applyAclBuilderPolicyAction(rules: AclRule[]) {
-  await requirePro();
+  await requireSignedIn();
   const groups = await getTagGroups();
   for (const rule of rules) {
     const err = validateRule(rule, groups);
@@ -250,7 +245,7 @@ export async function getTagsForNodesAction(nodeIds: string[]) {
 // ── API Keys ───────────────────────────────────────────────────────────────
 
 export async function generateApiKeyAction() {
-  await requirePro();
+  await requireSignedIn();
   const record = await generateApiKey();
   await logEvent('apikey.generate', {});
   return record;
@@ -261,7 +256,7 @@ export async function getCurrentApiKeyAction() {
 }
 
 export async function revokeApiKeyAction() {
-  await requirePro();
+  await requireSignedIn();
   await revokeApiKey();
   await logEvent('apikey.revoke', {});
 }
@@ -269,7 +264,7 @@ export async function revokeApiKeyAction() {
 // ── Config Backups (Pro/Cloud) ───────────────────────────────────────────────
 
 export async function createBackupAction() {
-  await requirePro();
+  await requireSignedIn();
   const summary = await createBackup('manual');
   await logEvent('backup.create', { trigger: 'manual', nodes: String(summary.nodeCount), users: String(summary.userCount) });
   revalidatePath('/settings');
@@ -277,7 +272,7 @@ export async function createBackupAction() {
 }
 
 export async function listBackupsAction() {
-  await requirePro();
+  await requireSignedIn();
   return listBackups();
 }
 
@@ -285,10 +280,6 @@ export async function listBackupsAction() {
 
 export async function saveNotificationConfigAction(patch: Partial<NotificationConfig>) {
   await requireSession();
-  // Webhook + failover alerts are a Pro/Cloud perk; email stays free for everyone.
-  if (patch.webhookEnabled || patch.failoverAlertsEnabled) {
-    await requirePro();
-  }
   const next = await saveNotificationConfig(patch);
   await logEvent('notifications.update', {
     emailEnabled: String(next.emailEnabled),
@@ -324,7 +315,7 @@ export async function activateLicenseAction(key: string) {
 }
 
 export async function restoreBackupPolicyAction(id: string) {
-  await requirePro();
+  await requireSignedIn();
   const backup = await getBackup(id);
   if (!backup?.policy) throw new Error('This backup has no ACL policy to restore.');
   await _setPolicy(backup.policy);

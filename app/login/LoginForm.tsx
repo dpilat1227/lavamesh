@@ -5,9 +5,11 @@ import { signIn } from 'next-auth/react';
 export default function LoginForm({
   allowPassword,
   devPasswordOpen,
+  googleEnabled,
 }: {
   allowPassword: boolean;
   devPasswordOpen: boolean;
+  googleEnabled?: boolean;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,6 +77,19 @@ export default function LoginForm({
 
           {!success ? (
             <form onSubmit={handleSubmit} className="space-y-3">
+              {googleEnabled && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+                    className="btn w-full justify-center text-[14px]"
+                    style={{ padding: '11px 16px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'white' }}
+                  >
+                    Continue with Google
+                  </button>
+                  <p className="text-center text-[11px]" style={{ color: 'var(--text-4)' }}>or</p>
+                </>
+              )}
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-4)' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

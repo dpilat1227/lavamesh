@@ -60,12 +60,12 @@ export default function CloudProvisioningStatus({ initialStatus, initialError }:
         </div>
 
         <h2 className="text-[18px] font-semibold mb-2" style={{ color: 'var(--text-1)' }}>
-          {isError ? 'Provisioning ran into a problem' : 'Setting up your Cloud instance'}
+          {isError ? 'Provisioning ran into a problem' : 'Setting up your Headscale server'}
         </h2>
         <p className="text-[13px] leading-relaxed mb-5" style={{ color: 'var(--text-4)' }}>
           {isError
             ? (error || 'Something went wrong while creating your dedicated Headscale instance.')
-            : 'We\u2019re spinning up a dedicated, isolated Headscale instance just for you. This usually takes 1\u20132 minutes.'}
+            : 'Spinning up the Headscale server this dashboard will use. This usually takes 1–2 minutes.'}
         </p>
 
         {isError ? (
