@@ -1,5 +1,7 @@
 /** Fixed sample network for the public demo. Nothing here is a live Headscale server. */
 
+import type { AuditEventView } from './auditLabels';
+
 const hoursAgo = (h: number) => new Date(Date.now() - h * 60 * 60 * 1000).toISOString();
 
 export const demoNodes = [
@@ -141,7 +143,7 @@ export const demoKeys = [
   },
 ];
 
-export const demoAuditEvents = [
+export const demoAuditEvents: AuditEventView[] = [
   { id: 'a1', ts: hoursAgo(0.4), action: 'key.generate', meta: { user: 'admin' } },
   { id: 'a2', ts: hoursAgo(2), action: 'node.rename', meta: { nodeId: '4', newName: 'staging-server' } },
   { id: 'a3', ts: hoursAgo(6), action: 'route.failover', meta: { prefix: '192.168.1.0/24' } },
