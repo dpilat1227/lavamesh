@@ -101,7 +101,7 @@ function UserRow({ user, selected, highlighted, onSelect }: { user: User; select
  *  rename affordance up top, key facts, this namespace's nodes, then the one
  *  destructive action — all in one place instead of splitting Rename into a
  *  row-level menu and Delete into another. */
-function UserInspector({ user, nodes, onClose, onRename, onDelete }: { user: User; nodes: NodeSummary[]; onClose: () => void; onRename: (name: string) => void; onDelete: () => void }) {
+function UserInspector({ user, nodes, onClose, onRename, onDelete, readOnly = false }: { user: User; nodes: NodeSummary[]; onClose: () => void; onRename: (name: string) => void; onDelete: () => void; readOnly?: boolean }) {
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(user.name);
   const [renamePending, startRenameTransition] = useTransition();
@@ -114,7 +114,7 @@ function UserInspector({ user, nodes, onClose, onRename, onDelete }: { user: Use
     setRenameError('');
     startRenameTransition(async () => {
       try {
-        await renameUserAction(user.name, trimmed);
+        if (!readOnly) await renameUserAction(user.name, trimmed);
         onRename(trimmed);
         setRenaming(false);
       } catch (e: any) {
@@ -124,7 +124,7 @@ function UserInspector({ user, nodes, onClose, onRename, onDelete }: { user: Use
   };
 
   const doDelete = async () => {
-    await deleteUserAction(user.name);
+    if (!readOnly) await deleteUserAction(user.name);
     onDelete();
   };
 
@@ -205,7 +205,7 @@ function UserInspector({ user, nodes, onClose, onRename, onDelete }: { user: Use
   );
 }
 
-function AddUserModal({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: (name: string) => void }) {
+function AddUserModal({ open, onClose, onAdded, readOnly = false }: { open: boolean; onClose: () => void; onAdded: (name: string) => void; readOnly?: boolean }) {
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -215,7 +215,7 @@ function AddUserModal({ open, onClose, onAdded }: { open: boolean; onClose: () =
     if (!trimmed) return setError('Name is required');
     startTransition(async () => {
       try {
-        await createUserAction(trimmed);
+        if (!readOnly) await createUserAction(trimmed);
         onAdded(trimmed);
         onClose();
       } catch (e: any) {
@@ -250,7 +250,7 @@ function AddUserModal({ open, onClose, onAdded }: { open: boolean; onClose: () =
   );
 }
 
-export default function UsersClient({ users, nodeCounts, nodesByUser = {}, loadError }: { users: User[]; nodeCounts: Record<string, number>; nodesByUser?: Record<string, NodeSummary[]>; loadError?: { message: string; detail?: string } }) {
+export default function UsersClient({ users, nodeCounts, nodesByUser = {}, loadError, readOnly = false }: { users: User[]; nodeCounts: Record<string, number>; nodesByUser?: Record<string, NodeSummary[]>; loadError?: { message: string; detail?: string }; readOnly?: boolean }) {
   const [localUsers, setLocalUsers] = useState(users.map(u => ({ ...u, nodeCount: nodeCounts[u.name] ?? 0 })));
   const [showAdd, setShowAdd] = useState(false);
   const [highlightedUser, setHighlightedUser] = useState<string | null>(null);
@@ -344,6 +344,7 @@ export default function UsersClient({ users, nodeCounts, nodesByUser = {}, loadE
     <div className="flex flex-col h-full relative overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
       <AddUserModal
         open={showAdd}
+        readOnly={readOnly}
         onClose={() => setShowAdd(false)}
         onAdded={name => setLocalUsers(prev => [...prev, { name, nodeCount: 0 }])}
       />
@@ -372,6 +373,7 @@ export default function UsersClient({ users, nodeCounts, nodesByUser = {}, loadE
               key={selectedUser.name}
               user={selectedUser}
               nodes={nodesByUser[selectedUser.name] || []}
+              readOnly={readOnly}
               onClose={() => setSelectedUserName(null)}
               onRename={newName => {
                 setLocalUsers(prev => prev.map(x => x.name === selectedUser.name ? { ...x, name: newName } : x));

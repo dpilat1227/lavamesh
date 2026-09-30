@@ -42,7 +42,7 @@ function OsIcon({ name }: { name: string }) {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>;
 }
 
-function InviteModal({ open, onClose, onTokenIssued, loginServer }: { open: boolean; onClose: () => void; onTokenIssued: () => void; loginServer: string }) {
+function InviteModal({ open, onClose, onTokenIssued, loginServer, readOnly = false }: { open: boolean; onClose: () => void; onTokenIssued: () => void; loginServer: string; readOnly?: boolean }) {
   const [step, setStep] = useState<'config' | 'result'>('config');
   const [users, setUsers] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState('admin');
@@ -85,7 +85,9 @@ function InviteModal({ open, onClose, onTokenIssued, loginServer }: { open: bool
     setGenerating(true);
     setError('');
     try {
-      const key = await generateKeyForUser(selectedUser, false, ephemeral, expiryDays);
+      const key = readOnly
+        ? 'tskey-auth-demo-sample'
+        : await generateKeyForUser(selectedUser, false, ephemeral, expiryDays);
       if (!key) throw new Error('Headscale did not return a key');
       setToken(key);
       setStep('result');
@@ -270,7 +272,7 @@ function CopyField({ label, value, mono = true }: { label: string; value: string
 }
 
 /** Pane selected state: the node inspector — same content the old centered modal showed, now inline. */
-function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename, onTagsChange }: { node: any; tags?: string[]; onClose: () => void; onRevoke: () => void; onExpire: () => void; onRename: (name: string) => void; onTagsChange: (tags: string[]) => void }) {
+function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename, onTagsChange, readOnly = false }: { node: any; tags?: string[]; onClose: () => void; onRevoke: () => void; onExpire: () => void; onRename: (name: string) => void; onTagsChange: (tags: string[]) => void; readOnly?: boolean }) {
   const [confirming, setConfirming] = useState<'revoke' | 'expire' | null>(null);
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(node.givenName);
@@ -281,7 +283,11 @@ function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename,
 
   const doRename = () => {
     if (!newName.trim() || newName === node.givenName) return setRenaming(false);
-    startRenameTransition(async () => { await renameMachineAction(node.id, newName.trim()); onRename(newName.trim()); setRenaming(false); });
+    startRenameTransition(async () => {
+      if (!readOnly) await renameMachineAction(node.id, newName.trim());
+      onRename(newName.trim());
+      setRenaming(false);
+    });
   };
 
   return (
@@ -328,7 +334,7 @@ function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename,
                 <button onClick={() => {
                   const next = tags.filter(x => x !== t);
                   onTagsChange(next);
-                  startTagTransition(async () => { await setNodeTagsAction(node.id, next); });
+                  if (!readOnly) startTagTransition(async () => { await setNodeTagsAction(node.id, next); });
                 }} className="hover:text-red-400 transition-colors ml-0.5" style={{ color: 'var(--text-4)' }} aria-label={`Remove tag ${t}`}>×</button>
               </span>
             ))}
@@ -342,7 +348,7 @@ function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename,
                   if (e.key === 'Enter' && newTag.trim() && !tags.includes(newTag.trim())) {
                     const next = [...tags, newTag.trim()];
                     onTagsChange(next);
-                    startTagTransition(async () => { await setNodeTagsAction(node.id, next); });
+                    if (!readOnly) startTagTransition(async () => { await setNodeTagsAction(node.id, next); });
                     setAddingTag(false);
                     setNewTag('');
                   }
@@ -412,7 +418,7 @@ function NodeInspector({ node, tags = [], onClose, onRevoke, onExpire, onRename,
   );
 }
 
-export default function DashboardClient({ nodes, apiError, initialTags, uptimeLogs = [], loginServer }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]>; uptimeLogs?: any[]; loginServer: string }) {
+export default function DashboardClient({ nodes, apiError, initialTags, uptimeLogs = [], loginServer, readOnly = false }: { nodes: any[]; apiError?: string | null; initialTags?: Record<string, string[]>; uptimeLogs?: any[]; loginServer: string; readOnly?: boolean }) {
   const [showInvite, setShowInvite] = useState(false);
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
@@ -430,10 +436,11 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
   const [fastPollUntil, setFastPollUntil] = useState<number | null>(null);
 
   useEffect(() => {
+    if (readOnly) return;
     const tick = () => { router.refresh(); setLastRefresh(new Date()); };
     const interval = setInterval(tick, fastPollUntil && Date.now() < fastPollUntil ? 5000 : 30000);
     return () => clearInterval(interval);
-  }, [router, fastPollUntil]);
+  }, [router, fastPollUntil, readOnly]);
 
   const manualRefresh = useCallback(() => { router.refresh(); setLastRefresh(new Date()); }, [router]);
   const handleTokenIssued = useCallback(() => {
@@ -464,7 +471,9 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
     setExporting(true);
     setActionError('');
     try {
-      const csv = await exportNodesCsvAction();
+      const csv = readOnly
+        ? ['name,ip,online,user', ...visibleNodes.map(n => `${n.givenName},${n.ipAddresses?.[0] || ''},${n.online},${n.user?.name || ''}`)].join('\n')
+        : await exportNodesCsvAction();
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -476,31 +485,33 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
       setActionError(e?.message || 'Export failed. Please try again.');
     }
     setExporting(false);
-  }, []);
+  }, [readOnly, visibleNodes]);
 
   const handleRevoke = useCallback(async (id: string) => {
     setRemovedIds(prev => new Set(prev).add(id));
     setSelectedNode(null);
     setActionError('');
     try {
-      await revokeNode(id);
+      if (!readOnly) await revokeNode(id);
     } catch (e: any) {
       // Roll the optimistic removal back, and say why the node reappeared —
       // previously it silently popped back into the table with no explanation.
       setRemovedIds(prev => { const s = new Set(prev); s.delete(id); return s; });
       setActionError(e?.message || 'Could not remove that node. It is still on your mesh.');
     }
-  }, []);
+  }, [readOnly]);
 
   const handleExpire = useCallback(async (id: string) => {
     setActionError('');
     try {
-      await expireNodeAction(id);
-      router.refresh();
+      if (!readOnly) {
+        await expireNodeAction(id);
+        router.refresh();
+      }
     } catch (e: any) {
       setActionError(e?.message || 'Could not expire that node. Its session is unchanged.');
     }
-  }, [router]);
+  }, [router, readOnly]);
 
   const formatDate = (d: string) => {
     if (!d || d.startsWith('0001')) return 'Never';
@@ -514,7 +525,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
 
   return (
     <div className="flex flex-col h-full relative overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
-      <InviteModal open={showInvite} onClose={() => setShowInvite(false)} onTokenIssued={handleTokenIssued} loginServer={loginServer} />
+      <InviteModal open={showInvite} onClose={() => setShowInvite(false)} onTokenIssued={handleTokenIssued} loginServer={loginServer} readOnly={readOnly} />
       {apiError && (
         <div className="flex-shrink-0 flex items-center gap-2.5 px-8 py-3" style={{ background: 'rgba(248,113,113,0.06)', borderBottom: '1px solid rgba(248,113,113,0.15)' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--red)', flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -535,7 +546,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
         subtitle={
           <span className="inline-flex items-center gap-1.5">
             <span className="status-dot online" style={{ width: 6, height: 6 }} />
-            Updated {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 30s
+            {readOnly ? 'Sample network · changes stay in this browser' : `Updated ${lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} · auto-refreshes every 30s`}
           </span>
         }
         actions={
@@ -726,6 +737,7 @@ export default function DashboardClient({ nodes, apiError, initialTags, uptimeLo
               onExpire={() => handleExpire(selectedNode.id)}
               onRename={name => setRenamedNodes(prev => ({ ...prev, [selectedNode.id]: name }))}
               onTagsChange={tags => setNodeTags(prev => ({ ...prev, [selectedNode.id]: tags }))}
+              readOnly={readOnly}
             />
           ) : (
             <FleetSnapshot nodes={visibleNodes} onSelect={setSelectedNode} />

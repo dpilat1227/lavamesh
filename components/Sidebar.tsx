@@ -6,13 +6,15 @@ import { signOut } from 'next-auth/react';
 import { navSections } from './navConfig';
 import { IconChip } from './ui';
 
-export default function Sidebar({ onClose, controlHost = 'api.lavamesh.com' }: { onClose?: () => void; controlHost?: string }) {
+export default function Sidebar({ onClose, controlHost = 'api.lavamesh.com', demo = false }: { onClose?: () => void; controlHost?: string; demo?: boolean }) {
   const pathname = usePathname();
+  const hrefFor = (path: string) => (demo ? (path === '/dashboard' ? '/demo' : `/demo${path}`) : path);
 
   // Real control-plane status instead of a hardcoded "Connected". Starts as
   // unknown so we never claim health we haven't verified.
-  const [health, setHealth] = useState<'unknown' | 'ok' | 'down'>('unknown');
+  const [health, setHealth] = useState<'unknown' | 'ok' | 'down'>(demo ? 'ok' : 'unknown');
   useEffect(() => {
+    if (demo) return;
     let cancelled = false;
     const check = async () => {
       try {
@@ -26,9 +28,9 @@ export default function Sidebar({ onClose, controlHost = 'api.lavamesh.com' }: {
     check();
     const id = setInterval(check, 60_000);
     return () => { cancelled = true; clearInterval(id); };
-  }, []);
+  }, [demo]);
 
-  const healthLabel = health === 'ok' ? 'Connected' : health === 'down' ? 'Unreachable' : 'Checking…';
+  const healthLabel = demo ? 'Sample data' : health === 'ok' ? 'Connected' : health === 'down' ? 'Unreachable' : 'Checking…';
   const healthColor = health === 'ok' ? 'var(--green)' : health === 'down' ? 'var(--red)' : 'var(--text-4)';
 
   return (
@@ -55,9 +57,10 @@ export default function Sidebar({ onClose, controlHost = 'api.lavamesh.com' }: {
             <p className="text-[10px] font-semibold uppercase tracking-widest px-2 mb-1.5" style={{ color: 'var(--text-4)' }}>{section.label}</p>
             <div className="space-y-0.5">
               {section.items.map((item) => {
-                const isActive = pathname === item.path;
+                const href = hrefFor(item.path);
+                const isActive = pathname === href;
                 return (
-                  <Link key={item.path} href={item.path} onClick={onClose} className={`nav-item ${isActive ? 'active' : ''}`}>
+                  <Link key={item.path} href={href} onClick={onClose} className={`nav-item ${isActive ? 'active' : ''}`}>
                     <span style={{ color: isActive ? 'var(--orange)' : 'var(--text-4)' }}>{item.icon}</span>
                     <span>{item.name}</span>
                   </Link>
@@ -84,13 +87,13 @@ export default function Sidebar({ onClose, controlHost = 'api.lavamesh.com' }: {
             </p>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
+            onClick={() => { if (demo) window.location.href = '/login'; else signOut({ callbackUrl: '/login' }); }}
             className="flex items-center justify-center w-7 h-7 rounded-[6px] flex-shrink-0 transition-all"
             style={{ color: 'var(--text-4)', background: 'transparent', border: 'none', cursor: 'pointer' }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-4)'; e.currentTarget.style.background = 'transparent'; }}
-            title="Sign out"
-            aria-label="Sign out"
+            title={demo ? 'Leave demo' : 'Sign out'}
+            aria-label={demo ? 'Leave demo' : 'Sign out'}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>

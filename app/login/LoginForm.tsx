@@ -77,6 +77,13 @@ export default function LoginForm({
 
           {!success ? (
             <form onSubmit={handleSubmit} className="space-y-3">
+              <a href="/demo" className="btn btn-primary w-full justify-center" style={{ padding: '11px 16px', fontSize: '14px', borderRadius: '12px', textDecoration: 'none' }}>
+                View demo
+              </a>
+              <p className="text-center text-[11px]" style={{ color: 'var(--text-4)' }}>
+                Sample network. No account. Nothing is saved.
+              </p>
+              <p className="text-center text-[11px] pt-1" style={{ color: 'var(--text-4)' }}>or sign in</p>
               {googleEnabled && (
                 <>
                   <button

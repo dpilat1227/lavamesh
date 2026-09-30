@@ -7,11 +7,12 @@ import { navSections } from './navConfig';
 interface Props {
   open: boolean;
   onClose: () => void;
+  basePath?: string;
 }
 
 const flatItems = navSections.flatMap(section => section.items.map(item => ({ ...item, section: section.label })));
 
-export default function CommandPalette({ open, onClose }: Props) {
+export default function CommandPalette({ open, onClose, basePath = '' }: Props) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
@@ -29,7 +30,8 @@ export default function CommandPalette({ open, onClose }: Props) {
   useEffect(() => { setActiveIndex(0); }, [query]);
 
   const go = (path: string) => {
-    router.push(path);
+    const href = basePath ? (path === '/dashboard' ? basePath : `${basePath}${path}`) : path;
+    router.push(href);
     onClose();
   };
 

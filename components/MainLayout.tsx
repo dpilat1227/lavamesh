@@ -7,6 +7,7 @@ import { IconChip } from '@/components/ui';
 
 export default function MainLayout({ children, controlHost }: { children: React.ReactNode; controlHost?: string }) {
   const pathname = usePathname();
+  const demo = pathname.startsWith('/demo');
   // Marketing pages render their own nav/footer (SiteNav, SiteFooter) and are
   // plain-document-flow layouts, not the app shell — without this, /blog fell
   // through to the dashboard chrome below: Sidebar rendered for anonymous
@@ -33,11 +34,11 @@ export default function MainLayout({ children, controlHost }: { children: React.
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', overflow: 'hidden' }}>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} basePath={demo ? '/demo' : ''} />
 
       {/* Sidebar — slides in on mobile, fixed on desktop */}
       <div className={`sidebar-mobile ${sidebarOpen ? 'open' : ''}`} style={{ position: 'relative' }}>
-        <Sidebar onClose={() => setSidebarOpen(false)} controlHost={controlHost} />
+        <Sidebar onClose={() => setSidebarOpen(false)} controlHost={demo ? 'sample network' : controlHost} demo={demo} />
       </div>
 
       {/* Mobile backdrop */}
@@ -78,6 +79,12 @@ export default function MainLayout({ children, controlHost }: { children: React.
           </div>
           <div style={{ width: 36 }} /> {/* spacer */}
         </div>
+        {demo && (
+          <div className="flex items-center justify-between gap-3 px-5 py-2" style={{ background: 'rgba(255,115,0,0.1)', borderBottom: '1px solid rgba(255,115,0,0.22)', flexShrink: 0 }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Demo network. You can click around. Nothing is saved.</p>
+            <a href="/login" style={{ fontSize: 12, color: '#ff9a3d', textDecoration: 'none', whiteSpace: 'nowrap' }}>Sign in</a>
+          </div>
+        )}
         {children}
       </div>
     </div>

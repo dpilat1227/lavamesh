@@ -16,7 +16,7 @@ interface PreAuthKey {
   user?: string;
 }
 
-function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
+function KeyRow({ k, onExpire, readOnly = false }: { k: PreAuthKey; onExpire: () => void; readOnly?: boolean }) {
   const [confirming, setConfirming] = useState(false);
   const [copied, setCopied] = useState(false);
   const router = useRouter();
@@ -32,9 +32,11 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
   };
 
   const expire = async () => {
-    await expireKeyAction(userName, k.key);
+    if (!readOnly) {
+      await expireKeyAction(userName, k.key);
+      router.refresh();
+    }
     onExpire();
-    router.refresh();
   };
 
   const expiryParts = (d: string) => {
@@ -129,7 +131,7 @@ function KeyRow({ k, onExpire }: { k: PreAuthKey; onExpire: () => void }) {
   );
 }
 
-function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; users: string[]; onClose: () => void; onGenerated: (entry: PreAuthKey) => void }) {
+function GenerateModal({ open, users, onClose, onGenerated, readOnly = false }: { open: boolean; users: string[]; onClose: () => void; onGenerated: (entry: PreAuthKey) => void; readOnly?: boolean }) {
   const [isPending, startTransition] = useTransition();
   const [user, setUser] = useState(users[0] || 'admin');
   const [reusable, setReusable] = useState(false);
@@ -152,7 +154,9 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
     setError('');
     startTransition(async () => {
       try {
-        const key = await generateKeyForUser(user, reusable, ephemeral, expiryDays);
+        const key = readOnly
+          ? `tskey-auth-demo-${Math.random().toString(36).slice(2, 8)}`
+          : await generateKeyForUser(user, reusable, ephemeral, expiryDays);
         if (!key) throw new Error('Headscale did not return a key');
         setNewKey(key);
         onGenerated({
@@ -255,7 +259,7 @@ function GenerateModal({ open, users, onClose, onGenerated }: { open: boolean; u
   );
 }
 
-export default function KeysClient({ keys, users, loadError }: { keys: PreAuthKey[]; users: string[]; loadError?: { message: string; detail?: string } }) {
+export default function KeysClient({ keys, users, loadError, readOnly = false }: { keys: PreAuthKey[]; users: string[]; loadError?: { message: string; detail?: string }; readOnly?: boolean }) {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [localKeys, setLocalKeys] = useState(keys);
@@ -344,6 +348,7 @@ export default function KeysClient({ keys, users, loadError }: { keys: PreAuthKe
             <KeyRow
               key={k.key}
               k={k}
+              readOnly={readOnly}
               onExpire={() =>
                 setLocalKeys(prev =>
                   prev.map(x =>
@@ -385,7 +390,7 @@ export default function KeysClient({ keys, users, loadError }: { keys: PreAuthKe
         eyebrow="Access control"
         title="Visual ACL builder"
         description="Build tag-based access rules without writing HuJSON. It lives in Settings, under Access Control Policy."
-        href="/settings"
+        href={readOnly ? '/demo/settings' : '/settings'}
         ctaLabel="Open ACL builder"
         icon={
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
@@ -401,6 +406,7 @@ export default function KeysClient({ keys, users, loadError }: { keys: PreAuthKe
       <GenerateModal
         open={showModal}
         users={users}
+        readOnly={readOnly}
         onClose={() => setShowModal(false)}
         onGenerated={entry => {
           setLocalKeys(prev => prev.some(k => k.key === entry.key) ? prev : [entry, ...prev]);

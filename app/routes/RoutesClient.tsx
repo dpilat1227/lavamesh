@@ -15,7 +15,7 @@ interface Route {
 
 const isExitNode = (r: Route) => r.prefix === '0.0.0.0/0' || r.prefix === '::/0';
 
-function RouteRow({ route, index, haRole }: { route: Route; index: number; haRole?: 'primary' | 'backup' }) {
+function RouteRow({ route, index, haRole, readOnly = false }: { route: Route; index: number; haRole?: 'primary' | 'backup'; readOnly?: boolean }) {
   const [isPending, startTransition] = useTransition();
   const [optimisticEnabled, setOptimisticEnabled] = useOptimistic(route.enabled);
   const [confirmDisable, setConfirmDisable] = useState(false);
@@ -35,7 +35,7 @@ function RouteRow({ route, index, haRole }: { route: Route; index: number; haRol
       startTransition(async () => {
         setOptimisticEnabled(nextEnabled);
         try {
-          await fn();
+          if (!readOnly) await fn();
           resolve();
         } catch (e: any) {
           // useOptimistic snaps back to the server value when the transition
@@ -177,7 +177,7 @@ interface SubnetGroup {
   isHA: boolean;
 }
 
-export default function RoutesClient({ routes }: { routes: Route[] }) {
+export default function RoutesClient({ routes, readOnly = false }: { routes: Route[]; readOnly?: boolean }) {
   const exits = routes.filter(isExitNode);
   const subnets = routes.filter(r => !isExitNode(r));
   const pendingRoutes = routes.filter(r => r.advertised && !r.enabled);
@@ -232,7 +232,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
                   <span className="text-[11px] font-semibold uppercase tracking-wider w-[110px] text-right" style={{ color: 'var(--text-3)' }}>Action</span>
                 </div>
               </div>
-              {exits.map((r, i) => <RouteRow key={r.id} route={r} index={i} />)}
+              {exits.map((r, i) => <RouteRow key={r.id} route={r} index={i} readOnly={readOnly} />)}
             </section>
           )}
 
@@ -259,10 +259,10 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
                       <span className="text-[11px] font-medium" style={{ color: 'var(--green)' }}>Automatic failover — {group.routes.length} nodes advertising this subnet</span>
                     </div>
-                    {group.routes.map((r, i) => <RouteRow key={r.id} route={r} index={i} haRole={r.isPrimary ? 'primary' : 'backup'} />)}
+                    {group.routes.map((r, i) => <RouteRow key={r.id} route={r} index={i} haRole={r.isPrimary ? 'primary' : 'backup'} readOnly={readOnly} />)}
                   </div>
                 ) : (
-                  group.routes.map((r, i) => <RouteRow key={r.id} route={r} index={i} />)
+                  group.routes.map((r, i) => <RouteRow key={r.id} route={r} index={i} readOnly={readOnly} />)
                 )
               )}
             </section>
@@ -298,7 +298,7 @@ export default function RoutesClient({ routes }: { routes: Route[] }) {
         eyebrow="Alerts"
         title="Failover alerts"
         description="Get an email or webhook the moment a subnet route fails over to its backup node. Turn it on in Settings."
-        href="/settings"
+        href={readOnly ? '/demo/settings' : '/settings'}
         ctaLabel="Open notification settings"
         icon={
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">

@@ -16,6 +16,7 @@ export function proxy(req: NextRequest) {
     // asset) and its supporting API calls completely invisible to anyone
     // who wasn't already signed in.
     pathname.startsWith("/blog") ||
+    pathname.startsWith("/demo") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/install") ||
     pathname.startsWith("/api/waitlist") ||
