@@ -59,7 +59,7 @@ const plans = [
     // Honest, not hidden: still a real price, but says out loud that it's not
     // fixed in stone yet. Softens the "money grab" read for cold visitors
     // without pretending a live Stripe link doesn't exist.
-    note: 'Early pricing while I figure out what teams actually need — reply below if $19 feels off.',
+    note: 'Early pricing while we figure out what teams actually need — reply below if $19 feels off.',
     highlight: false,
   },
   {
@@ -74,7 +74,7 @@ const plans = [
       'Managed Headscale instance',
       'No server to stand up',
       'Automatic updates and config backups',
-      'Email me if something breaks',
+      'Email us if something breaks',
     ],
     notIncluded: [],
     // Checkout stays waitlisted until CLOUD_CHECKOUT_ENABLED=true *and*
@@ -84,7 +84,7 @@ const plans = [
         ? { label: 'Start Cloud →', href: '/api/checkout?plan=cloud', external: false }
         : { label: 'Join Cloud Waitlist →', href: '#waitlist', external: false },
     highlight: true,
-    note: 'Private beta. I host it. No SLA paperwork, no onboarding call — just a working network.',
+    note: 'Private beta. We host it. No SLA paperwork, no onboarding call — just a working network.',
   },
 ];
 

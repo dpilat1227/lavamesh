@@ -64,7 +64,7 @@ export default function WaitlistForm() {
             </p>
             <p className="mb-8 text-[15px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
               {betaFull
-                ? 'This first wave of Cloud is full. Leave your email and I will write when the next seats open.'
+                ? 'This first wave of Cloud is full. Leave your email and we will write when the next seats open.'
                 : 'We host Headscale and the dashboard for you. No servers, no config files. Just your private mesh.'}
             </p>
 
