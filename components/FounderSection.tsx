@@ -33,7 +33,7 @@ export default function FounderSection() {
                 We got tired of paying per-seat for VPNs and wrestling with raw WireGuard configs.
               </p>
               <p>
-                We built LavaMesh to fix that. It's a control plane you can host yourself. No node limits, no telemetry, no corporate lock-in.
+                We built LavaMesh to fix that. It&apos;s a control plane you can host yourself. No node limits, no telemetry, no corporate lock-in.
               </p>
               <p>
                 Just your network, on your infrastructure.
