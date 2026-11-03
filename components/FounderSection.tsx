@@ -10,7 +10,7 @@ type Founder = {
 
 const FOUNDERS: Founder[] = [
   { name: 'Drew Pilat', role: 'Co-founder', photo: '/drew_headshot.jpg', linkedin: 'https://www.linkedin.com/in/drew-pilat/' },
-  { name: 'Maya Nayak', role: 'Co-founder', photo: '/maya-nayak.jpg' },
+  { name: 'Maya Nayak', role: 'Co-founder', photo: '/maya-nayak.jpg', linkedin: 'https://www.linkedin.com/in/mayaknayak' },
 ];
 
 export default function FounderSection() {
